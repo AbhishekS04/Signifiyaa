@@ -21,8 +21,10 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "pan"
     },
+    "jsEngine": "hermes",
     "web": {
       "favicon": "./assets/favicon.png"
     },

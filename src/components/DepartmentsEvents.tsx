@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { Star } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
 
@@ -267,7 +268,10 @@ const DepartmentsEvents = () => {
                     {filters.map((filter, index) => (
                         <TouchableOpacity
                             key={index}
-                            onPress={() => setSelectedCategory(filter)} // Change active filter
+                            onPress={() => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                                setSelectedCategory(filter);
+                            }}
                             className={`px-4 py-2 rounded-full border-2 border-black ${selectedCategory === filter ? 'bg-black' : 'bg-white'
                                 }`}
                         >
@@ -363,6 +367,7 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                 <View className="gap-3">
                     {/* View Details Button */}
                     <TouchableOpacity
+                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                         className="border-2 border-black py-3 rounded-xl items-center"
                         style={{ backgroundColor: buttonColor }}
                     >
@@ -370,7 +375,10 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                     </TouchableOpacity>
 
                     {/* Register Button */}
-                    <TouchableOpacity className="bg-black py-3 rounded-xl items-center">
+                    <TouchableOpacity
+                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                        className="bg-black py-3 rounded-xl items-center"
+                    >
                         <Text className="font-[Inter_700Bold] text-white">REGISTER</Text>
                     </TouchableOpacity>
                 </View>

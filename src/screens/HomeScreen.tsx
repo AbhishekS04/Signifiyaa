@@ -19,6 +19,12 @@ export default function HomeScreen() {
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 0 }}
+                // Buttery smooth momentum scrolling
+                decelerationRate={0.985} // Very slow deceleration = maximum momentum
+                scrollEventThrottle={16} // 60fps scroll events
+                overScrollMode="never" // Cleaner scroll experience (Android)
+                bounces={true} // Natural iOS bounce
+                nestedScrollEnabled={true} // Better Android compatibility
             >
                 <View className="mb-4">
                     <HeroSection />
