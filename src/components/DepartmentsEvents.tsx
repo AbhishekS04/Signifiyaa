@@ -11,7 +11,7 @@ import Animated, {
     interpolate
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { Video, ResizeMode } from 'expo-av';
+import { VideoView, useVideoPlayer } from 'expo-video';
 
 const { width } = Dimensions.get('window');
 
@@ -395,7 +395,23 @@ interface EventCardProps {
 }
 
 const EventCard = ({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl }: EventCardProps) => {
+    // Track muted state for UI updates
     const [isMuted, setIsMuted] = useState(true);
+
+    // Initialize video player for expo-video
+    const player = useVideoPlayer(videoUrl || '', (player) => {
+        player.loop = true;
+        player.play();
+        player.muted = true;
+    });
+
+    const toggleMute = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        const newMutedState = !isMuted;
+        setIsMuted(newMutedState);
+        player.muted = newMutedState;
+    };
+
     // ============================================
     // EXPERIMENTAL: ACCORDION ANIMATION (COMMENTED OUT AS PER USER REQUEST)
     // ============================================
@@ -479,8 +495,8 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
             >
                 {videoUrl ? (
                     <View className="w-full h-full">
-                        <Video
-                            source={{ uri: videoUrl }}
+                        <VideoView
+                            player={player}
                             style={{
                                 width: '125%',
                                 height: '125%',
@@ -488,16 +504,11 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                                 left: '-10%',
                                 top: '-12.5%'
                             }}
-                            resizeMode={ResizeMode.COVER}
-                            shouldPlay
-                            isLooping
-                            isMuted={isMuted}
+                            contentFit="cover"
+                            nativeControls={false}
                         />
                         <TouchableOpacity
-                            onPress={() => {
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                setIsMuted(!isMuted);
-                            }}
+                            onPress={toggleMute}
                             className="absolute bottom-4 right-4 bg-black/60 p-2 rounded-full border border-white/20"
                         >
                             {isMuted ? (
