@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { Star, Plus, X } from 'lucide-react-native';
+import { Star, Plus, X, Volume2, VolumeX } from 'lucide-react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -11,6 +11,7 @@ import Animated, {
     interpolate
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { Video, ResizeMode } from 'expo-av';
 
 const { width } = Dimensions.get('window');
 
@@ -18,8 +19,8 @@ const { width } = Dimensions.get('window');
 // EVENT DATA STRUCTURE
 // ============================================
 // TO ADD NEW EVENTS: Simply add a new object to the array below
-// Each event MUST have: title, date, category, description, prizePool, imageColor, buttonColor
 // Categories: 'ESPORTS', 'CSE', 'CIVIL', 'MECHANICAL', 'EEE', 'ROBOTICS', 'NON-TECH'
+// Every event now supports both imageUrl and videoUrl. Video takes priority if provided.
 
 // ============================================
 // DESIGN SYSTEM: FONTS (EASY TO CHANGE)
@@ -46,7 +47,8 @@ const EVENTS_DATA = [
         prizePool: 'TBA',
         imageColor: '#ccff00',
         buttonColor: '#D194FF',
-        imageUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/0e1b4b2f-ab1e-41ab-a1b5-42658c8ae07b.mp4' // Valorant Agent Gekko
+        imageUrl: '',
+        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/0e1b4b2f-ab1e-41ab-a1b5-42658c8ae07b.mp4' // Valorant Agent Gekko
     },
     {
         title: 'BGMI',
@@ -56,7 +58,8 @@ const EVENTS_DATA = [
         prizePool: '10K',
         imageColor: '#ff9966',
         buttonColor: '#D194FF',
-        imageUrl: 'https://cdn.dnaindia.com/sites/default/files/styles/full/public/2021/05/18/974632-untitled-design-77.jpg'
+        imageUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
+        videoUrl: ''
     },
 
 
@@ -69,7 +72,8 @@ const EVENTS_DATA = [
         prizePool: '50K',
         imageColor: '#66ccff',
         buttonColor: '#FFD700',
-        imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Coding/Tech
+        imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Coding/Tech
+        videoUrl: ''
     },
     {
         title: 'CODE RELAY',
@@ -79,7 +83,8 @@ const EVENTS_DATA = [
         prizePool: 'TBA',
         imageColor: '#9933ff',
         buttonColor: '#FFD700',
-        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'
+        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+        videoUrl: ''
     },
 
     // --- CIVIL EVENTS ---
@@ -91,7 +96,8 @@ const EVENTS_DATA = [
         prizePool: '15K',
         imageColor: '#ff6666',
         buttonColor: '#90EE90',
-        imageUrl: 'https://images.unsplash.com/photo-1545139224-7eb9c2acc995?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Bridge
+        imageUrl: 'https://images.unsplash.com/photo-1545139224-7eb9c2acc995?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Bridge
+        videoUrl: ''
     },
     {
         title: 'CAD MASTER',
@@ -101,7 +107,8 @@ const EVENTS_DATA = [
         prizePool: 'TBA',
         imageColor: '#ffaa66',
         buttonColor: '#90EE90',
-        imageUrl: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Engineering
+        imageUrl: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Engineering
+        videoUrl: ''
     },
 
     // --- MECHANICAL EVENTS ---
@@ -113,7 +120,8 @@ const EVENTS_DATA = [
         prizePool: '25K',
         imageColor: '#66ff66',
         buttonColor: '#FFB6C1',
-        imageUrl: 'https://images.unsplash.com/photo-1531746790731-6c087fecd05a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Robotics
+        imageUrl: 'https://images.unsplash.com/photo-1531746790731-6c087fecd05a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Robotics
+        videoUrl: ''
     },
     {
         title: 'MECHANISM DESIGN',
@@ -123,7 +131,8 @@ const EVENTS_DATA = [
         prizePool: 'TBA',
         imageColor: '#66ffcc',
         buttonColor: '#FFB6C1',
-        imageUrl: 'https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Gears/Mech
+        imageUrl: 'https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Gears/Mech
+        videoUrl: ''
     },
 
     // --- EEE EVENTS ---
@@ -135,7 +144,8 @@ const EVENTS_DATA = [
         prizePool: '20K',
         imageColor: '#ff99cc',
         buttonColor: '#87CEEB',
-        imageUrl: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Electronics
+        imageUrl: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Electronics
+        videoUrl: ''
     },
     {
         title: 'SMART HOME',
@@ -145,7 +155,8 @@ const EVENTS_DATA = [
         prizePool: 'TBA',
         imageColor: '#cc99ff',
         buttonColor: '#87CEEB',
-        imageUrl: 'https://images.unsplash.com/photo-1558002038-1055907df827?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Smart home
+        imageUrl: 'https://images.unsplash.com/photo-1558002038-1055907df827?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Smart home
+        videoUrl: ''
     },
 
     // --- ROBOTICS EVENTS ---
@@ -157,7 +168,8 @@ const EVENTS_DATA = [
         prizePool: '30K',
         imageColor: '#ffcc66',
         buttonColor: '#DDA0DD',
-        imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'
+        imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+        videoUrl: ''
     },
     {
         title: 'DRONE RACING',
@@ -167,7 +179,8 @@ const EVENTS_DATA = [
         prizePool: '35K',
         imageColor: '#66cccc',
         buttonColor: '#DDA0DD',
-        imageUrl: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Drones
+        imageUrl: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Drones
+        videoUrl: ''
     },
 
     // --- NON-TECH EVENTS ---
@@ -179,7 +192,8 @@ const EVENTS_DATA = [
         prizePool: '10K',
         imageColor: '#ffff99',
         buttonColor: '#98FB98',
-        imageUrl: 'https://images.unsplash.com/photo-1519074063912-ad2fe3f5113c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Map/Adventure
+        imageUrl: 'https://images.unsplash.com/photo-1519074063912-ad2fe3f5113c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Map/Adventure
+        videoUrl: ''
     },
     {
         title: 'TALENT SHOW',
@@ -189,7 +203,8 @@ const EVENTS_DATA = [
         prizePool: 'TBA',
         imageColor: '#ffccff',
         buttonColor: '#98FB98',
-        imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Stage/Performance
+        imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Stage/Performance
+        videoUrl: ''
     },
 ];
 
@@ -343,6 +358,7 @@ const DepartmentsEvents = () => {
                                 imageColor={event.imageColor}
                                 buttonColor={event.buttonColor}
                                 imageUrl={event.imageUrl}
+                                videoUrl={event.videoUrl}
                             />
                         ))
                     ) : (
@@ -375,9 +391,11 @@ interface EventCardProps {
     imageColor: string;
     buttonColor: string;
     imageUrl?: string;
+    videoUrl?: string; // New field for video support
 }
 
-const EventCard = ({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl }: EventCardProps) => {
+const EventCard = ({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl }: EventCardProps) => {
+    const [isMuted, setIsMuted] = useState(true);
     // ============================================
     // EXPERIMENTAL: ACCORDION ANIMATION (COMMENTED OUT AS PER USER REQUEST)
     // ============================================
@@ -449,12 +467,39 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
 
     return (
         <View className="bg-white border-[3px] border-black rounded-[32px] overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            {/* Poster Header - Rounded top inside the border to prevent color leak */}
+            {/* Poster Header - Perfect Rounding for Crisped Corners */}
             <View
-                className="h-80 relative w-full border-b-[3px] border-black bg-gray-100 overflow-hidden"
-                style={{ borderTopLeftRadius: 29, borderTopRightRadius: 29 }}
+                className="h-80 relative w-full border-b-[3px] border-black bg-white overflow-hidden"
+                style={{
+                    borderTopLeftRadius: 29,
+                    borderTopRightRadius: 29
+                }}
             >
-                {imageUrl ? (
+                {videoUrl ? (
+                    <View className="w-full h-full">
+                        <Video
+                            source={{ uri: videoUrl }}
+                            style={{ width: '100%', height: '100%', borderTopLeftRadius: 29, borderTopRightRadius: 29 }}
+                            resizeMode={ResizeMode.COVER}
+                            shouldPlay
+                            isLooping
+                            isMuted={isMuted}
+                        />
+                        <TouchableOpacity
+                            onPress={() => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                setIsMuted(!isMuted);
+                            }}
+                            className="absolute bottom-4 right-4 bg-black/60 p-2 rounded-full border border-white/20"
+                        >
+                            {isMuted ? (
+                                <VolumeX size={18} color="white" />
+                            ) : (
+                                <Volume2 size={18} color="white" />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                ) : imageUrl ? (
                     <Image
                         source={{ uri: imageUrl }}
                         className="w-full h-full"

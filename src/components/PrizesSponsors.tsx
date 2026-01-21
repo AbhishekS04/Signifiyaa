@@ -164,20 +164,34 @@ const PrizesSponsors = () => {
                 <View className="z-10">
                     {/* Massive Typography Block */}
                     <View className="items-center mb-4">
-                        <Text className="font-[ArchivoBlack_400Regular] text-[72px] leading-[72px] text-black">
-                            120K+
-                        </Text>
-                        <Text className="font-[ArchivoBlack_400Regular] text-[56px] leading-[56px] text-black -mt-2">
-                            INR
-                        </Text>
-                        <Text className="font-[Inter_400Regular] text-xl text-black mt-1 tracking-widest uppercase">
+                            <Text className="text-[50px] leading-[50px] text-black"
+                                style={{
+                                    fontFamily: 'BBHBartle',
+                                }}
+                            >
+                                120K+
+                            </Text>
+                        <Text className="text-[50px] leading-[50px] text-black -mt-2"
+                                style={{
+                                    fontFamily: 'BBHBartle',
+                                }}
+                            >
+                                INR
+                            </Text>
+                        <Text className="text-xl text-black mt-1 tracking-widest uppercase"
+                        style={{
+                            fontFamily: 'Gilton',
+                        }}>
                             IN PRIZE POOL
                         </Text>
                     </View>
 
                     {/* Footer Text with sparkle */}
-                    <Text className="font-[Inter_700Bold] text-gray-800 text-center uppercase text-sm tracking-wide">
-                        GOODIES, MERCHES &{'\n'}MANY MORE✨
+                    <Text className="text-gray-800 text-center uppercase text-sm tracking-wide"
+                    style={{
+                        fontFamily: 'Softura',
+                    }}>
+                        GOODIES, MERCHES &{'\n'}MANY MORE...
                     </Text>
                 </View>
             </View>
@@ -188,11 +202,19 @@ const PrizesSponsors = () => {
                 {/* Header */}
                 <View className="items-center mb-8">
                     <View className="flex-row items-baseline">
-                        <Text className="font-[ArchivoBlack_400Regular] text-3xl text-black mr-2">OUR</Text>
-                        <Text className="font-[Inter_700Bold] text-3xl text-black italic">SPONSORS</Text>
+                        <View className="items-center">
+                            <Text className="text-5xl text-black" style={{
+                                fontFamily: 'Gilton',
+                            }}>OUR</Text>
+                            <Text className="text-5xl text-black -mt-2" style={{
+                                fontFamily: 'Gilton',
+                            }}>SPONSORS</Text>
+                        </View>
                     </View>
-                    <Text className="font-[Inter_400Regular] text-gray-500 text-sm mt-1">
-                        Powered by the best in the industry.
+                    <Text className="text-gray-500 text-lg mt-1 text-center" style={{
+                        fontFamily: 'Softura',
+                    }}>
+                        Powered by the best in the industry
                     </Text>
                 </View>
 
@@ -210,7 +232,10 @@ const PrizesSponsors = () => {
 
                 {/* Action Button */}
                 <TouchableOpacity className="bg-black py-4 rounded-full items-center shadow-md">
-                    <Text className="font-[ArchivoBlack_400Regular] text-white text-lg">
+                    <Text className="text-white text-lg"
+                    style={{
+                        fontFamily: 'Softura',
+                    }}>
                         BECOME A SPONSOR
                     </Text>
                 </TouchableOpacity>
