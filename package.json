@@ -18,6 +18,7 @@
     "expo-linear-gradient": "15.0.8",
     "expo-splash-screen": "31.0.13",
     "expo-status-bar": "3.0.9",
+    "lightningcss": "1.27.0",
     "lucide-react-native": "^0.562.0",
     "nativewind": "^4.2.1",
     "react": "19.1.0",

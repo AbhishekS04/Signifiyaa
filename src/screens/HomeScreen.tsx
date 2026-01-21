@@ -30,7 +30,7 @@ export default function HomeScreen() {
                     <HeroSection />
                 </View>
 
-                <View className="p-2 gap-4">
+                <View className="px-4 gap-4">
                     <AboutSection />
                     <GallerySection />
                     <DepartmentsEvents />

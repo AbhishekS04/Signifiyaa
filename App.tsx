@@ -13,6 +13,11 @@ export default function App() {
     ArchivoBlack_400Regular,
     Inter_400Regular,
     Inter_700Bold,
+    'BBHBartle': require('./fonts/BBHBartle-Regular.ttf'),
+    'Bicubik': require('./fonts/Bicubik.otf'),
+    'Gilton': require('./fonts/GiltonRegular.otf'),
+    'RampartOne': require('./fonts/RampartOne-Regular.ttf'),
+    'Softura': require('./fonts/Softura-Demo.otf'),
   });
 
   useEffect(() => {

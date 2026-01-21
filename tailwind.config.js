@@ -21,6 +21,11 @@ module.exports = {
       fontFamily: {
         heading: ["ArchivoBlack_400Regular"],
         body: ["Inter_700Bold"],
+        bartle: ["BBHBartle"],
+        bicubik: ["Bicubik"],
+        gilton: ["Gilton"],
+        rampart: ["RampartOne"],
+        softura: ["Softura"],
       },
     },
   },
