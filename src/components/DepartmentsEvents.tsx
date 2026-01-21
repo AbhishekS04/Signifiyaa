@@ -21,6 +21,21 @@ const { width } = Dimensions.get('window');
 // Each event MUST have: title, date, category, description, prizePool, imageColor, buttonColor
 // Categories: 'ESPORTS', 'CSE', 'CIVIL', 'MECHANICAL', 'EEE', 'ROBOTICS', 'NON-TECH'
 
+// ============================================
+// DESIGN SYSTEM: FONTS (EASY TO CHANGE)
+// ============================================
+const SECTION_FONTS = {
+    SECTION_HEADER: 'Gilton',
+    EVENT_TITLE: 'Gilton',
+    DATE: 'Softura',
+    PRIZE_POOL_LABEL: 'Softura',
+    PRIZE_POOL_VALUE: 'Softura',
+    DESCRIPTION: 'Softura',
+    FILTER_LABEL: 'Gilton',
+    BADGE: 'Gilton',
+    BUTTON: 'Gilton',
+};
+
 const EVENTS_DATA = [
     // --- ESPORTS EVENTS ---
     {
@@ -28,9 +43,10 @@ const EVENTS_DATA = [
         date: 'MARCH 13TH - 14TH',
         category: 'ESPORTS',
         description: 'Join the ultimate tactical FPS showdown. Form your squad and compete for glory!',
-        prizePool: '10K',
-        imageColor: '#ccff00', // Lime green
-        buttonColor: '#D0A0FF', // Purple
+        prizePool: 'TBA',
+        imageColor: '#ccff00',
+        buttonColor: '#D194FF',
+        imageUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/0e1b4b2f-ab1e-41ab-a1b5-42658c8ae07b.mp4' // Valorant Agent Gekko
     },
     {
         title: 'BGMI',
@@ -38,8 +54,9 @@ const EVENTS_DATA = [
         category: 'ESPORTS',
         description: 'Battle it out in the most popular mobile battle royale championship.',
         prizePool: '10K',
-        imageColor: '#ff9966', // Orange
-        buttonColor: '#D0A0FF',
+        imageColor: '#ff9966',
+        buttonColor: '#D194FF',
+        imageUrl: 'https://cdn.dnaindia.com/sites/default/files/styles/full/public/2021/05/18/974632-untitled-design-77.jpg'
     },
 
 
@@ -52,6 +69,7 @@ const EVENTS_DATA = [
         prizePool: '50K',
         imageColor: '#66ccff',
         buttonColor: '#FFD700',
+        imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Coding/Tech
     },
     {
         title: 'CODE RELAY',
@@ -61,6 +79,7 @@ const EVENTS_DATA = [
         prizePool: 'TBA',
         imageColor: '#9933ff',
         buttonColor: '#FFD700',
+        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'
     },
 
     // --- CIVIL EVENTS ---
@@ -72,6 +91,7 @@ const EVENTS_DATA = [
         prizePool: '15K',
         imageColor: '#ff6666',
         buttonColor: '#90EE90',
+        imageUrl: 'https://images.unsplash.com/photo-1545139224-7eb9c2acc995?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Bridge
     },
     {
         title: 'CAD MASTER',
@@ -81,6 +101,7 @@ const EVENTS_DATA = [
         prizePool: 'TBA',
         imageColor: '#ffaa66',
         buttonColor: '#90EE90',
+        imageUrl: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Engineering
     },
 
     // --- MECHANICAL EVENTS ---
@@ -92,6 +113,7 @@ const EVENTS_DATA = [
         prizePool: '25K',
         imageColor: '#66ff66',
         buttonColor: '#FFB6C1',
+        imageUrl: 'https://images.unsplash.com/photo-1531746790731-6c087fecd05a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Robotics
     },
     {
         title: 'MECHANISM DESIGN',
@@ -101,6 +123,7 @@ const EVENTS_DATA = [
         prizePool: 'TBA',
         imageColor: '#66ffcc',
         buttonColor: '#FFB6C1',
+        imageUrl: 'https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Gears/Mech
     },
 
     // --- EEE EVENTS ---
@@ -112,6 +135,7 @@ const EVENTS_DATA = [
         prizePool: '20K',
         imageColor: '#ff99cc',
         buttonColor: '#87CEEB',
+        imageUrl: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Electronics
     },
     {
         title: 'SMART HOME',
@@ -121,6 +145,7 @@ const EVENTS_DATA = [
         prizePool: 'TBA',
         imageColor: '#cc99ff',
         buttonColor: '#87CEEB',
+        imageUrl: 'https://images.unsplash.com/photo-1558002038-1055907df827?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Smart home
     },
 
     // --- ROBOTICS EVENTS ---
@@ -132,6 +157,7 @@ const EVENTS_DATA = [
         prizePool: '30K',
         imageColor: '#ffcc66',
         buttonColor: '#DDA0DD',
+        imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'
     },
     {
         title: 'DRONE RACING',
@@ -141,6 +167,7 @@ const EVENTS_DATA = [
         prizePool: '35K',
         imageColor: '#66cccc',
         buttonColor: '#DDA0DD',
+        imageUrl: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Drones
     },
 
     // --- NON-TECH EVENTS ---
@@ -152,6 +179,7 @@ const EVENTS_DATA = [
         prizePool: '10K',
         imageColor: '#ffff99',
         buttonColor: '#98FB98',
+        imageUrl: 'https://images.unsplash.com/photo-1519074063912-ad2fe3f5113c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Map/Adventure
     },
     {
         title: 'TALENT SHOW',
@@ -161,6 +189,7 @@ const EVENTS_DATA = [
         prizePool: 'TBA',
         imageColor: '#ffccff',
         buttonColor: '#98FB98',
+        imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80' // Stage/Performance
     },
 ];
 
@@ -265,11 +294,11 @@ const DepartmentsEvents = () => {
                 {/* Header */}
                 <View className="items-center my-6">
                     <Text className="text-4xl text-black  mb-2"
-                        style={{ fontFamily: 'Gilton', paddingRight: 10 }}>SIGNIFIYA</Text>
+                        style={{ fontFamily: SECTION_FONTS.SECTION_HEADER, paddingRight: 10 }}>SIGNIFIYA</Text>
                     <Text className="text-4xl text-black "
-                        style={{ fontFamily: 'Gilton', paddingRight: 10 }}>EVENTS</Text>
+                        style={{ fontFamily: SECTION_FONTS.SECTION_HEADER, paddingRight: 10 }}>EVENTS</Text>
                     <Text className="text-gray-500 text-center mt-2 px-8 font-semibold"
-                        style={{ fontFamily: 'Softura' }}>
+                        style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}>
                         Discover the diverse range of events happening at Signifiya'26.
                     </Text>
                 </View>
@@ -290,7 +319,7 @@ const DepartmentsEvents = () => {
                         >
                             <Text
                                 className={`text-[12px] uppercase tracking-wider ${selectedCategory === filter ? 'text-white' : 'text-black'}`}
-                                style={{ fontFamily: 'Softura' }}
+                                style={{ fontFamily: SECTION_FONTS.FILTER_LABEL }}
                             >
                                 {filter}
                             </Text>
@@ -313,6 +342,7 @@ const DepartmentsEvents = () => {
                                 prizePool={event.prizePool}
                                 imageColor={event.imageColor}
                                 buttonColor={event.buttonColor}
+                                imageUrl={event.imageUrl}
                             />
                         ))
                     ) : (
@@ -344,16 +374,20 @@ interface EventCardProps {
     prizePool: string;
     imageColor: string;
     buttonColor: string;
+    imageUrl?: string;
 }
 
-const EventCard = ({ title, date, category, description, prizePool, imageColor, buttonColor }: EventCardProps) => {
+const EventCard = ({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl }: EventCardProps) => {
+    // ============================================
+    // EXPERIMENTAL: ACCORDION ANIMATION (COMMENTED OUT AS PER USER REQUEST)
+    // ============================================
+    /*
     const [isExpanded, setIsExpanded] = useState(false);
     const [contentHeight, setContentHeight] = useState(0);
     const heightValue = useSharedValue(0);
     const rotationValue = useSharedValue(0);
     const buttonOpacity = useSharedValue(0);
 
-    // Ultra-smooth height animation with dynamic content height
     const animatedHeight = useAnimatedStyle(() => {
         return {
             height: heightValue.value,
@@ -365,7 +399,6 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
         };
     });
 
-    // Smooth button fade animation
     const animatedButtons = useAnimatedStyle(() => {
         return {
             opacity: buttonOpacity.value,
@@ -375,12 +408,11 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
         };
     });
 
-    // Smooth icon rotation animation
     const animatedIconRotation = useAnimatedStyle(() => {
         return {
             transform: [
                 { rotate: `${rotationValue.value}deg` },
-                { scale: interpolate(rotationValue.value, [0, 90, 180], [1, 1.1, 1]) }, // Subtle scale bounce
+                { scale: interpolate(rotationValue.value, [0, 90, 180], [1, 1.1, 1]) },
             ],
         };
     });
@@ -389,25 +421,22 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         setIsExpanded(!isExpanded);
 
-        // Ultra-smooth height animation with custom bezier curve
         heightValue.value = withTiming(
             isExpanded ? 0 : contentHeight,
             {
-                duration: 450, // Optimal for smoothness
-                easing: Easing.bezier(0.25, 0.1, 0.25, 1), // CSS ease-out equivalent
+                duration: 450,
+                easing: Easing.bezier(0.25, 0.1, 0.25, 1),
             }
         );
 
-        // Smooth rotation for icon (faster than height for responsiveness)
         rotationValue.value = withTiming(
             isExpanded ? 0 : 180,
             {
                 duration: 300,
-                easing: Easing.bezier(0.4, 0.0, 0.2, 1), // Material design curve
+                easing: Easing.bezier(0.4, 0.0, 0.2, 1),
             }
         );
 
-        // Staggered button fade-in
         buttonOpacity.value = withTiming(
             isExpanded ? 0 : 1,
             {
@@ -416,92 +445,94 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
             }
         );
     };
+    */
 
     return (
-        <View className="bg-white border-[3px] border-black rounded-3xl overflow-hidden shadow-sm">
-            {/* Image Area Placeholder */}
-            <View className="h-48 relative p-4 flex-row justify-between" style={{ backgroundColor: imageColor }}>
-                {/* Category Badge */}
-                <View className="absolute top-4 right-4 bg-black px-3 py-1 rounded-full">
-                    <Text className="text-white text-xs font-bold">{category}</Text>
+        <View className="bg-white border-[3px] border-black rounded-[32px] overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            {/* Poster Header - Rounded top inside the border to prevent color leak */}
+            <View
+                className="h-80 relative w-full border-b-[3px] border-black bg-gray-100 overflow-hidden"
+                style={{ borderTopLeftRadius: 29, borderTopRightRadius: 29 }}
+            >
+                {imageUrl ? (
+                    <Image
+                        source={{ uri: imageUrl }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                        style={{ borderTopLeftRadius: 29, borderTopRightRadius: 29 }}
+                    />
+                ) : (
+                    <View className="w-full h-full items-center justify-center" style={{ backgroundColor: imageColor }}>
+                        <Text className="text-black font-bold opacity-20">POSTER GOES HERE</Text>
+                    </View>
+                )}
+
+                {/* Category Badge - Neo Brutalist Style */}
+                <View className="absolute top-4 right-4 bg-black px-4 py-2 rounded-full border-2 border-white/20">
+                    <Text
+                        className="text-white text-[10px] tracking-widest uppercase"
+                        style={{ fontFamily: SECTION_FONTS.BADGE }}
+                    >
+                        {category}
+                    </Text>
                 </View>
             </View>
 
             {/* Content Area */}
-            <View className="p-4 bg-white">
-                {/* Title Row with Expand Button */}
-                <View className="flex-row justify-between items-start mb-2">
-                    <View className="flex-1 pr-2">
-                        {/* Event Title */}
-                        <Text className="font-[ArchivoBlack_400Regular] text-2xl text-black uppercase leading-7">
-                            {title}
-                        </Text>
+            <View className="p-5 bg-white">
+                {/* Event Title - Bold Afro-style typography */}
+                <Text
+                    className="text-black text-3xl uppercase leading-8 mb-1"
+                    style={{ fontFamily: SECTION_FONTS.EVENT_TITLE }}
+                >
+                    {title}
+                </Text>
 
-                        {/* Event Date */}
-                        <Text className="font-[Inter_700Bold] text-gray-400 text-sm mt-1">
-                            {date}
-                        </Text>
-                    </View>
+                {/* Event Date */}
+                <Text
+                    className="text-[#8e99af] text-lg mb-3"
+                    style={{ fontFamily: SECTION_FONTS.DATE }}
+                >
+                    {date}
+                </Text>
 
-                    {/* Expand/Collapse Button */}
+                {/* Prize Pool Tag - Mint Green Badge */}
+                <View className="bg-[#B9F6CA] self-start px-4 py-1.5 rounded-full border-black mb-4">
+                    <Text className="text-black text-xs" style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_LABEL }}>
+                        Prize pool: <Text style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_VALUE }}>{prizePool}</Text>
+                    </Text>
+                </View>
+
+                {/* Short Description */}
+                <Text
+                    className="text-black/80 text-sm leading-5 mb-8"
+                    style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}
+                >
+                    {description || "Join this exciting event and showcase your skills! More details coming soon."}
+                </Text>
+
+                {/* Action Buttons - Fixed Stack */}
+                <View className="gap-4">
                     <TouchableOpacity
-                        onPress={toggleExpand}
-                        className="bg-black p-2 rounded-full items-center justify-center"
-                        style={{ width: 36, height: 36 }}
+                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                        className="border-[3px] border-black py-4 rounded-2xl items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                        style={{ backgroundColor: buttonColor }}
                     >
-                        <Animated.View style={animatedIconRotation}>
-                            {isExpanded ? (
-                                <X size={20} color="white" strokeWidth={3} />
-                            ) : (
-                                <Plus size={20} color="white" strokeWidth={3} />
-                            )}
-                        </Animated.View>
+                        <Text className="text-black uppercase tracking-widest text-[13px]" style={{ fontFamily: SECTION_FONTS.BUTTON }}>
+                            VIEW DETAILS
+                        </Text>
+                    </TouchableOpacity>
+
+                    {/* Register Button - Black Neo Brutalist */}
+                    <TouchableOpacity
+                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                        className="bg-black py-4 rounded-2xl items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                    >
+                        <Text className="text-white uppercase tracking-widest text-[13px]" style={{ fontFamily: SECTION_FONTS.BUTTON }}>
+                            REGISTER
+                        </Text>
                     </TouchableOpacity>
                 </View>
-
-                {/* Prize Pool Tag */}
-                <View className="bg-[#B9F6CA] self-start px-3 py-1 rounded-full mb-3">
-                    <Text className="font-bold text-xs text-black">Prize pool: {prizePool}</Text>
-                </View>
-
-                {/* Expandable Description Area */}
-                <Animated.View
-                    style={[animatedHeight, { overflow: 'hidden' }]}
-                >
-                    <View
-                        onLayout={(e) => {
-                            if (contentHeight === 0) {
-                                setContentHeight(e.nativeEvent.layout.height);
-                            }
-                        }}
-                    >
-                        <Text className="font-[Inter_400Regular] text-black leading-5">
-                            {description}
-                        </Text>
-                    </View>
-                </Animated.View>
-
-                {/* Action Buttons - Fade in smoothly */}
-                {isExpanded && (
-                    <Animated.View style={[animatedButtons]} className="gap-3 mt-4">
-                        {/* View Details Button */}
-                        <TouchableOpacity
-                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                            className="border-2 border-black py-3 rounded-xl items-center"
-                            style={{ backgroundColor: buttonColor }}
-                        >
-                            <Text className="text-black uppercase tracking-widest text-xs" style={{ fontFamily: 'Softura' }}>VIEW DETAILS</Text>
-                        </TouchableOpacity>
-
-                        {/* Register Button */}
-                        <TouchableOpacity
-                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                            className="bg-black py-3 rounded-xl items-center"
-                        >
-                            <Text className="text-white uppercase tracking-widest text-xs" style={{ fontFamily: 'Softura' }}>REGISTER</Text>
-                        </TouchableOpacity>
-                    </Animated.View>
-                )}
             </View>
         </View>
     );
