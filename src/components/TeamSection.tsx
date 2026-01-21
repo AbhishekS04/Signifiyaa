@@ -179,7 +179,15 @@ const TeamSection = () => {
                                 setActiveMember(member);
                             }}
                             activeOpacity={0.7}
-                            className={`w-16 h-16 rounded-2xl overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-black relative`}
+                            className={`w-16 h-16 rounded-2xl overflow-hidden bg-black relative`}
+                            style={{
+                                borderWidth: activeMember.id === member.id ? 3 : 2,
+                                borderColor: activeMember.id === member.id ? '#B9F6CA' : 'black',
+                                shadowColor: '#000',
+                                shadowOffset: { width: 4, height: 4 },
+                                shadowOpacity: 1,
+                                shadowRadius: 0,
+                            }}
                         >
                             <Image
                                 source={{ uri: member.image }}
@@ -192,20 +200,6 @@ const TeamSection = () => {
                                     top: '-12.5%'
                                 }}
                                 resizeMode="cover"
-                            />
-                            {/* Dynamic Border Overlay */}
-                            <View
-                                style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    borderWidth: 3,
-                                    borderRadius: 16,
-                                    borderColor: activeMember.id === member.id ? '#B9F6CA' : 'black'
-                                }}
-                                pointerEvents="none"
                             />
                         </TouchableOpacity>
                     ))}

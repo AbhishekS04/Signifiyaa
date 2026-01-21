@@ -2,64 +2,127 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 
 const PastGlimpses = () => {
-    // Placeholder frames - in a real app these would be prop-driven or from an API
-    const items = [1, 2, 3, 4, 5];
+    const photos: { url: string; size: 'large' | 'medium' }[] = [
+        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg', size: 'large' },
+        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg', size: 'medium' },
+        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg', size: 'large' },
+        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg', size: 'medium' },
+        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg', size: 'large' },
+    ];
+
+    const rotations = ['-4deg', '3.5deg', '-2.5deg', '4deg', '-3deg'];
+    const sizes = {
+        large: { width: 220, height: 180 },
+        medium: { width: 190, height: 155 }
+    };
 
     return (
-        <View className="bg-[#FFF0F5] py-10 w-full items-center rounded-[40px] mb-6">
+        <View className="bg-[#FFF0F5] py-12 w-full items-center rounded-[40px] mb-6 overflow-hidden">
             {/* Header */}
-            <View className="items-center mb-10">
-                <Text className="text-5xl text-black uppercase" style={{
+            <View className="items-center mb-14 px-6">
+                <Text className="text-6xl text-black uppercase leading-tight" style={{
                     fontFamily: 'Gilton',
+                    letterSpacing: -1,
                 }}>GLIMPSES OF</Text>
-                <Text className="text-5xl text-black -mt-2" style={{
-                    fontFamily: 'Gilton',
-                }} >PAST</Text>
-                <Text className="text-gray-500 text-center text-lg px-8 mt-2"
-                style={{
-                    fontFamily: 'Softura',
-                }}>
+                <Text className="text-6xl text-black -mt-3 uppercase" style={
+                    {
+                        fontFamily: 'Gilton',
+                        letterSpacing: -1,
+                    }}>PAST</Text>
+                <View className="w-16 h-1 bg-red-500 mt-4 rounded-full" />
+                <Text className="text-gray-600 text-center text-base px-6 mt-6 leading-6"
+                    style={{
+                        fontFamily: 'Softura',
+                    }}>
                     Relive the best moments from our previous events.
                 </Text>
             </View>
 
-            {/* Timeline Gallery */}
-            <View className="w-full items-center px-4 gap-y-[-40px]">
-                {items.map((item, index) => {
-                    // Alternating rotation
-                    const rotate = index % 2 === 0 ? 'rotate-2' : '-rotate-2';
-                    // Z-index to stack correctly (top ones need to be under bottom ones if we want a cascading stack, 
-                    // OR simple vertical stack. Design says "scrapbook feel", overlapping usually implies later ones on top or random.
-                    // Let's use standard z-index: later items on top of previous ones, but with negative margin.
+            {/* Vertical Timeline with Photos */}
+            <View className="w-full items-center relative">
+                {/* Red vertical line */}
+                <View
+                    className="absolute bg-red-500 rounded-full"
+                    style={{
+                        width: 3,
+                        top: 30,
+                        bottom: 30,
+                        left: '50%',
+                        marginLeft: -1.5,
+                    }}
+                />
 
-                    return (
-                        <View
-                            key={index}
-                            className={`bg-white p-3 pb-8 rounded-xl border border-black shadow-sm w-full max-w-sm relative ${rotate} mb-[-20px]`}
-                            style={{ zIndex: index }}
-                        >
-                            {/* The Pin */}
-                            <View className="absolute -top-2 left-1/2 -ml-2 w-4 h-4 bg-red-600 rounded-full border border-black z-20 shadow-sm" />
+                {/* Photos */}
+                <View className="w-full items-center gap-10 px-6">
+                    {photos.map((photo, index) => {
+                        const rotation = rotations[index];
+                        const photoSize = sizes[photo.size];
 
-                            {/* Image Placeholder */}
-                            <View className="w-full h-64 bg-gray-200 rounded-lg overflow-hidden border border-gray-100">
-                                {/* Can use a subtle pattern or actual placeholder image here */}
-                                <View className="w-full h-full items-center justify-center bg-gray-300">
-                                    <Text className="text-gray-500 font-bold">Image {item}</Text>
+                        return (
+                            <View key={index} className="items-center relative" style={{ zIndex: 10 }}>
+                                {/* Enhanced red dot */}
+                                <View className="w-4 h-4 bg-red-500 rounded-full border-[3px] border-white mb-5 shadow-md" />
+
+                                {/* Premium Polaroid frame */}
+                                <View
+                                    className="bg-white rounded-2xl shadow-2xl"
+                                    style={{
+                                        transform: [{ rotate: rotation }],
+                                        width: photoSize.width,
+                                        padding: 12,
+                                        paddingBottom: 36,
+                                        borderWidth: 1,
+                                        borderColor: '#e5e5e5',
+                                    }}
+                                >
+                                    {/* Subtle tape effect */}
+                                    <View
+                                        className="absolute -top-2 bg-white/40 border border-gray-200/50 rounded-sm"
+                                        style={{
+                                            width: 50,
+                                            height: 20,
+                                            left: '50%',
+                                            marginLeft: -25,
+                                            transform: [{ rotate: '-5deg' }],
+                                        }}
+                                    />
+
+                                    <Image
+                                        source={{ uri: photo.url }}
+                                        style={{
+                                            width: '100%',
+                                            height: photoSize.height,
+                                            borderRadius: 6,
+                                        }}
+                                        resizeMode="cover"
+                                    />
+
+                                    {/* Inner shadow for depth */}
+                                    <View
+                                        className="absolute inset-0 rounded-2xl"
+                                        style={{
+                                            borderWidth: 1,
+                                            borderColor: 'rgba(0,0,0,0.05)',
+                                            pointerEvents: 'none',
+                                        }}
+                                    />
                                 </View>
                             </View>
-                        </View>
-                    );
-                })}
+                        );
+                    })}
+                </View>
             </View>
 
-            {/* Footer Button (added spacing because of negative margins above) */}
-            <View className="mt-16">
-                <TouchableOpacity className="bg-black px-10 py-4 rounded-full shadow-lg">
-                    <Text className="text-white text-lg"
-                    style={{
-                        fontFamily: 'Softura',
-                    }}>
+            {/* Footer Button */}
+            <View className="mt-8">
+                <TouchableOpacity
+                    className="bg-black px-12 py-5 rounded-full shadow-xl border-2 border-black"
+                    activeOpacity={0.85}
+                >
+                    <Text className="text-white text-base font-bold uppercase tracking-[2px]"
+                        style={{
+                            fontFamily: 'Softura',
+                        }}>
                         VIEW GALLERY
                     </Text>
                 </TouchableOpacity>
