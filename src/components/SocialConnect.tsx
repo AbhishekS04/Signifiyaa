@@ -1,7 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { Instagram, Youtube } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withRepeat,
+    withTiming,
+    Easing
+} from 'react-native-reanimated';
 
 const SocialConnect = () => {
     return (
@@ -17,21 +24,8 @@ const SocialConnect = () => {
                 </SocialCard>
             </View>
 
-            {/* --- Hazard Divider --- */}
-            <View className="h-5 bg-[#ffe700] mb-8 w-full overflow-hidden flex-row relative">
-                {/* Generating stripes */}
-                {Array.from({ length: 40 }).map((_, i) => (
-                    <View
-                        key={i}
-                        className="bg-black absolute h-[200%] w-4"
-                        style={{
-                            left: i * 30 - 20,
-                            top: -10,
-                            transform: [{ rotate: '45deg' }]
-                        }}
-                    />
-                ))}
-            </View>
+            {/* --- Hazard Divider (Spinning) --- */}
+            <HazardDivider />
 
             {/* --- Row 2 --- */}
             <View className="flex-row gap-6 h-40">
@@ -70,5 +64,59 @@ const XLink = () => (
         <Path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
     </Svg>
 );
+
+// --- Animated Hazard Divider ---
+const HazardDivider = () => {
+    const translateX = useSharedValue(0);
+
+    useEffect(() => {
+        // Move stripes horizontally to create climbing effect
+        translateX.value = withRepeat(
+            withTiming(60, { // Move by stripe width + gap
+                duration: 2000, // 2 seconds for smooth motion
+                easing: Easing.linear,
+            }),
+            -1, // Infinite loop
+            false
+        );
+    }, []);
+
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateX: translateX.value }],
+        };
+    });
+
+    return (
+        <View className="h-5 bg-[#ffe700] mb-8 w-full overflow-hidden relative">
+            {/* Animated diagonal stripes that create "climbing" effect */}
+            <Animated.View
+                style={[
+                    animatedStyle,
+                    {
+                        position: 'absolute',
+                        width: '200%', // Extra width for seamless loop
+                        height: '100%',
+                        flexDirection: 'row',
+                    }
+                ]}
+            >
+                {/* Black diagonal stripes */}
+                {Array.from({ length: 20 }).map((_, i) => (
+                    <View
+                        key={i}
+                        className="bg-black absolute h-[300%]"
+                        style={{
+                            width: 20,
+                            left: i * 60 - 40, // Stripe width 20 + gap 40 = 60
+                            top: -20,
+                            transform: [{ rotate: '-45deg' }] // Diagonal angle
+                        }}
+                    />
+                ))}
+            </Animated.View>
+        </View>
+    );
+};
 
 export default SocialConnect;

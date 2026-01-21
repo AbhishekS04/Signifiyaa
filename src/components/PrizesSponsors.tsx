@@ -13,14 +13,15 @@ import Animated, {
 
 const { height, width } = Dimensions.get('window');
 
-// Ultra-Light Paper Money with Realistic Float Physics
+// Realistic Paper Money with Curved Bend and Natural Physics
 const MoneyBill = ({
     delay,
     startX,
     drift,
     size,
     opacity,
-    swaySpeed
+    swaySpeed,
+    turbulence
 }: {
     delay: number;
     startX: number;
@@ -28,45 +29,37 @@ const MoneyBill = ({
     size: number;
     opacity: number;
     swaySpeed: number;
+    turbulence: number;
 }) => {
     const translateY = useSharedValue(-100);
     const translateX = useSharedValue(0);
-    const rotateX = useSharedValue(Math.random() * 30); // Start at random angle
-    const rotateZ = useSharedValue(0);
+    const rotateZ = useSharedValue(0); // Only gentle flutter
 
     useEffect(() => {
-        // ULTRA-SLOW falling like lightweight paper (10-15 seconds!)
+        // Faster falling for smooth flow effect
         translateY.value = withDelay(
             delay,
             withRepeat(
-                withTiming(height + 100, {
-                    duration: 12000 + Math.random() * 3000, // 12-15 seconds!!
-                    easing: Easing.bezier(0.4, 0.0, 0.6, 1.0), // Very gentle acceleration
+                withTiming(height + 150, {
+                    duration: 4000 + Math.random() * 2000, // 4-6 seconds (much faster)
+                    easing: Easing.bezier(0.42, 0, 0.58, 1),
                 }),
                 -1,
                 false
             )
         );
 
-        // Strong horizontal zigzag drift (like wind)
+        // Gentle horizontal drift (minimal)
         translateX.value = withDelay(
             delay,
             withRepeat(
                 withSequence(
-                    withTiming(drift, {
-                        duration: 3000,
+                    withTiming(drift * 0.3, {
+                        duration: 1500,
                         easing: Easing.inOut(Easing.ease),
                     }),
-                    withTiming(-drift * 0.8, {
-                        duration: 3500,
-                        easing: Easing.inOut(Easing.ease),
-                    }),
-                    withTiming(drift * 0.6, {
-                        duration: 2800,
-                        easing: Easing.inOut(Easing.ease),
-                    }),
-                    withTiming(-drift * 0.4, {
-                        duration: 3200,
+                    withTiming(-drift * 0.3, {
+                        duration: 1500,
                         easing: Easing.inOut(Easing.ease),
                     })
                 ),
@@ -75,38 +68,17 @@ const MoneyBill = ({
             )
         );
 
-        // Gentle end-over-end tumble (SLOW)
-        rotateX.value = withDelay(
-            delay,
-            withRepeat(
-                withTiming(rotateX.value + 360, {
-                    duration: swaySpeed, // 8-12 seconds per flip
-                    easing: Easing.inOut(Easing.ease), // Smooth not linear
-                }),
-                -1,
-                false
-            )
-        );
-
-        // Subtle side-to-side flutter
+        // Subtle flutter only (no complex 3D rotations)
         rotateZ.value = withDelay(
             delay,
             withRepeat(
                 withSequence(
-                    withTiming(12, {
-                        duration: 1500,
-                        easing: Easing.inOut(Easing.sin),
-                    }),
-                    withTiming(-10, {
-                        duration: 1800,
-                        easing: Easing.inOut(Easing.sin),
-                    }),
                     withTiming(8, {
-                        duration: 1300,
+                        duration: 1200,
                         easing: Easing.inOut(Easing.sin),
                     }),
-                    withTiming(-6, {
-                        duration: 1600,
+                    withTiming(-8, {
+                        duration: 1200,
                         easing: Easing.inOut(Easing.sin),
                     })
                 ),
@@ -117,21 +89,11 @@ const MoneyBill = ({
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => {
-        // Perspective scaling - bills shrink when edge-on
-        const scale = interpolate(
-            rotateX.value % 360,
-            [0, 90, 180, 270, 360],
-            [1, 0.15, 1, 0.15, 1]
-        );
-
         return {
             transform: [
                 { translateY: translateY.value },
                 { translateX: translateX.value },
-                { perspective: 1200 }, // Strong 3D perspective
-                { rotateX: `${rotateX.value}deg` },
-                { rotateZ: `${rotateZ.value}deg` },
-                { scaleY: scale },
+                { rotateZ: `${rotateZ.value}deg` }, // Only subtle flutter
             ],
         };
     });
@@ -143,35 +105,41 @@ const MoneyBill = ({
                 {
                     position: 'absolute',
                     left: startX,
-                    width: 42 * size,
-                    height: 21 * size,
+                    width: 44 * size,
+                    height: 22 * size,
                     opacity: opacity,
                     shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.2,
-                    shadowRadius: 3,
+                    shadowOffset: { width: 0, height: 3 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 5,
                 }
             ]}
             className="bg-[#4CAF50] rounded-sm"
         >
             {/* Rupee note with detail */}
             <View className="w-full h-full border-2 border-[#2E7D32] items-center justify-center bg-gradient-to-br from-[#66BB6A] to-[#4CAF50]">
-                <Text style={{ fontSize: 11 * size }} className="font-bold text-white">₹</Text>
+                <Text style={{ fontSize: 12 * size }} className="font-bold text-white">₹</Text>
             </View>
         </Animated.View>
     );
 };
 
 const PrizesSponsors = () => {
-    // Fewer bills, ultra-realistic lightweight paper physics
-    const moneyBills = Array.from({ length: 6 }, (_, i) => ({
-        delay: i * 1000, // More time between bills
-        startX: (Math.random() * (width - 50)),
-        drift: 40 + Math.random() * 50, // 40-90px drift (strong wind)
-        size: 0.8 + Math.random() * 0.4, // 0.8x - 1.2x
-        opacity: 0.4 + Math.random() * 0.3, // 0.4 - 0.7
-        swaySpeed: 8000 + Math.random() * 4000, // 8-12 seconds per tumble
-    }));
+    // LOTS of money flowing in waves/bursts
+    const moneyBills = Array.from({ length: 25 }, (_, i) => {
+        const wave = Math.floor(i / 8); // Group into waves of 8 bills
+        const positionInWave = i % 8;
+
+        return {
+            delay: wave * 3000 + positionInWave * 150, // Waves every 3s, bills 150ms apart
+            startX: (Math.random() * (width - 60)),
+            drift: 40 + Math.random() * 50,
+            size: 0.7 + Math.random() * 0.4,
+            opacity: 0.4 + Math.random() * 0.35,
+            swaySpeed: 3000 + Math.random() * 2000, // 3-5 seconds (faster)
+            turbulence: 10 + Math.random() * 20,
+        };
+    });
 
     return (
         <View className="w-full pb-8">
@@ -188,6 +156,7 @@ const PrizesSponsors = () => {
                         size={bill.size}
                         opacity={bill.opacity}
                         swaySpeed={bill.swaySpeed}
+                        turbulence={bill.turbulence}
                     />
                 ))}
 

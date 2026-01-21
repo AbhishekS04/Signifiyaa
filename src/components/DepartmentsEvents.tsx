@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { Star } from 'lucide-react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
+import { Star, Plus, X } from 'lucide-react-native';
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withRepeat,
+    withTiming,
+    withSpring,
+    Easing,
+    interpolate
+} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
@@ -225,7 +233,6 @@ const DepartmentsEvents = () => {
             <View
                 className="bg-[#FFEB3B] border-[3px] border-black py-3 overflow-hidden mb-4"
                 style={{
-                    marginHorizontal: 4,
                     transform: [{ rotate: '-1deg' }] // Subtle tilt for dynamic Neo-Brutalism effect
                 }}
             >
@@ -332,11 +339,80 @@ interface EventCardProps {
 }
 
 const EventCard = ({ title, date, category, description, prizePool, imageColor, buttonColor }: EventCardProps) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [contentHeight, setContentHeight] = useState(0);
+    const heightValue = useSharedValue(0);
+    const rotationValue = useSharedValue(0);
+    const buttonOpacity = useSharedValue(0);
+
+    // Ultra-smooth height animation with dynamic content height
+    const animatedHeight = useAnimatedStyle(() => {
+        return {
+            height: heightValue.value,
+            opacity: interpolate(
+                heightValue.value,
+                [0, contentHeight * 0.3, contentHeight],
+                [0, 0.6, 1]
+            ),
+        };
+    });
+
+    // Smooth button fade animation
+    const animatedButtons = useAnimatedStyle(() => {
+        return {
+            opacity: buttonOpacity.value,
+            transform: [
+                { translateY: interpolate(buttonOpacity.value, [0, 1], [10, 0]) }
+            ],
+        };
+    });
+
+    // Smooth icon rotation animation
+    const animatedIconRotation = useAnimatedStyle(() => {
+        return {
+            transform: [
+                { rotate: `${rotationValue.value}deg` },
+                { scale: interpolate(rotationValue.value, [0, 90, 180], [1, 1.1, 1]) }, // Subtle scale bounce
+            ],
+        };
+    });
+
+    const toggleExpand = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        setIsExpanded(!isExpanded);
+
+        // Ultra-smooth height animation with custom bezier curve
+        heightValue.value = withTiming(
+            isExpanded ? 0 : contentHeight,
+            {
+                duration: 450, // Optimal for smoothness
+                easing: Easing.bezier(0.25, 0.1, 0.25, 1), // CSS ease-out equivalent
+            }
+        );
+
+        // Smooth rotation for icon (faster than height for responsiveness)
+        rotationValue.value = withTiming(
+            isExpanded ? 0 : 180,
+            {
+                duration: 300,
+                easing: Easing.bezier(0.4, 0.0, 0.2, 1), // Material design curve
+            }
+        );
+
+        // Staggered button fade-in
+        buttonOpacity.value = withTiming(
+            isExpanded ? 0 : 1,
+            {
+                duration: 350,
+                easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+            }
+        );
+    };
+
     return (
         <View className="bg-white border-[3px] border-black rounded-3xl overflow-hidden shadow-sm">
             {/* Image Area Placeholder */}
             <View className="h-48 relative p-4 flex-row justify-between" style={{ backgroundColor: imageColor }}>
-                {/* TODO: Replace with actual event images */}
                 {/* Category Badge */}
                 <View className="absolute top-4 right-4 bg-black px-3 py-1 rounded-full">
                     <Text className="text-white text-xs font-bold">{category}</Text>
@@ -345,43 +421,79 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
 
             {/* Content Area */}
             <View className="p-4 bg-white">
-                {/* Event Title */}
-                <Text className="font-[ArchivoBlack_400Regular] text-2xl text-black uppercase leading-7 mb-1">
-                    {title}
-                </Text>
+                {/* Title Row with Expand Button */}
+                <View className="flex-row justify-between items-start mb-2">
+                    <View className="flex-1 pr-2">
+                        {/* Event Title */}
+                        <Text className="font-[ArchivoBlack_400Regular] text-2xl text-black uppercase leading-7">
+                            {title}
+                        </Text>
 
-                {/* Event Date */}
-                <Text className="font-[Inter_700Bold] text-gray-400 text-sm mb-2">
-                    {date}
-                </Text>
+                        {/* Event Date */}
+                        <Text className="font-[Inter_700Bold] text-gray-400 text-sm mt-1">
+                            {date}
+                        </Text>
+                    </View>
+
+                    {/* Expand/Collapse Button */}
+                    <TouchableOpacity
+                        onPress={toggleExpand}
+                        className="bg-black p-2 rounded-full items-center justify-center"
+                        style={{ width: 36, height: 36 }}
+                    >
+                        <Animated.View style={animatedIconRotation}>
+                            {isExpanded ? (
+                                <X size={20} color="white" strokeWidth={3} />
+                            ) : (
+                                <Plus size={20} color="white" strokeWidth={3} />
+                            )}
+                        </Animated.View>
+                    </TouchableOpacity>
+                </View>
 
                 {/* Prize Pool Tag */}
-                <View className="bg-[#B9F6CA] self-start px-3 py-1 rounded-full mb-2">
+                <View className="bg-[#B9F6CA] self-start px-3 py-1 rounded-full mb-3">
                     <Text className="font-bold text-xs text-black">Prize pool: {prizePool}</Text>
                 </View>
 
-                {/* Description */}
-                <Text className="font-[Inter_400Regular] text-black mb-4">{description}</Text>
-
-                {/* Action Buttons */}
-                <View className="gap-3">
-                    {/* View Details Button */}
-                    <TouchableOpacity
-                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                        className="border-2 border-black py-3 rounded-xl items-center"
-                        style={{ backgroundColor: buttonColor }}
+                {/* Expandable Description Area */}
+                <Animated.View
+                    style={[animatedHeight, { overflow: 'hidden' }]}
+                >
+                    <View
+                        onLayout={(e) => {
+                            if (contentHeight === 0) {
+                                setContentHeight(e.nativeEvent.layout.height);
+                            }
+                        }}
                     >
-                        <Text className="font-[Inter_700Bold] text-black">VIEW DETAILS</Text>
-                    </TouchableOpacity>
+                        <Text className="font-[Inter_400Regular] text-black leading-5">
+                            {description}
+                        </Text>
+                    </View>
+                </Animated.View>
 
-                    {/* Register Button */}
-                    <TouchableOpacity
-                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                        className="bg-black py-3 rounded-xl items-center"
-                    >
-                        <Text className="font-[Inter_700Bold] text-white">REGISTER</Text>
-                    </TouchableOpacity>
-                </View>
+                {/* Action Buttons - Fade in smoothly */}
+                {isExpanded && (
+                    <Animated.View style={[animatedButtons]} className="gap-3 mt-4">
+                        {/* View Details Button */}
+                        <TouchableOpacity
+                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                            className="border-2 border-black py-3 rounded-xl items-center"
+                            style={{ backgroundColor: buttonColor }}
+                        >
+                            <Text className="font-[Inter_700Bold] text-black">VIEW DETAILS</Text>
+                        </TouchableOpacity>
+
+                        {/* Register Button */}
+                        <TouchableOpacity
+                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                            className="bg-black py-3 rounded-xl items-center"
+                        >
+                            <Text className="font-[Inter_700Bold] text-white">REGISTER</Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+                )}
             </View>
         </View>
     );

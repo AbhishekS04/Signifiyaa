@@ -6,11 +6,11 @@ const PastGlimpses = () => {
     const items = [1, 2, 3, 4, 5];
 
     return (
-        <View className="bg-[#FFF0F5] py-10 w-full items-center rounded-b-[40px] mb-20">
+        <View className="bg-[#FFF0F5] py-10 w-full items-center rounded-[40px] mb-6">
             {/* Header */}
             <View className="items-center mb-10">
                 <Text className="font-[ArchivoBlack_400Regular] text-4xl text-black uppercase">GLIMPSES OF</Text>
-                <Text className="font-[Inter_700Bold] text-4xl text-black italic -mt-2">PAST</Text>
+                <Text className="font-[Inter_700Bold] text-4xl text-black -mt-2">PAST</Text>
                 <Text className="font-[Inter_400Regular] text-gray-500 text-center text-sm px-8 mt-2">
                     Relive the best moments from our previous events.
                 </Text>

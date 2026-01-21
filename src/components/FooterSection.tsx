@@ -78,13 +78,14 @@ const FooterSection = () => {
 
 const AppStoreButton = ({ storeName, icon }: { storeName: string, icon: React.ReactNode }) => (
     <TouchableOpacity
-        className="bg-white border-[3px] border-black rounded-xl px-4 py-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex-row items-center gap-3 w-56"
+        className="bg-white border-[3px] border-black rounded-xl px-4 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex-row items-center gap-3"
+        style={{ minWidth: 230 }} // Increased width to prevent text clipping
         activeOpacity={0.8}
     >
-        <View className="w-8 h-8 items-center justify-center">
+        <View className="w-9 h-9 items-center justify-center">
             {icon}
         </View>
-        <View>
+        <View className="flex-1">
             <Text className="font-[Inter_900Black] text-[#FF0055] text-[9px] uppercase">COMING SOON !</Text>
             <Text className="font-[Inter_900Black] text-black text-base leading-4">{storeName}</Text>
         </View>
@@ -94,14 +95,11 @@ const AppStoreButton = ({ storeName, icon }: { storeName: string, icon: React.Re
 // --- Icons ---
 
 const PlayStoreIcon = () => (
-    <Svg width={28} height={28} viewBox="0 0 24 24">
-        <Path d="M5,5 L19,12 L5,19 V5 Z" fill="#000000" />
-        <Path d="M3.7,1.8 L16.8,9.2 C17.2,9.4 17.5,9.8 17.5,10.2 C17.5,10.6 17.2,11 16.8,11.2 L3.7,18.6 C3.3,18.8 2.8,18.8 2.4,18.6 C2,18.4 1.8,18 1.8,17.6 L1.8,2.8 C1.8,2.4 2,2 2.4,1.8 C2.8,1.6 3.3,1.6 3.7,1.8 Z" fill="none" />
-        <Path fill="#4285F4" d="M16.4,8.8 L4.5,2.1 C4.1,1.8 3.5,1.8 3,2.2 L10.8,10 L16.4,8.8 Z" />
-        <Path fill="#34A853" d="M16.4,11.6 L10.8,10.4 L3,18.2 C3.5,18.6 4.1,18.6 4.5,18.3 L16.4,11.6 Z" />
-        <Path fill="#FCBC04" d="M16.4,8.8 L10.8,10 L16.4,11.6 L20.8,9.2 C21.4,8.8 21.4,11.6 20.8,11.2 L16.4,8.8 Z" />
-        <Path fill="#EA4335" d="M3,2.2 C2.7,2.5 2.5,3 2.5,3.5 L2.5,16.9 C2.5,17.4 2.7,17.9 3,18.2 L10.8,10.4 L3,2.2 Z" />
-    </Svg>
+    <Image
+        source={{ uri: 'https://cdn-icons-png.flaticon.com/512/888/888857.png' }}
+        style={{ width: 32, height: 32 }}
+        resizeMode="contain"
+    />
 );
 
 const AppleIcon = () => (

@@ -86,93 +86,95 @@ const HeroSection = () => {
                 </Animated.View>
             </View>
 
-            {/* Main Hero Card */}
-            <LinearGradient
-                colors={['#6A1B9A', '#8E24AA', '#BA68C8', '#E1BEE7']}
-                locations={[0, 0.3, 0.6, 1]}
-                className="w-full rounded-[40px] pt-16 pb-8 px-6 relative overflow-hidden justify-center"
-                style={{ minHeight: 700 }}
-            >
-                {/* Background Watermark */}
-                <View className="absolute inset-x-0 bottom-0 items-center justify-end opacity-[0.08]" style={{ bottom: -40 }}>
-                    <Image
-                        source={require('../../assets/bglogo.png')}
-                        style={{ width: 600, height: 700, resizeMode: 'contain', tintColor: 'white' }}
-                    />
-                </View>
+            {/* Main Hero Card with padding wrapper */}
+            <View className="px-4">
+                <LinearGradient
+                    colors={['#6A1B9A', '#8E24AA', '#BA68C8', '#E1BEE7']}
+                    locations={[0, 0.3, 0.6, 1]}
+                    className="w-full rounded-[40px] pt-16 pb-8 px-6 relative overflow-hidden justify-center"
+                    style={{ minHeight: 700 }}
+                >
+                    {/* Background Watermark */}
+                    <View className="absolute inset-x-0 bottom-0 items-center justify-end opacity-[0.08]" style={{ bottom: -40 }}>
+                        <Image
+                            source={require('../../assets/bglogo.png')}
+                            style={{ width: 600, height: 700, resizeMode: 'contain', tintColor: 'white' }}
+                        />
+                    </View>
 
-                {/* Content */}
-                <View className="items-center z-10 w-full mb-20">
-                    {/* Title */}
-                    <Text
-                        className="text-white font-[Inter_900Black] text-5xl tracking-[0.25em] text-center mb-8 uppercase"
-                    >
-                        SIGNIFIYA
-                    </Text>
+                    {/* Content */}
+                    <View className="items-center z-10 w-full mb-20">
+                        {/* Title */}
+                        <Text
+                            className="text-white font-[Inter_900Black] text-5xl tracking-[0.25em] text-center mb-8 uppercase"
+                        >
+                            SIGNIFIYA
+                        </Text>
 
-                    {/* Countdown Timer */}
-                    <View className="flex-row justify-between w-full mb-10" style={{ paddingHorizontal: 8, maxWidth: 420 }}>
-                        {[
-                            { num: timeLeft.days, label: 'DAYS' },
-                            { num: timeLeft.hours, label: 'HOURS' },
-                            { num: timeLeft.minutes, label: 'MINUTES' },
-                            { num: timeLeft.seconds, label: 'SECONDS' }
-                        ].map((item, index) => (
-                            <View key={index} className="items-center" style={{ minWidth: 70 }}>
-                                {/* Container with extra space to prevent italic text clipping */}
-                                <View className="relative" style={{ paddingHorizontal: 8, minWidth: 60 }}>
-                                    {/* Subtle hard shadow */}
-                                    <Text
-                                        className="absolute font-[Inter_900Black] text-[38px] italic text-black text-center"
-                                        style={{ top: 1.5, left: 1.5, right: 1.5 }}
-                                    >
-                                        {item.num}
-                                    </Text>
-                                    <Text
-                                        className="text-white font-[Inter_900Black] text-[38px] italic text-center"
-                                    >
-                                        {item.num}
+                        {/* Countdown Timer */}
+                        <View className="flex-row justify-between w-full mb-10" style={{ paddingHorizontal: 8, maxWidth: 420 }}>
+                            {[
+                                { num: timeLeft.days, label: 'DAYS' },
+                                { num: timeLeft.hours, label: 'HOURS' },
+                                { num: timeLeft.minutes, label: 'MINUTES' },
+                                { num: timeLeft.seconds, label: 'SECONDS' }
+                            ].map((item, index) => (
+                                <View key={index} className="items-center" style={{ minWidth: 70 }}>
+                                    {/* Container with extra space to prevent italic text clipping */}
+                                    <View className="relative" style={{ paddingHorizontal: 8, minWidth: 60 }}>
+                                        {/* Subtle hard shadow */}
+                                        <Text
+                                            className="absolute font-[Inter_900Black] text-[38px] italic text-black text-center"
+                                            style={{ top: 1.5, left: 1.5, right: 1.5 }}
+                                        >
+                                            {item.num}
+                                        </Text>
+                                        <Text
+                                            className="text-white font-[Inter_900Black] text-[38px] italic text-center"
+                                        >
+                                            {item.num}
+                                        </Text>
+                                    </View>
+                                    <View className="w-10 h-[1.5px] bg-black my-1" />
+                                    <Text className="text-black font-[Inter_700Bold] text-[9px] uppercase tracking-tighter opacity-80">
+                                        {item.label}
                                     </Text>
                                 </View>
-                                <View className="w-10 h-[1.5px] bg-black my-1" />
-                                <Text className="text-black font-[Inter_700Bold] text-[9px] uppercase tracking-tighter opacity-80">
-                                    {item.label}
-                                </Text>
-                            </View>
-                        ))}
-                    </View>
+                            ))}
+                        </View>
 
-                    {/* Button */}
-                    <TouchableOpacity
-                        className="bg-[#E1BEE7]/60 border-2 border-black rounded-full px-14 py-4 active:bg-[#E1BEE7]/80 mb-16"
-                    >
-                        <Text className="text-black font-[Inter_700Bold] text-xs uppercase tracking-[0.15em]">
-                            SIGN IN / SIGN UP
+                        {/* Button */}
+                        <TouchableOpacity
+                            className="bg-[#E1BEE7]/60 border-2 border-black rounded-full px-14 py-4 active:bg-[#E1BEE7]/80 mb-16"
+                        >
+                            <Text className="text-black font-[Inter_700Bold] text-xs uppercase tracking-[0.15em]">
+                                SIGN IN / SIGN UP
+                            </Text>
+                        </TouchableOpacity>
+
+                        {/* Description */}
+                        <Text className="text-black/80 font-[Inter_700Bold] text-[10px] uppercase text-center mb-8 leading-4 tracking-tighter px-6">
+                            SOET'S AWAITED FEST IS BACK WITH EVEN MORE FUN N{'\n'}
+                            EXCITING PLANS | GLIDE DOWN TO EXPLORE OUR FEST
                         </Text>
-                    </TouchableOpacity>
 
-                    {/* Description */}
-                    <Text className="text-black/80 font-[Inter_700Bold] text-[10px] uppercase text-center mb-8 leading-4 tracking-tighter px-6">
-                        SOET'S AWAITED FEST IS BACK WITH EVEN MORE FUN N{'\n'}
-                        EXCITING PLANS | GLIDE DOWN TO EXPLORE OUR FEST
-                    </Text>
+                    </View>
 
-                </View>
-
-                {/* Footer Icons - Positioned Absolutely at Bottom */}
-                <View className="absolute bottom-6 left-0 right-0 px-6 z-20">
-                    <View className="w-full relative h-24 items-center justify-end">
-                        {/* Arrow */}
-                        <View className="mb-2">
-                            <ArrowDown color="black" size={40} strokeWidth={1.5} />
-                        </View>
-                        {/* Bunny - Bottom Right Absolute */}
-                        <View className="absolute right-0 bottom-0">
-                            <BunnyMascot />
+                    {/* Footer Icons - Positioned Absolutely at Bottom */}
+                    <View className="absolute bottom-6 left-0 right-0 px-6 z-20">
+                        <View className="w-full relative h-24 items-center justify-end">
+                            {/* Arrow */}
+                            <View className="mb-2">
+                                <ArrowDown color="black" size={40} strokeWidth={1.5} />
+                            </View>
+                            {/* Bunny - Bottom Right Absolute */}
+                            <View className="absolute right-0 bottom-0">
+                                <BunnyMascot />
+                            </View>
                         </View>
                     </View>
-                </View>
-            </LinearGradient>
+                </LinearGradient>
+            </View>
         </View>
     );
 };
