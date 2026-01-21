@@ -48,7 +48,7 @@ const EVENTS_DATA = [
         imageColor: '#ccff00',
         buttonColor: '#D194FF',
         imageUrl: '',
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/0e1b4b2f-ab1e-41ab-a1b5-42658c8ae07b.mp4' // Valorant Agent Gekko
+        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/8a98fec1-5439-4cb3-8eb2-f0d605204397.mp4' // Valorant Agent Gekko
     },
     {
         title: 'BGMI',

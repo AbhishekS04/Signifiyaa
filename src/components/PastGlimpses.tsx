@@ -9,9 +9,16 @@ const PastGlimpses = () => {
         <View className="bg-[#FFF0F5] py-10 w-full items-center rounded-[40px] mb-6">
             {/* Header */}
             <View className="items-center mb-10">
-                <Text className="font-[ArchivoBlack_400Regular] text-4xl text-black uppercase">GLIMPSES OF</Text>
-                <Text className="font-[Inter_700Bold] text-4xl text-black -mt-2">PAST</Text>
-                <Text className="font-[Inter_400Regular] text-gray-500 text-center text-sm px-8 mt-2">
+                <Text className="text-5xl text-black uppercase" style={{
+                    fontFamily: 'Gilton',
+                }}>GLIMPSES OF</Text>
+                <Text className="text-5xl text-black -mt-2" style={{
+                    fontFamily: 'Gilton',
+                }} >PAST</Text>
+                <Text className="text-gray-500 text-center text-lg px-8 mt-2"
+                style={{
+                    fontFamily: 'Softura',
+                }}>
                     Relive the best moments from our previous events.
                 </Text>
             </View>
@@ -49,7 +56,10 @@ const PastGlimpses = () => {
             {/* Footer Button (added spacing because of negative margins above) */}
             <View className="mt-16">
                 <TouchableOpacity className="bg-black px-10 py-4 rounded-full shadow-lg">
-                    <Text className="font-[ArchivoBlack_400Regular] text-white text-lg">
+                    <Text className="text-white text-lg"
+                    style={{
+                        fontFamily: 'Softura',
+                    }}>
                         VIEW GALLERY
                     </Text>
                 </TouchableOpacity>
