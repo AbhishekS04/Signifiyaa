@@ -15,12 +15,23 @@ const FAQSection = () => {
     return (
         <View className="bg-[#F3E5F5] rounded-[40px] px-6 py-10 mb-10 mx-2 border-2 border-black">
             <View className="mb-8">
-                <Text className="font-[ArchivoBlack_400Regular] text-3xl text-black leading-tight">FREQUENTLY</Text>
-                <Text className="font-[Inter_900Black] text-3xl text-black italic leading-tight">ASKED</Text>
-                <Text className="font-[ArchivoBlack_400Regular] text-3xl text-black leading-tight mb-4">QUESTIONS</Text>
+                <Text className="text-3xl text-black text-center leading-tight"
+                style={{
+                    fontFamily: 'Gilton',
+                }}
+                >FREQUENTLY ASKED QUESTIONS</Text>
 
-                <Text className="font-[Inter_600SemiBold] text-gray-500 leading-5 pr-4">
-                    Got questions? We've got answers. Here are some of the most common questions we get from our community.
+                <Text className="text-gray-500 text-center leading-5 pr-6 pl-2 pt-5 pb-5"
+                style={{
+                    fontFamily: 'Gilton',
+                }}>
+                    <Text className='text-red-500'>Got questions</Text>
+                    <Text className='text-red-500'>? </Text>
+                    
+                    
+                    <Text className="opacity-90">
+                        We've got <Text className='text-blue'>answers</Text>. Here are some of the most common questions we get from our community.
+                    </Text>
                 </Text>
             </View>
 

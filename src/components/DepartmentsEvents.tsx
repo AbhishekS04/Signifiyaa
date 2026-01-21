@@ -268,7 +268,7 @@ const DepartmentsEvents = () => {
                 </View>
 
                 {/* Body Text */}
-                <Text className=" text-black text-center leading-7 text-base font-semibold"
+                <Text className=" text-black text-center leading-7 text-base font-semibold p-4 pl-4 text-lg"  //test
                     style={{ fontFamily: 'Softura' }}>
                     The School of Engineering and Technology stands as a beacon of technical excellence, fostering innovation and shaping the future engineers who will build tomorrow's world.
                 </Text>
