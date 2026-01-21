@@ -3,6 +3,11 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
+const FAQ_FONTS = {
+    QUESTION: 'Softura',
+    ANSWER: 'Gilton'
+};
+
 const FAQS = [
     { id: 1, question: 'WHAT IS SIGNIFIYA?', answer: 'Signifiya is the annual tech fest of the School of Engineering and Technology, Adamas University.' },
     { id: 2, question: 'HOW DO I GET STARTED?', answer: 'Simply register on the app, browse events, and sign up for the ones you are interested in.' },
@@ -16,21 +21,21 @@ const FAQSection = () => {
         <View className="bg-[#F3E5F5] rounded-[40px] px-6 py-10 mb-10 mx-2 border-2 border-black">
             <View className="mb-8">
                 <Text className="text-3xl text-black text-center leading-tight"
-                style={{
-                    fontFamily: 'Gilton',
-                }}
+                    style={{
+                        fontFamily: FAQ_FONTS.QUESTION,
+                    }}
                 >FREQUENTLY ASKED QUESTIONS</Text>
 
                 <Text className="text-gray-500 text-center leading-5 pr-6 pl-2 pt-5 pb-5"
-                style={{
-                    fontFamily: 'Gilton',
-                }}>
+                    style={{
+                        fontFamily: 'Gilton',
+                    }}>
                     <Text className='text-red-500'>Got questions</Text>
                     <Text className='text-red-500'>? </Text>
-                    
-                    
+
+
                     <Text className="opacity-90">
-                        We've got <Text className='text-blue'>answers</Text>. Here are some of the most common questions we get from our community.
+                        We've got <Text className='text-[#4169E1]'>answers</Text>. Here are some of the most common questions we get from our community.
                     </Text>
                 </Text>
             </View>
@@ -65,7 +70,10 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
             className="bg-white border-[3px] border-black rounded-xl overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
         >
             <View className="p-5 flex-row justify-between items-center">
-                <Text className="font-[ArchivoBlack_400Regular] text-lg text-black w-[80%] leading-6 uppercase">
+                <Text
+                    className="text-lg text-black w-[80%] leading-6 uppercase"
+                    style={{ fontFamily: FAQ_FONTS.QUESTION }}
+                >
                     {question}
                 </Text>
 
@@ -78,8 +86,11 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
             </View>
 
             {isOpen && (
-                <View className="px-5 pb-5">
-                    <Text className="font-[Inter_600SemiBold] text-gray-600 leading-5">
+                <View className="px-5 pb-5 border-t-[1px] border-black/10 pt-4">
+                    <Text
+                        className="text-gray-800 text-base leading-6"
+                        style={{ fontFamily: FAQ_FONTS.ANSWER }}
+                    >
                         {answer}
                     </Text>
                 </View>

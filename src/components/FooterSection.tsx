@@ -8,14 +8,33 @@ const FooterSection = () => {
 
             {/* Header - Reduced size */}
             <View className="mb-6">
-                <Text className="font-[ArchivoBlack_400Regular] text-3xl text-black leading-tight uppercase">
+                <Text className="text-3xl text-black leading-tight uppercase"
+                style={{
+                    fontFamily: 'BBHBartle',
+                }}
+                >
                     DOWNLOAD
                 </Text>
-                <Text className="font-[ArchivoBlack_400Regular] text-3xl text-black leading-tight uppercase">
+                <Text className="text-3xl text-black leading-tight uppercase"
+                style={{
+                    fontFamily: 'BBHBartle',
+                }}
+                >
                     THE SIGNIFIYA
                 </Text>
-                <Text className="font-[ArchivoBlack_400Regular] text-3xl text-black leading-tight uppercase">
-                    APP RIGHT NOW.
+                <Text className="text-3xl text-black leading-tight uppercase"
+                style={{
+                    fontFamily: 'BBHBartle',
+                }}
+                >
+                    APP                
+                </Text>
+                <Text className="text-3xl text-black leading-tight uppercase"
+                style={{
+                    fontFamily: 'BBHBartle',
+                }}
+                >
+                    RIGHT NOW.
                 </Text>
             </View>
 
@@ -35,7 +54,11 @@ const FooterSection = () => {
             <View className="gap-2 mb-12">
                 {['HOME', 'BECOME A SPONSOR', 'EVENTS', 'CONTACT', 'FAQ', 'RULES & REGULATIONS'].map((item) => (
                     <TouchableOpacity key={item} activeOpacity={0.7}>
-                        <Text className="font-[ArchivoBlack_400Regular] text-xl text-black uppercase">
+                        <Text className="text-xl text-black uppercase"
+                        style={{
+                            fontFamily: 'Softura',
+                        }}
+                        >
                             {item}
                         </Text>
                     </TouchableOpacity>
@@ -46,13 +69,29 @@ const FooterSection = () => {
             <View className="relative">
                 {/* Links */}
                 <View className="gap-1 mb-6">
-                    <TouchableOpacity><Text className="font-[Inter_700Bold] text-xs text-black">ASSETS</Text></TouchableOpacity>
-                    <TouchableOpacity><Text className="font-[Inter_700Bold] text-xs text-black">PRIVACY NOTICE</Text></TouchableOpacity>
-                    <TouchableOpacity><Text className="font-[Inter_700Bold] text-xs text-black">TERMS OF SERVICE</Text></TouchableOpacity>
+                    <TouchableOpacity><Text className="text-xs text-black"
+                    style={{
+                        fontFamily: 'Softura',
+                    }}
+                    >ASSETS</Text></TouchableOpacity>
+                    <TouchableOpacity><Text className="text-xs text-black"
+                    style={{
+                        fontFamily: 'Softura',
+                    }}
+                    >PRIVACY NOTICE</Text></TouchableOpacity>
+                    <TouchableOpacity><Text className="text-xs text-black"
+                    style={{
+                        fontFamily: 'Softura',
+                    }}
+                    >TERMS OF SERVICE</Text></TouchableOpacity>
                 </View>
 
                 {/* Copyright */}
-                <Text className="font-[Inter_700Bold] text-xs text-black mb-6">
+                <Text className="text-lg text-black mb-6"
+                style={{
+                    fontFamily: 'Gilton',
+                }}
+                >
                     © 2026 SIGNIFIYA, SOET.
                 </Text>
 
@@ -60,7 +99,7 @@ const FooterSection = () => {
                 {/* Cartoon Pencil - Positioned */}
                 <View className="absolute right-[-10px] bottom-0 w-24 h-48 pointer-events-none">
                     <Image
-                        source={{ uri: 'https://cdn3d.iconscout.com/3d/premium/thumb/pencil-3d-illustration-download-in-png-blend-fbx-gltf-file-formats--write-edit-tool-school-education-pack-miscellaneous-illustrations-4712039.png?f=webp' }}
+                        // source={{ uri: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/4e39142d-227f-4b50-bbf1-5bbbfb0d0d5b.jpg' }}
                         className="w-full h-full"
                         resizeMode="contain"
                     />
@@ -86,8 +125,16 @@ const AppStoreButton = ({ storeName, icon }: { storeName: string, icon: React.Re
             {icon}
         </View>
         <View className="flex-1">
-            <Text className="font-[Inter_900Black] text-[#FF0055] text-[9px] uppercase">COMING SOON !</Text>
-            <Text className="font-[Inter_900Black] text-black text-base leading-4">{storeName}</Text>
+            <Text className="text-[#FF0055] text-[9px] uppercase"
+            style={{
+                fontFamily: 'Gilton',
+            }}
+            >COMING SOON !</Text>
+            <Text className="text-black text-base leading-4"
+            style={{
+                fontFamily: 'Gilton',
+            }}
+            >{storeName}</Text>
         </View>
     </TouchableOpacity>
 );
