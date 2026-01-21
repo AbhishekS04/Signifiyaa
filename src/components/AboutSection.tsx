@@ -9,13 +9,12 @@ const AboutSection = () => {
             {/* Header Row */}
             <View className="flex-row justify-between items-start mb-6">
                 <View>
-                    <Text className="text-black font-[ArchivoBlack_400Regular] text-4xl uppercase leading-none">
+                
+                    <Text className="text-black text-3xl uppercase leading-none mt-4" style={{ fontFamily: 'Gilton' }}>
                         ABOUT
-                    </Text>
-                    <Text className="text-black font-[ArchivoBlack_400Regular] text-4xl italic uppercase leading-none"
-                        style={{ includeFontPadding: false }}>
                         SIGNIFIYA'26
                     </Text>
+                
                 </View>
 
                 {/* Yellow Smiley Sticker */}
@@ -26,20 +25,23 @@ const AboutSection = () => {
 
             {/* Body Text */}
             <View className="mb-10">
-                <Text className="text-black font-[Inter_600SemiBold] text-base leading-7">
+                <Text className="text-black/80  text-base leading-7" 
+                style={{ fontFamily: 'Softura' }}>
                     Signifiya is not just an event; it's an experience. We bring together the brightest minds, the boldest creators, and the most passionate individuals for a celebration of innovation, art, and culture.
                 </Text>
             </View>
 
             {/* Button */}
             <TouchableOpacity className="bg-black rounded-full px-8 py-4 self-start active:translate-y-1">
-                <Text className="text-white font-[Inter_900Black] text-sm uppercase tracking-widest">
+                <Text className="text-white text-sm uppercase tracking-widest"
+                style={{ fontFamily: 'Softura' }}>
                     GET VISITOR'S PASS
                 </Text>
             </TouchableOpacity>
 
             {/* Footer Note */}
-            <Text className="text-gray-600 font-[Inter_500Medium] text-[10px] leading-3 mt-6 ml-1">
+            <Text className="text-gray-600 text-[10px] leading-3 mt-6 ml-1"
+            style={{ fontFamily: 'Softura' }}>
                 * Students participating in any Signifiya event do not need a visitor's pass.
             </Text>
         </View>

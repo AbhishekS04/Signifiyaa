@@ -106,7 +106,8 @@ const HeroSection = () => {
                     <View className="items-center z-10 w-full mb-20">
                         {/* Title */}
                         <Text
-                            className="text-white font-[Inter_900Black] text-5xl tracking-[0.25em] text-center mb-8 uppercase"
+                            className="text-white text-5xl tracking-[0.25em] text-center mb-8 uppercase"
+                            style={{ fontFamily: 'Bicubik' }}
                         >
                             SIGNIFIYA
                         </Text>
@@ -124,13 +125,14 @@ const HeroSection = () => {
                                     <View className="relative" style={{ paddingHorizontal: 8, minWidth: 60 }}>
                                         {/* Subtle hard shadow */}
                                         <Text
-                                            className="absolute font-[Inter_900Black] text-[38px] italic text-black text-center"
-                                            style={{ top: 1.5, left: 1.5, right: 1.5 }}
+                                            className="absolute text-[22px] text-black text-center"
+                                            style={{ top: 2, left: 2, right: 0, fontFamily: 'BBHBartle', opacity: 0.4 }}
                                         >
                                             {item.num}
                                         </Text>
                                         <Text
-                                            className="text-white font-[Inter_900Black] text-[38px] italic text-center"
+                                            className="text-white text-[20px] text-center"
+                                            style={{ fontFamily: 'BBHBartle' }}
                                         >
                                             {item.num}
                                         </Text>
@@ -147,13 +149,15 @@ const HeroSection = () => {
                         <TouchableOpacity
                             className="bg-[#E1BEE7]/60 border-2 border-black rounded-full px-14 py-4 active:bg-[#E1BEE7]/80 mb-16"
                         >
-                            <Text className="text-black font-[Inter_700Bold] text-xs uppercase tracking-[0.15em]">
+                            <Text className="text-black text-[12px] uppercase tracking-[0.15em]"
+                                style={{ fontFamily: 'Gilton' }} >
                                 SIGN IN / SIGN UP
                             </Text>
                         </TouchableOpacity>
 
                         {/* Description */}
-                        <Text className="text-black/80 font-[Inter_700Bold] text-[10px] uppercase text-center mb-8 leading-4 tracking-tighter px-6">
+                        <Text className="text-black/50 text-[9px] uppercase text-center mb-8 leading-4 tracking-tighter px-6"
+                        style={{ fontFamily: 'Softura' }}>
                             SOET'S AWAITED FEST IS BACK WITH EVEN MORE FUN N{'\n'}
                             EXCITING PLANS | GLIDE DOWN TO EXPLORE OUR FEST
                         </Text>
@@ -165,7 +169,7 @@ const HeroSection = () => {
                         <View className="w-full relative h-24 items-center justify-end">
                             {/* Arrow */}
                             <View className="mb-2">
-                                <ArrowDown color="black" size={40} strokeWidth={1.5} />
+                                <ArrowDown color="black" size={45} strokeWidth={1.5} />
                             </View>
                             {/* Bunny - Bottom Right Absolute */}
                             <View className="absolute right-0 bottom-0">
