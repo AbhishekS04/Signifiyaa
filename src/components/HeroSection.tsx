@@ -14,6 +14,27 @@ const HeroSection = () => {
 
     const MARQUEE_TEXT = "SIGNIFIYA'26 IS HERE. REGISTRATIONS ARE LIVE.   ";
 
+    // Arrow bounce animation
+    const arrowBounce = useSharedValue(0);
+
+    useEffect(() => {
+        // Bouncing arrow animation - indicates scroll down
+        arrowBounce.value = withRepeat(
+            withTiming(10, {
+                duration: 800,
+                easing: Easing.inOut(Easing.ease)
+            }),
+            -1, // Infinite
+            true // Reverse (bounce up and down)
+        );
+    }, []);
+
+    const arrowAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ translateY: arrowBounce.value }],
+        };
+    });
+
     // --- COUNTDOWN LOGIC (Easy to change target date here) ---
     const TARGET_DATE = new Date('2026-02-14T00:00:00');
     const [timeLeft, setTimeLeft] = React.useState({
@@ -167,10 +188,10 @@ const HeroSection = () => {
                     {/* Footer Icons - Positioned Absolutely at Bottom */}
                     <View className="absolute bottom-6 left-0 right-0 px-6 z-20">
                         <View className="w-full relative h-24 items-center justify-end">
-                            {/* Arrow */}
-                            <View className="mb-2">
+                            {/* Bouncing Arrow - Indicates Scroll Down */}
+                            <Animated.View style={arrowAnimatedStyle} className="mb-2">
                                 <ArrowDown color="black" size={45} strokeWidth={1.5} />
-                            </View>
+                            </Animated.View>
                             {/* Bunny - Bottom Right Absolute */}
                             <View className="absolute right-0 bottom-0">
                                 <BunnyMascot />

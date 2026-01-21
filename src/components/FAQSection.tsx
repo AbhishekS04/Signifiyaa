@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, LayoutChangeEvent } from 'react-native';
 import { Plus } from 'lucide-react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+    withTiming,
+    interpolate,
+    Extrapolation,
+    Easing
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 const FAQ_FONTS = {
     QUESTION: 'Softura',
@@ -51,21 +60,84 @@ const FAQSection = () => {
 
 const AccordionItem = ({ question, answer }: { question: string, answer: string }) => {
     const [isOpen, setIsOpen] = useState(false);
+
+    // Animation values
+    const animatedHeight = useSharedValue(0);
     const rotation = useSharedValue(0);
+    const scale = useSharedValue(1);
+    const opacity = useSharedValue(0);
 
     const toggleOpen = () => {
         const nextState = !isOpen;
         setIsOpen(nextState);
-        rotation.value = withTiming(nextState ? 45 : 0, { duration: 200 });
+
+        // Haptic feedback for premium feel
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+        if (nextState) {
+            // Opening - use large maxHeight
+            animatedHeight.value = withSpring(500, {
+                damping: 18,
+                stiffness: 120,
+            });
+            rotation.value = withSpring(45, {
+                damping: 15,
+                stiffness: 150,
+            });
+            scale.value = withSpring(1.05, {
+                damping: 12,
+                stiffness: 200,
+            });
+            // Smooth immediate opacity - no stagger
+            opacity.value = withTiming(1, { duration: 300 });
+        } else {
+            // Closing - ultra smooth, no jarring bounce
+            animatedHeight.value = withTiming(0, {
+                duration: 350,
+                easing: Easing.bezier(0.25, 0.1, 0.25, 1) // Smooth cubic-bezier
+            });
+            rotation.value = withSpring(0, {
+                damping: 16, // Smooth controlled rotation
+                stiffness: 150,
+            });
+            scale.value = withSpring(1, {
+                damping: 15, // Subtle settle back
+                stiffness: 200,
+            });
+            opacity.value = withTiming(0, { duration: 250 });
+        }
     };
 
-    const iconStyle = useAnimatedStyle(() => ({
-        transform: [{ rotate: `${rotation.value}deg` }],
+
+
+    // Animated styles
+    const containerStyle = useAnimatedStyle(() => ({
+        maxHeight: animatedHeight.value,
+        overflow: 'hidden',
+    }));
+
+    const iconContainerStyle = useAnimatedStyle(() => ({
+        transform: [
+            { rotate: `${rotation.value}deg` },
+            { scale: scale.value }
+        ],
+    }));
+
+    const contentAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+        transform: [{
+            translateY: interpolate(
+                opacity.value,
+                [0, 1],
+                [10, 0],
+                Extrapolation.CLAMP
+            )
+        }]
     }));
 
     return (
         <TouchableOpacity
-            activeOpacity={0.9}
+            activeOpacity={0.95}
             onPress={toggleOpen}
             className="bg-white border-[3px] border-black rounded-xl overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
         >
@@ -78,23 +150,36 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
                 </Text>
 
                 <Animated.View style={[
-                    { width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: 'black', alignItems: 'center', justifyContent: 'center', backgroundColor: '#E0B0FF' },
-                    iconStyle
+                    {
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        borderWidth: 2,
+                        borderColor: 'black',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#E0B0FF'
+                    },
+                    iconContainerStyle
                 ]}>
                     <Plus size={18} color="black" strokeWidth={3} />
                 </Animated.View>
             </View>
 
-            {isOpen && (
-                <View className="px-5 pb-5 border-t-[1px] border-black/10 pt-4">
+            {/* Animated Content Container - No measurement needed */}
+            <Animated.View style={containerStyle}>
+                <Animated.View
+                    style={contentAnimatedStyle}
+                    className="px-5 pb-5 border-t-[1px] border-black/10 pt-4"
+                >
                     <Text
                         className="text-gray-800 text-base leading-6"
                         style={{ fontFamily: FAQ_FONTS.ANSWER }}
                     >
                         {answer}
                     </Text>
-                </View>
-            )}
+                </Animated.View>
+            </Animated.View>
         </TouchableOpacity>
     );
 };
