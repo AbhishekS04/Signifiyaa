@@ -119,7 +119,7 @@ const PastGlimpses = () => {
                     className="bg-black px-12 py-5 rounded-full shadow-xl border-2 border-black"
                     activeOpacity={0.85}
                 >
-                    <Text className="text-white text-base font-bold uppercase tracking-[2px]"
+                    <Text className="text-white text-base uppercase tracking-[2px]"
                         style={{
                             fontFamily: 'Softura',
                         }}>

@@ -157,7 +157,7 @@ const HeroSection = () => {
 
                         {/* Description */}
                         <Text className="text-black/50 text-[9px] uppercase text-center mb-8 leading-4 tracking-tighter px-6"
-                        style={{ fontFamily: 'Softura' }}>
+                            style={{ fontFamily: 'Softura' }}>
                             SOET'S AWAITED FEST IS BACK WITH EVEN MORE FUN N{'\n'}
                             EXCITING PLANS | GLIDE DOWN TO EXPLORE OUR FEST
                         </Text>
@@ -223,4 +223,5 @@ const BunnyMascot = () => (
     </Svg>
 );
 
-export default HeroSection;
+// Wrap with React.memo to prevent re-renders during scroll
+export default React.memo(HeroSection);

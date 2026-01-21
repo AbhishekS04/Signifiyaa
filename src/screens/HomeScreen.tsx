@@ -20,12 +20,28 @@ export default function HomeScreen() {
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 0 }}
-                // Buttery smooth momentum scrolling
-                decelerationRate={0.985} // Very slow deceleration = maximum momentum
-                scrollEventThrottle={16} // 60fps scroll events
+
+                // 🚀 Premium Scroll Performance
+                removeClippedSubviews={false} // Disabled to prevent stuttering on some devices
+                decelerationRate={0.988} // Stable momentum - not too fast to prevent jank
+                scrollEventThrottle={16} // 60fps - sweet spot for smoothness without over-processing
+
+                // 🎨 Visual Smoothness
                 overScrollMode="never" // Cleaner scroll experience (Android)
                 bounces={true} // Natural iOS bounce
+                alwaysBounceVertical={false} // Only bounce when content exceeds screen
+                disableIntervalMomentum={true} // Smoother continuous scrolling
+                keyboardShouldPersistTaps="handled" // Prevent scroll interruption
+
+                // ⚡ Performance Optimizations
                 nestedScrollEnabled={true} // Better Android compatibility
+                persistentScrollbar={false} // Hide scrollbar for cleaner look
+                snapToAlignment="start" // Crisp scroll stopping
+
+                // 🧈 Anti-Jitter Specifics
+                directionalLockEnabled={true} // Prevent diagonal scrolling jank
+                scrollToOverflowEnabled={false} // Prevent over-scroll jank
+                pagingEnabled={false} // Continuous smooth scroll
             >
                 <View className="mb-4">
                     <HeroSection />
