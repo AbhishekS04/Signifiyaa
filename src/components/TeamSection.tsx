@@ -1,8 +1,6 @@
-// import React, { useState } from 'react';
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView, Linking } from 'react-native';
 import { Instagram, Linkedin, Github } from 'lucide-react-native';
-import Svg, { Path } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 
 // ============================================
@@ -79,7 +77,7 @@ const TEAM_MEMBERS = [
         role: 'Application Developer',
         desc: 'Building beautiful UIs.',
         image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/68e0efce-84a4-42ae-9bd7-a2be6aca73d8.jpg',
-        socials: { instagram: 'https://instagram.com/abhishek', linkedin: 'https://linkedin.com/in/abhishek', github: 'https://github.com/AbhishekS04' }
+        socials: { instagram: 'https://instagram.com/abhishek', linkedin: 'https://linkedin.com/in/abhishek', github: 'https://github.com/abhishek' }
     },
 ];
 
@@ -98,12 +96,22 @@ const TeamSection = () => {
             {/* Active Member Display Card */}
             <View className="mb-10 items-center">
                 <View className="bg-white border-[3px] border-black rounded-[32px] p-8 w-full items-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                    <View className="w-32 h-32 bg-white rounded-[28px] border-[3px] border-black mb-6 overflow-hidden relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <View className="w-32 h-32 bg-black rounded-[28px] mb-6 overflow-hidden relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                         <Image
                             source={{ uri: activeMember.image }}
-                            className="w-full h-full"
+                            style={{
+                                width: '125%',
+                                height: '125%',
+                                position: 'absolute',
+                                left: '-10%',
+                                top: '-12.5%'
+                            }}
                             resizeMode="cover"
-                            style={{ borderRadius: 25 }} // Calculated: 28px container - 3px border
+                        />
+                        {/* Perfect Border Overlay - Eliminates sub-pixel gaps */}
+                        <View
+                            style={{ position: 'absolute', inset: 0, borderWidth: 3, borderColor: 'black', borderRadius: 28 }}
+                            pointerEvents="none"
                         />
                     </View>
 
@@ -171,14 +179,33 @@ const TeamSection = () => {
                                 setActiveMember(member);
                             }}
                             activeOpacity={0.7}
-                            className={`w-16 h-16 rounded-2xl border-[3px] border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${activeMember.id === member.id ? 'bg-[#B9F6CA]' : 'bg-white'
-                                }`}
+                            className={`w-16 h-16 rounded-2xl overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-black relative`}
                         >
                             <Image
                                 source={{ uri: member.image }}
                                 className={`w-full h-full ${activeMember.id === member.id ? 'opacity-100' : 'opacity-60'}`}
+                                style={{
+                                    width: '125%',
+                                    height: '125%',
+                                    position: 'absolute',
+                                    left: '-10%',
+                                    top: '-12.5%'
+                                }}
                                 resizeMode="cover"
-                                style={{ borderRadius: 13 }} // Calculated: 16px (2xl) - 3px border
+                            />
+                            {/* Dynamic Border Overlay */}
+                            <View
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    borderWidth: 3,
+                                    borderRadius: 16,
+                                    borderColor: activeMember.id === member.id ? '#B9F6CA' : 'black'
+                                }}
+                                pointerEvents="none"
                             />
                         </TouchableOpacity>
                     ))}

@@ -48,7 +48,7 @@ const EVENTS_DATA = [
         imageColor: '#ccff00',
         buttonColor: '#D194FF',
         imageUrl: '',
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/8a98fec1-5439-4cb3-8eb2-f0d605204397.mp4' // Valorant Agent Gekko
+        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/44fe63af-47e0-4df6-8fc3-0a984c7337da.mp4' // Valorant Agent Gekko
     },
     {
         title: 'BGMI',
@@ -58,8 +58,8 @@ const EVENTS_DATA = [
         prizePool: '10K',
         imageColor: '#ff9966',
         buttonColor: '#D194FF',
-        imageUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
-        videoUrl: ''
+        imageUrl: '',
+        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4'
     },
 
 
@@ -466,20 +466,28 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
     */
 
     return (
-        <View className="bg-white border-[3px] border-black rounded-[32px] overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            {/* Poster Header - Perfect Rounding for Crisped Corners */}
+        <View className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            {/* Poster Header - Negative margin to tuck under parent border */}
             <View
-                className="h-80 relative w-full border-b-[3px] border-black bg-white overflow-hidden"
+                className="h-80 relative w-full bg-black overflow-hidden"
                 style={{
-                    borderTopLeftRadius: 29,
-                    borderTopRightRadius: 29
+                    marginTop: -1,
+                    marginLeft: -1,
+                    marginRight: -1,
+                    width: '102%' // Slightly wider to ensure absolute coverage
                 }}
             >
                 {videoUrl ? (
                     <View className="w-full h-full">
                         <Video
                             source={{ uri: videoUrl }}
-                            style={{ width: '100%', height: '100%', borderTopLeftRadius: 29, borderTopRightRadius: 29 }}
+                            style={{
+                                width: '125%',
+                                height: '125%',
+                                position: 'absolute',
+                                left: '-10%',
+                                top: '-12.5%'
+                            }}
                             resizeMode={ResizeMode.COVER}
                             shouldPlay
                             isLooping
@@ -502,15 +510,26 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                 ) : imageUrl ? (
                     <Image
                         source={{ uri: imageUrl }}
-                        className="w-full h-full"
+                        style={{
+                            width: '125%',
+                            height: '125%',
+                            position: 'absolute',
+                            left: '-10%',
+                            top: '-12.5%'
+                        }}
                         resizeMode="cover"
-                        style={{ borderTopLeftRadius: 29, borderTopRightRadius: 29 }}
                     />
                 ) : (
                     <View className="w-full h-full items-center justify-center" style={{ backgroundColor: imageColor }}>
                         <Text className="text-black font-bold opacity-20">POSTER GOES HERE</Text>
                     </View>
                 )}
+
+                {/* Perfect Border Bottom Overlay */}
+                <View
+                    style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: 'black' }}
+                    pointerEvents="none"
+                />
 
                 {/* Category Badge - Neo Brutalist Style */}
                 <View className="absolute top-4 right-4 bg-black px-4 py-2 rounded-full border-2 border-white/20">
