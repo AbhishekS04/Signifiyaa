@@ -216,13 +216,16 @@ const DepartmentsEvents = () => {
                 {/* Header - Restructured to fix italic "SOET" text clipping */}
                 <View className="mb-4 mt-2">
                     <View className="flex-row" style={{ alignSelf: 'flex-end', marginRight: 8 }}>
-                        <Text className="font-[ArchivoBlack_400Regular] text-3xl text-black">ABOUT </Text>
-                        <Text className="font-[ArchivoBlack_400Regular] text-3xl text-black" style={{ paddingRight: 4 }}>SOET</Text>
+                        <Text className="text-4xl text-black"
+                            style={{ fontFamily: 'Gilton' }}>ABOUT </Text>
+                        <Text className="text-4xl text-black"
+                            style={{ fontFamily: 'Gilton' }}>SOET</Text>
                     </View>
                 </View>
 
                 {/* Body Text */}
-                <Text className="font-[Inter_400Regular] text-black text-center leading-6 text-base font-semibold">
+                <Text className=" text-black text-center leading-7 text-base font-semibold"
+                    style={{ fontFamily: 'Softura' }}>
                     The School of Engineering and Technology stands as a beacon of technical excellence, fostering innovation and shaping the future engineers who will build tomorrow's world.
                 </Text>
             </View>
@@ -240,14 +243,14 @@ const DepartmentsEvents = () => {
                     {/* Measure text width */}
                     <Text
                         onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
-                        className="absolute opacity-0 font-[ArchivoBlack_400Regular] text-black text-lg tracking-widest"
+                        className="absolute opacity-0 font-[Gilton] text-black text-lg tracking-widest"
                     >
                         {MARQUEE_TEXT}
                     </Text>
 
                     {/* Render multiple copies for infinite loop */}
                     {[...Array(12)].map((_, i) => (
-                        <Text key={i} className="font-[ArchivoBlack_400Regular] text-black text-lg tracking-widest">
+                        <Text key={i} className="font-[Gilton] text-black text-lg tracking-widest">
                             {MARQUEE_TEXT}
                         </Text>
                     ))}
@@ -261,9 +264,12 @@ const DepartmentsEvents = () => {
 
                 {/* Header */}
                 <View className="items-center my-6">
-                    <Text className="font-[Inter_700Bold] text-4xl text-black italic -mb-2">SIGNIFIYA</Text>
-                    <Text className="font-[Inter_700Bold] text-4xl text-black italic">EVENTS</Text>
-                    <Text className="font-[Inter_400Regular] text-gray-500 text-center mt-2 px-8">
+                    <Text className="text-4xl text-black  mb-2"
+                        style={{ fontFamily: 'Gilton', paddingRight: 10 }}>SIGNIFIYA</Text>
+                    <Text className="text-4xl text-black "
+                        style={{ fontFamily: 'Gilton', paddingRight: 10 }}>EVENTS</Text>
+                    <Text className="text-gray-500 text-center mt-2 px-8 font-semibold"
+                        style={{ fontFamily: 'Softura' }}>
                         Discover the diverse range of events happening at Signifiya'26.
                     </Text>
                 </View>
@@ -271,7 +277,7 @@ const DepartmentsEvents = () => {
                 {/* ============================================ */}
                 {/* FILTER PILLS (Interactive)                  */}
                 {/* ============================================ */}
-                <View className="flex-row flex-wrap justify-center gap-2 mb-8">
+                <View className="flex-row flex-wrap justify-center gap-2 mb-8" >
                     {filters.map((filter, index) => (
                         <TouchableOpacity
                             key={index}
@@ -282,8 +288,10 @@ const DepartmentsEvents = () => {
                             className={`px-4 py-2 rounded-full border-2 border-black ${selectedCategory === filter ? 'bg-black' : 'bg-white'
                                 }`}
                         >
-                            <Text className={`font-bold text-sm ${selectedCategory === filter ? 'text-white' : 'text-black'
-                                }`}>
+                            <Text
+                                className={`text-[12px] uppercase tracking-wider ${selectedCategory === filter ? 'text-white' : 'text-black'}`}
+                                style={{ fontFamily: 'Softura' }}
+                            >
                                 {filter}
                             </Text>
                         </TouchableOpacity>
@@ -482,7 +490,7 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                             className="border-2 border-black py-3 rounded-xl items-center"
                             style={{ backgroundColor: buttonColor }}
                         >
-                            <Text className="font-[Inter_700Bold] text-black">VIEW DETAILS</Text>
+                            <Text className="text-black uppercase tracking-widest text-xs" style={{ fontFamily: 'Softura' }}>VIEW DETAILS</Text>
                         </TouchableOpacity>
 
                         {/* Register Button */}
@@ -490,7 +498,7 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                             onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                             className="bg-black py-3 rounded-xl items-center"
                         >
-                            <Text className="font-[Inter_700Bold] text-white">REGISTER</Text>
+                            <Text className="text-white uppercase tracking-widest text-xs" style={{ fontFamily: 'Softura' }}>REGISTER</Text>
                         </TouchableOpacity>
                     </Animated.View>
                 )}
