@@ -1,4 +1,5 @@
-import { ScrollView, View, SafeAreaView } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import HeroSection from '../components/HeroSection';
 import AboutSection from '../components/AboutSection';
 import GallerySection from '../components/GallerySection';
@@ -14,7 +15,7 @@ import FooterSection from '../components/FooterSection';
 
 export default function HomeScreen() {
     return (
-        <SafeAreaView className="flex-1 bg-black">
+        <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}

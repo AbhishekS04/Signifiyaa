@@ -5,12 +5,12 @@ const GallerySection = () => {
     return (
         <View className="mb-8 mt-5 px-2">
             {/* Header */}
-            <View className="items-center mb-8">
+            {/* <View className="items-center mb-8">
                 <Text className="text-black text-4xl uppercase tracking-tighter"
                     style={{ fontFamily: 'Gilton' }}>
                     CAMPUS SHOTS
                 </Text>
-            </View>
+            </View> */}
 
             {/* Image Gallery - Two Stacked Photos */}
             <View className="gap-4">
