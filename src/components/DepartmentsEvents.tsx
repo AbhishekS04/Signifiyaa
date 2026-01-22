@@ -72,8 +72,8 @@ const EVENTS_DATA = [
         prizePool: '50K',
         imageColor: '#66ccff',
         buttonColor: '#FFD700',
-        imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Coding/Tech
-        videoUrl: ''
+        // imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Coding/Tech
+        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/1359c8e8-57aa-482e-8af0-31d92af491e5.mp4'
     },
     {
         title: 'CODE RELAY',
@@ -192,8 +192,8 @@ const EVENTS_DATA = [
         prizePool: '10K',
         imageColor: '#ffff99',
         buttonColor: '#98FB98',
-        imageUrl: 'https://images.unsplash.com/photo-1519074063912-ad2fe3f5113c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Map/Adventure
-        videoUrl: ''
+        // imageUrl: 'https://images.unsplash.com/photo-1519074063912-ad2fe3f5113c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Map/Adventure
+        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/4ebcf404-4545-45bd-817e-5e6cc8b6c361.mp4'
     },
     {
         title: 'TALENT SHOW',

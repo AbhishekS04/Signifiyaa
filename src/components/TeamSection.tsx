@@ -65,11 +65,11 @@ const TEAM_MEMBERS = [
     },
     {
         id: 7,
-        name: 'Samriddhi Sinha',
+        name: 'Snehasish Mondal',
         role: 'EVENT MANAGER',
         desc: 'Organizing chaos.',
-        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Samriddhi',
-        socials: { instagram: 'https://instagram.com/samriddhi', linkedin: 'https://linkedin.com/in/samriddhi', github: 'https://github.com/samriddhi' }
+        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/c6682553-ae50-45c1-9fc3-5ff2918f194d.jpg',
+        socials: { instagram: 'https://instagram.com/snehasish', linkedin: 'https://linkedin.com/in/snehasish', github: 'https://github.com/snehasish' }
     },
     {
         id: 8,
