@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { Star, Plus, X, Volume2, VolumeX } from 'lucide-react-native';
 import Animated, {
     useSharedValue,
@@ -8,10 +8,18 @@ import Animated, {
     withTiming,
     withSpring,
     Easing,
-    interpolate
+    interpolate,
+    runOnJS,
+    useAnimatedScrollHandler,
+    SharedValue
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { VideoView, useVideoPlayer } from 'expo-video';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const { width } = Dimensions.get('window');
 
@@ -40,7 +48,7 @@ const SECTION_FONTS = {
 const EVENTS_DATA = [
     // --- ESPORTS EVENTS ---
     {
-        title: 'VALORANT TOURNAMENT',
+        title: 'VALORANT',
         date: 'MARCH 13TH - 14TH',
         category: 'ESPORTS',
         description: 'Join the ultimate tactical FPS showdown. Form your squad and compete for glory!',
@@ -208,16 +216,86 @@ const EVENTS_DATA = [
     },
 ];
 
+// ============================================
+// ANIMATED CARD COMPONENT (Prevents Hook Rules Error)
+// ============================================
+const AnimatedCard = ({ item, index, scrollX, cardWidth, cardSpacing }: {
+    item: any,
+    index: number,
+    scrollX: SharedValue<number>,
+    cardWidth: number,
+    cardSpacing: number
+}) => {
+    const inputRange = [
+        (index - 1) * (cardWidth + cardSpacing),
+        index * (cardWidth + cardSpacing),
+        (index + 1) * (cardWidth + cardSpacing),
+    ];
+
+    const animatedStyle = useAnimatedStyle(() => {
+        const scale = interpolate(
+            scrollX.value,
+            inputRange,
+            [0.92, 1, 0.92],
+            'clamp'
+        );
+        const opacity = interpolate(
+            scrollX.value,
+            inputRange,
+            [0.65, 1, 0.65],
+            'clamp'
+        );
+
+        return {
+            transform: [
+                { scale }
+            ],
+            opacity,
+        };
+    });
+
+    return (
+        <Animated.View
+            style={[{
+                width: cardWidth,
+                marginRight: cardSpacing,
+                overflow: 'hidden', // Critical for preventing video bleed
+                borderRadius: 32,   // Ensure border radius clipping applies to container
+            }, animatedStyle]}
+        >
+            <EventCard
+                title={item.title}
+                date={item.date}
+                category={item.category}
+                description={item.description}
+                prizePool={item.prizePool}
+                imageColor={item.imageColor}
+                buttonColor={item.buttonColor}
+                imageUrl={item.imageUrl}
+                videoUrl={item.videoUrl}
+            />
+        </Animated.View>
+    );
+};
+
 const DepartmentsEvents = () => {
     // ============================================
     // STATE MANAGEMENT
     // ============================================
-    const [selectedCategory, setSelectedCategory] = useState('ESPORTS'); // Default filter
+    const [selectedCategory, setSelectedCategory] = useState('ESPORTS');
+    const [containerWidth, setContainerWidth] = useState(width);
     const [textWidth, setTextWidth] = useState(0);
+    const [currentIndex, setCurrentIndex] = useState(0);
     const translateX = useSharedValue(0);
+    const scrollX = useSharedValue(0);
+    const carouselRef = useRef<any>(null);
 
     const filters = ['ESPORTS', 'CSE', 'CIVIL', 'MECHANICAL', 'EEE', 'ROBOTICS', 'NON-TECH'];
     const MARQUEE_TEXT = "EVENTS ★ ★ SOET ★ ★ ";
+
+    // Carousel configuration - 72% width for better peek visibility
+    const CARD_WIDTH = Math.round(width * 0.72);
+    const CARD_SPACING = 20;
 
     // ============================================
     // MARQUEE ANIMATION
@@ -245,6 +323,31 @@ const DepartmentsEvents = () => {
     // FILTER EVENTS BY CATEGORY
     // ============================================
     const filteredEvents = EVENTS_DATA.filter(event => event.category === selectedCategory);
+
+    // ============================================
+    // SMOOTH FILTER TRANSITION
+    // ============================================
+    const handleFilterChange = (filter: string) => {
+        // Smooth layout animation for category change
+        LayoutAnimation.configureNext(
+            LayoutAnimation.create(
+                350,
+                LayoutAnimation.Types.easeInEaseOut,
+                LayoutAnimation.Properties.opacity
+            )
+        );
+
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        setSelectedCategory(filter);
+        setCurrentIndex(0);
+
+        // Reset ScrollView to first item
+        setTimeout(() => {
+            if (carouselRef.current) {
+                carouselRef.current.scrollTo({ x: 0, animated: false });
+            }
+        }, 50);
+    };
 
     return (
         <View className="w-full">
@@ -325,10 +428,7 @@ const DepartmentsEvents = () => {
                     {filters.map((filter, index) => (
                         <TouchableOpacity
                             key={index}
-                            onPress={() => {
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-                                setSelectedCategory(filter);
-                            }}
+                            onPress={() => handleFilterChange(filter)}
                             className={`px-4 py-2 rounded-full border-2 border-black ${selectedCategory === filter ? 'bg-black' : 'bg-white'
                                 }`}
                         >
@@ -342,40 +442,132 @@ const DepartmentsEvents = () => {
                     ))}
                 </View>
 
+                {/* CAROUSEL: Swipeable Event Cards             */}
                 {/* ============================================ */}
-                {/* EVENT CARDS (Filtered by category)          */}
-                {/* ============================================ */}
-                <View className="gap-6">
-                    {filteredEvents.length > 0 ? (
-                        filteredEvents.map((event, index) => (
-                            <EventCard
-                                key={index}
-                                title={event.title}
-                                date={event.date}
-                                category={event.category}
-                                description={event.description}
-                                prizePool={event.prizePool}
-                                imageColor={event.imageColor}
-                                buttonColor={event.buttonColor}
-                                imageUrl={event.imageUrl}
-                                videoUrl={event.videoUrl}
-                            />
-                        ))
-                    ) : (
-                        // No events found message
-                        <View className="items-center py-12">
-                            <Text className="font-[Inter_700Bold] text-gray-400 text-lg">
-                                No events in this category yet!
-                            </Text>
-                            <Text className="font-[Inter_400Regular] text-gray-400 text-sm mt-2">
-                                Check back soon for updates.
-                            </Text>
-                        </View>
-                    )}
-                </View>
+                {filteredEvents.length > 0 ? (
+                    <View
+                        onLayout={(e) => {
+                            const { width: layoutWidth } = e.nativeEvent.layout;
+                            setContainerWidth(layoutWidth);
+                        }}
+                    >
+                        <Animated.ScrollView
+                            ref={carouselRef}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            decelerationRate="fast"
+                            snapToInterval={CARD_WIDTH + CARD_SPACING}
+                            snapToAlignment="start"
+                            disableIntervalMomentum={true} // Forces snap to nearest item, preventing free scroll or momentum drift
+                            scrollEventThrottle={16}
+                            contentContainerStyle={{
+                                paddingHorizontal: (containerWidth - CARD_WIDTH) / 2,
+                            }}
+                            onScroll={useAnimatedScrollHandler((event) => {
+                                scrollX.value = event.contentOffset.x;
+                                // Optimize: Only update state when index actually changes
+                                const nextIndex = Math.round(event.contentOffset.x / (CARD_WIDTH + CARD_SPACING));
+                                if (nextIndex !== currentIndex) {
+                                    runOnJS(setCurrentIndex)(nextIndex);
+                                }
+                            })}
+                        >
+                            {filteredEvents.map((item, index) => (
+                                <AnimatedCard
+                                    key={`${item.title}-${index}`}
+                                    item={item}
+                                    index={index}
+                                    scrollX={scrollX}
+                                    cardWidth={CARD_WIDTH}
+                                    cardSpacing={CARD_SPACING}
+                                />
+                            ))}
+                        </Animated.ScrollView>
+
+                        {/* ============================================ */}
+                        {/* PAGINATION DOTS (Animated)                   */}
+                        {/* ============================================ */}
+                        {filteredEvents.length > 1 && (
+                            <View className="flex-row justify-center items-center mt-6 gap-2">
+                                {filteredEvents.map((_, index) => (
+                                    <PaginationDot
+                                        key={index}
+                                        isActive={index === currentIndex}
+                                        onPress={() => {
+                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                            // Calculate target offset to center the item
+                                            // Target = Index * Interval
+                                            // This places the start of item N at the start of viewport + padding
+                                            // Since padding centers the item, snapping to start aligns it perfectly to center
+                                            carouselRef.current?.scrollTo({
+                                                x: index * (CARD_WIDTH + CARD_SPACING),
+                                                animated: true
+                                            });
+                                        }}
+                                    />
+                                ))}
+                            </View>
+                        )}
+                    </View>
+                ) : (
+                    // No events found message
+                    <View className="items-center py-12">
+                        <Text className="font-[Inter_700Bold] text-gray-400 text-lg">
+                            No events in this category yet!
+                        </Text>
+                        <Text className="font-[Inter_400Regular] text-gray-400 text-sm mt-2">
+                            Check back soon for updates.
+                        </Text>
+                    </View>
+                )
+                }
 
             </View>
         </View>
+    );
+};
+
+// ============================================
+// PAGINATION DOT COMPONENT (Animated)
+// ============================================
+interface PaginationDotProps {
+    isActive: boolean;
+    onPress: () => void;
+}
+
+const PaginationDot = ({ isActive, onPress }: PaginationDotProps) => {
+    const scale = useSharedValue(isActive ? 1.2 : 1);
+    const opacity = useSharedValue(isActive ? 1 : 0.4);
+
+    useEffect(() => {
+        scale.value = withSpring(isActive ? 1.2 : 1, {
+            damping: 15,
+            stiffness: 150,
+        });
+        opacity.value = withTiming(isActive ? 1 : 0.4, {
+            duration: 200,
+        });
+    }, [isActive]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+        opacity: opacity.value,
+    }));
+
+    return (
+        <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+            <Animated.View
+                style={[
+                    animatedStyle,
+                    {
+                        width: isActive ? 24 : 8,
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: 'black',
+                    },
+                ]}
+            />
+        </TouchableOpacity>
     );
 };
 
@@ -482,59 +674,58 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
     */
 
     return (
-        <View className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            {/* Poster Header - Negative margin to tuck under parent border */}
+        <View
+            className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+            style={{ height: 600 }}
+        >
+            {/* Poster Header - Fixed Height */}
             <View
-                className="h-80 relative w-full bg-black overflow-hidden"
+                className="relative w-full bg-black overflow-hidden"
                 style={{
-                    marginTop: -1,
-                    marginLeft: -1,
-                    marginRight: -1,
-                    width: '102%' // Slightly wider to ensure absolute coverage
+                    height: 300,
+                    marginBottom: -5 // Ensure seamless connection with content
                 }}
             >
-                {videoUrl ? (
-                    <View className="w-full h-full">
-                        <VideoView
-                            player={player}
+                {/* Media Container with absolute positioning fixes */}
+                <View className="absolute inset-0 w-full h-full overflow-hidden bg-black">
+                    {videoUrl ? (
+                        <View className="w-full h-full" pointerEvents="box-none">
+                            <VideoView
+                                player={player}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                }}
+                                contentFit="cover"
+                                nativeControls={false}
+                                pointerEvents="none"
+                            />
+                            <TouchableOpacity
+                                onPress={toggleMute}
+                                className="absolute bottom-4 right-4 bg-black/60 p-2 rounded-full border border-white/20 z-10"
+                            >
+                                {isMuted ? (
+                                    <VolumeX size={18} color="white" />
+                                ) : (
+                                    <Volume2 size={18} color="white" />
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    ) : imageUrl ? (
+                        <Image
+                            source={{ uri: imageUrl }}
                             style={{
-                                width: '125%',
-                                height: '125%',
-                                position: 'absolute',
-                                left: '-10%',
-                                top: '-12.5%'
+                                width: '100%',
+                                height: '100%',
                             }}
-                            contentFit="cover"
-                            nativeControls={false}
+                            resizeMode="cover"
                         />
-                        <TouchableOpacity
-                            onPress={toggleMute}
-                            className="absolute bottom-4 right-4 bg-black/60 p-2 rounded-full border border-white/20"
-                        >
-                            {isMuted ? (
-                                <VolumeX size={18} color="white" />
-                            ) : (
-                                <Volume2 size={18} color="white" />
-                            )}
-                        </TouchableOpacity>
-                    </View>
-                ) : imageUrl ? (
-                    <Image
-                        source={{ uri: imageUrl }}
-                        style={{
-                            width: '125%',
-                            height: '125%',
-                            position: 'absolute',
-                            left: '-10%',
-                            top: '-12.5%'
-                        }}
-                        resizeMode="cover"
-                    />
-                ) : (
-                    <View className="w-full h-full items-center justify-center" style={{ backgroundColor: imageColor }}>
-                        <Text className="text-black font-bold opacity-20">POSTER GOES HERE</Text>
-                    </View>
-                )}
+                    ) : (
+                        <View className="w-full h-full items-center justify-center" style={{ backgroundColor: imageColor }}>
+                            <Text className="text-black font-bold opacity-20">POSTER GOES HERE</Text>
+                        </View>
+                    )}
+                </View>
 
                 {/* Perfect Border Bottom Overlay */}
                 <View
@@ -542,51 +733,59 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                     pointerEvents="none"
                 />
 
-                {/* Category Badge - Neo Brutalist Style */}
+                {/* Category Badge */}
                 <View className="absolute top-4 right-4 bg-black px-4 py-2 rounded-full border-2 border-white/20">
                     <Text
                         className="text-white text-[10px] tracking-widest uppercase"
                         style={{ fontFamily: SECTION_FONTS.BADGE }}
+                        numberOfLines={1}
                     >
                         {category}
                     </Text>
                 </View>
             </View>
 
-            {/* Content Area */}
-            <View className="p-5 bg-white">
-                {/* Event Title - Bold Afro-style typography */}
-                <Text
-                    className="text-black text-3xl uppercase leading-8 mb-1"
-                    style={{ fontFamily: SECTION_FONTS.EVENT_TITLE }}
-                >
-                    {title}
-                </Text>
+            {/* Content Area - Fixed Layout */}
+            <View className="p-5 bg-white" style={{ flex: 1, justifyContent: 'space-between' }}>
+                <View>
+                    {/* Event Title - Max 2 Lines */}
+                    <Text
+                        className="text-black text-3xl uppercase leading-8 mb-1"
+                        style={{ fontFamily: SECTION_FONTS.EVENT_TITLE }}
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
+                    >
+                        {title}
+                    </Text>
 
-                {/* Event Date */}
-                <Text
-                    className="text-[#8e99af] text-lg mb-3"
-                    style={{ fontFamily: SECTION_FONTS.DATE }}
-                >
-                    {date}
-                </Text>
+                    {/* Event Date - Max 1 Line */}
+                    <Text
+                        className="text-[#8e99af] text-lg mb-3"
+                        style={{ fontFamily: SECTION_FONTS.DATE }}
+                        numberOfLines={1}
+                    >
+                        {date}
+                    </Text>
 
-                {/* Prize Pool Tag - Mint Green Badge */}
-                <View className="bg-[#B9F6CA] self-start px-4 py-1.5 rounded-full border-black mb-4">
-                    <Text className="text-black text-xs" style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_LABEL }}>
-                        Prize pool: <Text style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_VALUE }}>{prizePool}</Text>
+                    {/* Prize Pool Tag */}
+                    <View className="bg-[#B9F6CA] self-start px-4 py-1.5 rounded-full border-black mb-4">
+                        <Text className="text-black text-xs" style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_LABEL }} numberOfLines={1}>
+                            Prize pool: <Text style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_VALUE }}>{prizePool}</Text>
+                        </Text>
+                    </View>
+
+                    {/* Short Description - Max 2 Lines */}
+                    <Text
+                        className="text-black/80 text-sm leading-5 mb-4"
+                        style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
+                    >
+                        {description || "Join this exciting event and showcase your skills! More details coming soon."}
                     </Text>
                 </View>
 
-                {/* Short Description */}
-                <Text
-                    className="text-black/80 text-sm leading-5 mb-8"
-                    style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}
-                >
-                    {description || "Join this exciting event and showcase your skills! More details coming soon."}
-                </Text>
-
-                {/* Action Buttons - Fixed Stack */}
+                {/* Action Buttons - Fixed At Bottom */}
                 <View className="gap-4">
                     <TouchableOpacity
                         onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
@@ -598,7 +797,7 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                         </Text>
                     </TouchableOpacity>
 
-                    {/* Register Button - Black Neo Brutalist */}
+                    {/* Register Button */}
                     <TouchableOpacity
                         onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                         className="bg-black py-4 rounded-2xl items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
