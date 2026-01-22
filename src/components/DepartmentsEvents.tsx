@@ -68,7 +68,8 @@ const EVENTS_DATA = [
         imageColor: '#ff9966',
         buttonColor: '#D194FF',
         imageUrl: '',
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4'
+        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4',
+        // videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4'
     },
 
 
@@ -412,9 +413,25 @@ const DepartmentsEvents = () => {
                                 parallaxScrollingOffset: 50,
                                 parallaxAdjacentItemScale: 0.8,
                             }}
+                            {...({
+                                panGestureHandlerProps: {
+                                    activeOffsetX: [-10, 10],
+                                }
+                            } as any)}
                             data={filteredEvents}
                             renderItem={({ item, index }: { item: any; index: number }) => (
-                                <View style={{ width: containerWidth, alignItems: 'center', justifyContent: 'center' }}>
+                                <View
+                                    style={{
+                                        width: containerWidth,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        // Z-Index Hack: Active item higher (approximated by index vs current)
+                                        // Since we can't easily animate zIndex here without shared values,
+                                        // we rely on Parallax mode's default z-ordering (usually center on top).
+                                        // We ensure strict clipping:
+                                        overflow: 'hidden'
+                                    }}
+                                >
                                     <View style={{ width: CARD_WIDTH, marginHorizontal: CARD_SPACING / 2 }}>
                                         <EventCard
                                             title={item.title}
