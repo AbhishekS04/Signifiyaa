@@ -31,8 +31,8 @@ const EVENTS_DATA = [
         prizePool: '10K',
         imageColor: '#ff9966',
         buttonColor: '#D194FF',
-        imageUrl: '',
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4'
+        imageUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/5628f912-994d-4054-9ec7-bbb1310fe6c9.png',
+        // videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4'
     },
 
     // --- CSE EVENTS ---
@@ -199,13 +199,22 @@ const EventCard = ({ event, isActive }: { event: Event; isActive: boolean }) => 
 
     useEffect(() => {
         if (videoRef.current) {
-            (videoRef.current as any).muted = isMuted;
-            // Auto play if active logic is complex on web, but standard loop is fine
-            if ((videoRef.current as any).paused) {
-                (videoRef.current as any).play().catch((e: any) => console.log("Autoplay prevented", e));
+            const videoEl = videoRef.current as any;
+            videoEl.muted = isMuted;
+
+            if (isActive) {
+                const playPromise = videoEl.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch((error: any) => {
+                        console.log("Autoplay prevented:", error);
+                    });
+                }
+            } else {
+                videoEl.pause();
+                videoEl.currentTime = 0; // Optional: Reset to start
             }
         }
-    }, [isMuted]);
+    }, [isActive, isMuted]);
 
     return (
         <motion.div
@@ -227,7 +236,7 @@ const EventCard = ({ event, isActive }: { event: Event; isActive: boolean }) => 
                             loop
                             muted={isMuted}
                             playsInline
-                            autoPlay
+                            autoPlay={isActive} // Only autoplay if active initially
                         />
                         <button
                             onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
@@ -287,7 +296,7 @@ const EventCard = ({ event, isActive }: { event: Event; isActive: boolean }) => 
                     </button>
                 </div>
             </div>
-        </motion.div>
+        </motion.div >
     );
 };
 

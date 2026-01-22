@@ -67,8 +67,8 @@ const EVENTS_DATA = [
         prizePool: '10K',
         imageColor: '#ff9966',
         buttonColor: '#D194FF',
-        imageUrl: '',
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4',
+        imageUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/5628f912-994d-4054-9ec7-bbb1310fe6c9.png',
+        // videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4',
         // videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4'
     },
 
@@ -443,6 +443,7 @@ const DepartmentsEvents = () => {
                                             buttonColor={item.buttonColor}
                                             imageUrl={item.imageUrl}
                                             videoUrl={item.videoUrl}
+                                            isActive={index === currentIndex}
                                         />
                                     </View>
                                 </View>
@@ -564,18 +565,34 @@ interface EventCardProps {
     buttonColor: string;
     imageUrl?: string;
     videoUrl?: string; // New field for video support
+    isActive: boolean; // Controls video playback visibility
 }
 
-const EventCard = ({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl }: EventCardProps) => {
+const EventCard = ({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl, isActive }: EventCardProps) => {
     // Track muted state for UI updates
     const [isMuted, setIsMuted] = useState(true);
 
     // Initialize video player for expo-video
     const player = useVideoPlayer(videoUrl || '', (player) => {
         player.loop = true;
-        player.play();
+        // Only play if active to save resources and prevent bleeding
+        if (isActive) {
+            player.play();
+        } else {
+            player.pause();
+        }
         player.muted = true;
     });
+
+    // Effect to control playback based on active state
+    useEffect(() => {
+        if (isActive) {
+            player.play();
+        } else {
+            player.pause();
+            player.currentTime = 0; // Reset video when scrolling away
+        }
+    }, [isActive, player]);
 
     const toggleMute = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -584,86 +601,20 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
         player.muted = newMutedState;
     };
 
-    // ============================================
-    // EXPERIMENTAL: ACCORDION ANIMATION (COMMENTED OUT AS PER USER REQUEST)
-    // ============================================
-    /*
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [contentHeight, setContentHeight] = useState(0);
-    const heightValue = useSharedValue(0);
-    const rotationValue = useSharedValue(0);
-    const buttonOpacity = useSharedValue(0);
-
-    const animatedHeight = useAnimatedStyle(() => {
-        return {
-            height: heightValue.value,
-            opacity: interpolate(
-                heightValue.value,
-                [0, contentHeight * 0.3, contentHeight],
-                [0, 0.6, 1]
-            ),
-        };
-    });
-
-    const animatedButtons = useAnimatedStyle(() => {
-        return {
-            opacity: buttonOpacity.value,
-            transform: [
-                { translateY: interpolate(buttonOpacity.value, [0, 1], [10, 0]) }
-            ],
-        };
-    });
-
-    const animatedIconRotation = useAnimatedStyle(() => {
-        return {
-            transform: [
-                { rotate: `${rotationValue.value}deg` },
-                { scale: interpolate(rotationValue.value, [0, 90, 180], [1, 1.1, 1]) },
-            ],
-        };
-    });
-
-    const toggleExpand = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        setIsExpanded(!isExpanded);
-
-        heightValue.value = withTiming(
-            isExpanded ? 0 : contentHeight,
-            {
-                duration: 450,
-                easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-            }
-        );
-
-        rotationValue.value = withTiming(
-            isExpanded ? 0 : 180,
-            {
-                duration: 300,
-                easing: Easing.bezier(0.4, 0.0, 0.2, 1),
-            }
-        );
-
-        buttonOpacity.value = withTiming(
-            isExpanded ? 0 : 1,
-            {
-                duration: 350,
-                easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-            }
-        );
-    };
-    */
-
     return (
         <View
             className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-            style={{ height: 600 }}
+            style={{ height: 600, overflow: 'hidden', backfaceVisibility: 'hidden' }} // Strict overflow and backface visibility
         >
             {/* Poster Header - Fixed Height */}
             <View
                 className="relative w-full bg-black overflow-hidden"
                 style={{
                     height: 300,
-                    marginBottom: -5 // Ensure seamless connection with content
+                    marginBottom: -5, // Ensure seamless connection with content
+                    overflow: 'hidden',
+                    borderTopLeftRadius: 29,
+                    borderTopRightRadius: 29
                 }}
             >
                 {/* Media Container with absolute positioning fixes */}
@@ -788,7 +739,7 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </View >
     );
 };
 
