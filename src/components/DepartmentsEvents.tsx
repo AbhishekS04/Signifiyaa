@@ -15,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { VideoView, useVideoPlayer } from 'expo-video';
+import Carousel from 'react-native-reanimated-carousel';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -216,67 +217,7 @@ const EVENTS_DATA = [
     },
 ];
 
-// ============================================
-// ANIMATED CARD COMPONENT (Prevents Hook Rules Error)
-// ============================================
-const AnimatedCard = ({ item, index, scrollX, cardWidth, cardSpacing }: {
-    item: any,
-    index: number,
-    scrollX: SharedValue<number>,
-    cardWidth: number,
-    cardSpacing: number
-}) => {
-    const inputRange = [
-        (index - 1) * (cardWidth + cardSpacing),
-        index * (cardWidth + cardSpacing),
-        (index + 1) * (cardWidth + cardSpacing),
-    ];
 
-    const animatedStyle = useAnimatedStyle(() => {
-        const scale = interpolate(
-            scrollX.value,
-            inputRange,
-            [0.92, 1, 0.92],
-            'clamp'
-        );
-        const opacity = interpolate(
-            scrollX.value,
-            inputRange,
-            [0.65, 1, 0.65],
-            'clamp'
-        );
-
-        return {
-            transform: [
-                { scale }
-            ],
-            opacity,
-        };
-    });
-
-    return (
-        <Animated.View
-            style={[{
-                width: cardWidth,
-                marginRight: cardSpacing,
-                overflow: 'hidden', // Critical for preventing video bleed
-                borderRadius: 32,   // Ensure border radius clipping applies to container
-            }, animatedStyle]}
-        >
-            <EventCard
-                title={item.title}
-                date={item.date}
-                category={item.category}
-                description={item.description}
-                prizePool={item.prizePool}
-                imageColor={item.imageColor}
-                buttonColor={item.buttonColor}
-                imageUrl={item.imageUrl}
-                videoUrl={item.videoUrl}
-            />
-        </Animated.View>
-    );
-};
 
 const DepartmentsEvents = () => {
     // ============================================
@@ -296,6 +237,7 @@ const DepartmentsEvents = () => {
     // Carousel configuration - 72% width for better peek visibility
     const CARD_WIDTH = Math.round(width * 0.72);
     const CARD_SPACING = 20;
+    const SIDE_PADDING = (width - CARD_WIDTH) / 2;
 
     // ============================================
     // MARQUEE ANIMATION
@@ -407,7 +349,7 @@ const DepartmentsEvents = () => {
             {/* ============================================ */}
             {/* SECTION C: SIGNIFIYA EVENTS CARD             */}
             {/* ============================================ */}
-            <View className="bg-[#FFF8E1] border-[3px] border-black rounded-3xl p-4 pb-10 min-h-[500px]">
+            <View className="bg-[#FFF8E1] border-[3px] border-black rounded-3xl p-4 pb-10 min-h-[500px]" style={{ overflow: 'hidden' }}>
 
                 {/* Header */}
                 <View className="items-center my-6">
@@ -444,45 +386,58 @@ const DepartmentsEvents = () => {
 
                 {/* CAROUSEL: Swipeable Event Cards             */}
                 {/* ============================================ */}
+                {/* CAROUSEL: Swipeable Event Cards             */}
+                {/* ============================================ */}
                 {filteredEvents.length > 0 ? (
                     <View
                         onLayout={(e) => {
                             const { width: layoutWidth } = e.nativeEvent.layout;
                             setContainerWidth(layoutWidth);
                         }}
+                        style={{ height: 650, alignItems: 'center' }}
                     >
-                        <Animated.ScrollView
+                        <Carousel
+                            loop={false}
                             ref={carouselRef}
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            decelerationRate="fast"
-                            snapToInterval={CARD_WIDTH + CARD_SPACING}
-                            snapToAlignment="start"
-                            disableIntervalMomentum={true} // Forces snap to nearest item, preventing free scroll or momentum drift
-                            scrollEventThrottle={16}
-                            contentContainerStyle={{
-                                paddingHorizontal: (containerWidth - CARD_WIDTH) / 2,
+                            width={containerWidth}
+                            height={600}
+                            style={{
+                                width: containerWidth,
+                                justifyContent: 'center',
+                                alignItems: 'center',
                             }}
-                            onScroll={useAnimatedScrollHandler((event) => {
-                                scrollX.value = event.contentOffset.x;
-                                // Optimize: Only update state when index actually changes
-                                const nextIndex = Math.round(event.contentOffset.x / (CARD_WIDTH + CARD_SPACING));
-                                if (nextIndex !== currentIndex) {
-                                    runOnJS(setCurrentIndex)(nextIndex);
-                                }
-                            })}
-                        >
-                            {filteredEvents.map((item, index) => (
-                                <AnimatedCard
-                                    key={`${item.title}-${index}`}
-                                    item={item}
-                                    index={index}
-                                    scrollX={scrollX}
-                                    cardWidth={CARD_WIDTH}
-                                    cardSpacing={CARD_SPACING}
-                                />
-                            ))}
-                        </Animated.ScrollView>
+                            mode="parallax"
+                            modeConfig={{
+                                parallaxScrollingScale: 0.9,
+                                parallaxScrollingOffset: 50,
+                                parallaxAdjacentItemScale: 0.8,
+                            }}
+                            data={filteredEvents}
+                            renderItem={({ item, index }: { item: any; index: number }) => (
+                                <View style={{ width: containerWidth, alignItems: 'center', justifyContent: 'center' }}>
+                                    <View style={{ width: CARD_WIDTH, marginHorizontal: CARD_SPACING / 2 }}>
+                                        <EventCard
+                                            title={item.title}
+                                            date={item.date}
+                                            category={item.category}
+                                            description={item.description}
+                                            prizePool={item.prizePool}
+                                            imageColor={item.imageColor}
+                                            buttonColor={item.buttonColor}
+                                            imageUrl={item.imageUrl}
+                                            videoUrl={item.videoUrl}
+                                        />
+                                    </View>
+                                </View>
+                            )}
+                            onSnapToItem={(index: number) => {
+                                runOnJS(setCurrentIndex)(index);
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            }}
+                            onProgressChange={(offset: number, absoluteProgress: number) => {
+                                scrollX.value = absoluteProgress * (CARD_WIDTH + CARD_SPACING);
+                            }}
+                        />
 
                         {/* ============================================ */}
                         {/* PAGINATION DOTS (Animated)                   */}
@@ -492,25 +447,21 @@ const DepartmentsEvents = () => {
                                 {filteredEvents.map((_, index) => (
                                     <PaginationDot
                                         key={index}
+                                        index={index}
                                         isActive={index === currentIndex}
+                                        scrollX={scrollX}
+                                        cardWidth={CARD_WIDTH}
+                                        cardSpacing={CARD_SPACING}
                                         onPress={() => {
                                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                            // Calculate target offset to center the item
-                                            // Target = Index * Interval
-                                            // This places the start of item N at the start of viewport + padding
-                                            // Since padding centers the item, snapping to start aligns it perfectly to center
-                                            carouselRef.current?.scrollTo({
-                                                x: index * (CARD_WIDTH + CARD_SPACING),
-                                                animated: true
-                                            });
+                                            carouselRef.current?.scrollTo({ index, animated: true });
                                         }}
                                     />
                                 ))}
                             </View>
                         )}
                     </View>
-                ) : (
-                    // No events found message
+                ) : ( // No events found message
                     <View className="items-center py-12">
                         <Text className="font-[Inter_700Bold] text-gray-400 text-lg">
                             No events in this category yet!
@@ -521,7 +472,6 @@ const DepartmentsEvents = () => {
                     </View>
                 )
                 }
-
             </View>
         </View>
     );
@@ -531,40 +481,53 @@ const DepartmentsEvents = () => {
 // PAGINATION DOT COMPONENT (Animated)
 // ============================================
 interface PaginationDotProps {
+    index: number;
     isActive: boolean;
     onPress: () => void;
+    scrollX: SharedValue<number>;
+    cardWidth: number;
+    cardSpacing: number;
 }
 
-const PaginationDot = ({ isActive, onPress }: PaginationDotProps) => {
-    const scale = useSharedValue(isActive ? 1.2 : 1);
-    const opacity = useSharedValue(isActive ? 1 : 0.4);
+const PaginationDot = ({ index, isActive, onPress, scrollX, cardWidth, cardSpacing }: PaginationDotProps) => {
+    // Real-time scroll-based animation for fluid expansion
+    const animatedStyle = useAnimatedStyle(() => {
+        const inputRange = [
+            (index - 1) * (cardWidth + cardSpacing),
+            index * (cardWidth + cardSpacing),
+            (index + 1) * (cardWidth + cardSpacing),
+        ];
 
-    useEffect(() => {
-        scale.value = withSpring(isActive ? 1.2 : 1, {
-            damping: 15,
-            stiffness: 150,
-        });
-        opacity.value = withTiming(isActive ? 1 : 0.4, {
-            duration: 200,
-        });
-    }, [isActive]);
+        const widthInterpolation = interpolate(
+            scrollX.value,
+            inputRange,
+            [8, 24, 8], // Inactive: 8px, Active: 24px (3x expansion)
+            'clamp'
+        );
 
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: scale.value }],
-        opacity: opacity.value,
-    }));
+        const opacityInterpolation = interpolate(
+            scrollX.value,
+            inputRange,
+            [0.4, 1, 0.4], // Inactive: dim, Active: full
+            'clamp'
+        );
+
+        return {
+            width: widthInterpolation,
+            opacity: opacityInterpolation,
+        };
+    });
 
     return (
         <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
             <Animated.View
                 style={[
-                    animatedStyle,
                     {
-                        width: isActive ? 24 : 8,
                         height: 8,
                         borderRadius: 4,
                         backgroundColor: 'black',
                     },
+                    animatedStyle
                 ]}
             />
         </TouchableOpacity>
