@@ -5,201 +5,22 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
-import { Star, Volume2, VolumeX, ChevronRight } from 'lucide-react';
-
-// ============================================
-// EVENT DATA STRUCTURE
-// ============================================
-const EVENTS_DATA = [
-    // --- ESPORTS EVENTS ---
-    {
-        title: 'VALORANT',
-        date: 'MARCH 13TH - 14TH',
-        category: 'ESPORTS',
-        description: 'Join the ultimate tactical FPS showdown. Form your squad and compete for glory!',
-        prizePool: 'TBA',
-        imageColor: '#ccff00',
-        buttonColor: '#D194FF',
-        imageUrl: '',
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/44fe63af-47e0-4df6-8fc3-0a984c7337da.mp4'
-    },
-    {
-        title: 'BGMI',
-        date: 'MARCH 13TH - 14TH',
-        category: 'ESPORTS',
-        description: 'Battle it out in the most popular mobile battle royale championship.',
-        prizePool: '10K',
-        imageColor: '#ff9966',
-        buttonColor: '#D194FF',
-        imageUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/5628f912-994d-4054-9ec7-bbb1310fe6c9.png',
-        // videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4'
-    },
-
-    // --- CSE EVENTS ---
-    {
-        title: 'HACKATHON',
-        date: 'MARCH 15TH - 16TH',
-        category: 'CSE',
-        description: 'Build innovative solutions in 24 hours. Code, create, and conquer!',
-        prizePool: '50K',
-        imageColor: '#66ccff',
-        buttonColor: '#FFD700',
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/1359c8e8-57aa-482e-8af0-31d92af491e5.mp4'
-    },
-    {
-        title: 'CODE RELAY',
-        date: 'MARCH 15TH',
-        category: 'CSE',
-        description: 'Team-based coding challenge. Pass the code, solve the problem!',
-        prizePool: 'TBA',
-        imageColor: '#9933ff',
-        buttonColor: '#FFD700',
-        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-
-    // --- CIVIL EVENTS ---
-    {
-        title: 'BRIDGE BUILDING',
-        date: 'MARCH 16TH',
-        category: 'CIVIL',
-        description: 'Design and build the strongest bridge using limited materials.',
-        prizePool: '15K',
-        imageColor: '#ff6666',
-        buttonColor: '#90EE90',
-        imageUrl: 'https://images.unsplash.com/photo-1545139224-7eb9c2acc995?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-    {
-        title: 'CAD MASTER',
-        date: 'MARCH 17TH',
-        category: 'CIVIL',
-        description: 'Showcase your AutoCAD and design skills in this technical challenge.',
-        prizePool: 'TBA',
-        imageColor: '#ffaa66',
-        buttonColor: '#90EE90',
-        imageUrl: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-
-    // --- MECHANICAL EVENTS ---
-    {
-        title: 'ROBO RACE',
-        date: 'MARCH 16TH - 17TH',
-        category: 'MECHANICAL',
-        description: 'Build autonomous robots and race them through challenging obstacle courses.',
-        prizePool: '25K',
-        imageColor: '#66ff66',
-        buttonColor: '#FFB6C1',
-        imageUrl: 'https://images.unsplash.com/photo-1531746790731-6c087fecd05a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-    {
-        title: 'MECHANISM DESIGN',
-        date: 'MARCH 17TH',
-        category: 'MECHANICAL',
-        description: 'Create innovative mechanical solutions for real-world problems.',
-        prizePool: 'TBA',
-        imageColor: '#66ffcc',
-        buttonColor: '#FFB6C1',
-        imageUrl: 'https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-
-    // --- EEE EVENTS ---
-    {
-        title: 'CIRCUIT DEBUGGING',
-        date: 'MARCH 18TH',
-        category: 'EEE',
-        description: 'Find and fix errors in complex electrical circuits under time pressure.',
-        prizePool: '20K',
-        imageColor: '#ff99cc',
-        buttonColor: '#87CEEB',
-        imageUrl: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-    {
-        title: 'SMART HOME',
-        date: 'MARCH 18TH',
-        category: 'EEE',
-        description: 'Design an IoT-based smart home automation system.',
-        prizePool: 'TBA',
-        imageColor: '#cc99ff',
-        buttonColor: '#87CEEB',
-        imageUrl: 'https://images.unsplash.com/photo-1558002038-1055907df827?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-
-    // --- ROBOTICS EVENTS ---
-    {
-        title: 'LINE FOLLOWER',
-        date: 'MARCH 19TH',
-        category: 'ROBOTICS',
-        description: 'Program robots to follow complex line patterns at maximum speed.',
-        prizePool: '30K',
-        imageColor: '#ffcc66',
-        buttonColor: '#DDA0DD',
-        imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-    {
-        title: 'DRONE RACING',
-        date: 'MARCH 19TH - 20TH',
-        category: 'ROBOTICS',
-        description: 'Pilot your drone through challenging aerial obstacles and courses.',
-        prizePool: '35K',
-        imageColor: '#66cccc',
-        buttonColor: '#DDA0DD',
-        imageUrl: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-
-    // --- NON-TECH EVENTS ---
-    {
-        title: 'TREASURE HUNT',
-        date: 'MARCH 20TH',
-        category: 'NON-TECH',
-        description: 'Solve clues and puzzles to find hidden treasures across the campus.',
-        prizePool: '10K',
-        imageColor: '#ffff99',
-        buttonColor: '#98FB98',
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/4ebcf404-4545-45bd-817e-5e6cc8b6c361.mp4'
-    },
-    {
-        title: 'TALENT SHOW',
-        date: 'MARCH 21ST',
-        category: 'NON-TECH',
-        description: 'Showcase your unique talents - singing, dancing, comedy, and more!',
-        prizePool: 'TBA',
-        imageColor: '#ffccff',
-        buttonColor: '#98FB98',
-        imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    }
-];
+import { Star, Volume2, VolumeX, ChevronRight, ChevronLeft } from 'lucide-react';
+import { EVENTS_DATA, EventData } from '../data/EventsData';
 
 // ============================================
 // CAROUSEL CARD COMPONENT (WEB OPTIMIZED)
 // ============================================
-interface Event {
-    title: string;
-    date: string;
-    category: string;
-    description: string;
-    prizePool: string;
-    imageColor: string;
-    buttonColor: string;
-    imageUrl?: string;
-    videoUrl?: string;
-}
 
-const EventCard = ({ event, isActive }: { event: Event; isActive: boolean }) => {
+const EventCard = ({ event, isActive }: { event: EventData; isActive: boolean }) => {
     const [isMuted, setIsMuted] = useState(true);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
         if (videoRef.current) {
             const videoEl = videoRef.current as any;
+
+            // Sync mute state
             videoEl.muted = isMuted;
 
             if (isActive) {
@@ -211,7 +32,12 @@ const EventCard = ({ event, isActive }: { event: Event; isActive: boolean }) => 
                 }
             } else {
                 videoEl.pause();
-                videoEl.currentTime = 0; // Optional: Reset to start
+                videoEl.currentTime = 0; // Reset to start
+
+                // Reset mute state when scrolling away so it's muted (and ready to autoplay) next time
+                if (!isMuted) {
+                    setIsMuted(true);
+                }
             }
         }
     }, [isActive, isMuted]);
@@ -265,7 +91,7 @@ const EventCard = ({ event, isActive }: { event: Event; isActive: boolean }) => 
             </div>
 
             {/* Content Body */}
-            <div className="p-5 bg-white flex-1 flex flex-col justify-between">
+            <div className="p-5 bg-white flex-1 flex flex-col justify-between overflow-hidden">
                 <div>
                     <h3 className="text-black text-3xl font-black uppercase leading-8 mb-1 line-clamp-2 font-['Gilton']">
                         {event.title}
@@ -388,12 +214,37 @@ export default function DepartmentsEventsWeb() {
                 <div className="relative">
                     {filteredEvents.length > 0 ? (
                         <>
+                            {/* Navigation Buttons - visible on desktop */}
+                            <button
+                                onClick={() => {
+                                    if (containerRef.current) {
+                                        (containerRef.current as any).scrollBy({ left: -360, behavior: 'smooth' });
+                                    }
+                                }}
+                                className="absolute top-1/2 -translate-y-1/2 left-4 z-20 hidden md:flex items-center justify-center w-12 h-12 bg-white rounded-full border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:shadow-none transition-all group"
+                            >
+                                <ChevronLeft size={24} className="stroke-[3px] group-hover:scale-110 transition-transform" />
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (containerRef.current) {
+                                        (containerRef.current as any).scrollBy({ left: 360, behavior: 'smooth' });
+                                    }
+                                }}
+                                className="absolute top-1/2 -translate-y-1/2 right-4 z-20 hidden md:flex items-center justify-center w-12 h-12 bg-black rounded-full border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] active:translate-y-[4px] active:shadow-none transition-all group"
+                            >
+                                <ChevronRight size={24} className="stroke-[3px] text-white group-hover:scale-110 transition-transform" />
+                            </button>
+
                             {/* Horizontal Scroll Container */}
                             <div
                                 ref={containerRef}
                                 onScroll={handleScroll}
-                                className="flex gap-6 overflow-x-auto pb-8 pt-4 px-[10%] md:px-[calc(50%-180px)] snap-x snap-mandatory scrollbar-hide"
-                                style={{ scrollBehavior: 'smooth' }}
+                                className="flex gap-6 overflow-x-auto pb-8 pt-4 px-[10%] md:px-[calc(50%-180px)] snap-x snap-mandatory scrollbar-hide touch-pan-x overscroll-contain"
+                                style={{
+                                    scrollBehavior: 'smooth',
+                                    WebkitOverflowScrolling: 'touch'
+                                }}
                             >
                                 {filteredEvents.map((event, index) => (
                                     <EventCard

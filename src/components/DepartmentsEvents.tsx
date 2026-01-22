@@ -15,7 +15,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { VideoView, useVideoPlayer } from 'expo-video';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import Carousel from 'react-native-reanimated-carousel';
+import { EVENTS_DATA } from '../data/EventsData';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -23,13 +25,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 const { width } = Dimensions.get('window');
-
-// ============================================
-// EVENT DATA STRUCTURE
-// ============================================
-// TO ADD NEW EVENTS: Simply add a new object to the array below
-// Categories: 'ESPORTS', 'CSE', 'CIVIL', 'MECHANICAL', 'EEE', 'ROBOTICS', 'NON-TECH'
-// Every event now supports both imageUrl and videoUrl. Video takes priority if provided.
+const isSmallDevice = width < 380;
 
 // ============================================
 // DESIGN SYSTEM: FONTS (EASY TO CHANGE)
@@ -45,179 +41,6 @@ const SECTION_FONTS = {
     BADGE: 'Gilton',
     BUTTON: 'Gilton',
 };
-
-const EVENTS_DATA = [
-    // --- ESPORTS EVENTS ---
-    {
-        title: 'VALORANT',
-        date: 'MARCH 13TH - 14TH',
-        category: 'ESPORTS',
-        description: 'Join the ultimate tactical FPS showdown. Form your squad and compete for glory!',
-        prizePool: 'TBA',
-        imageColor: '#ccff00',
-        buttonColor: '#D194FF',
-        imageUrl: '',
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/44fe63af-47e0-4df6-8fc3-0a984c7337da.mp4' // Valorant Agent Gekko
-    },
-    {
-        title: 'BGMI',
-        date: 'MARCH 13TH - 14TH',
-        category: 'ESPORTS',
-        description: 'Battle it out in the most popular mobile battle royale championship.',
-        prizePool: '10K',
-        imageColor: '#ff9966',
-        buttonColor: '#D194FF',
-        imageUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/5628f912-994d-4054-9ec7-bbb1310fe6c9.png',
-        // videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4',
-        // videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4'
-    },
-
-
-    // --- CSE EVENTS ---
-    {
-        title: 'HACKATHON',
-        date: 'MARCH 15TH - 16TH',
-        category: 'CSE',
-        description: 'Build innovative solutions in 24 hours. Code, create, and conquer!',
-        prizePool: '50K',
-        imageColor: '#66ccff',
-        buttonColor: '#FFD700',
-        // imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Coding/Tech
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/1359c8e8-57aa-482e-8af0-31d92af491e5.mp4'
-    },
-    {
-        title: 'CODE RELAY',
-        date: 'MARCH 15TH',
-        category: 'CSE',
-        description: 'Team-based coding challenge. Pass the code, solve the problem!',
-        prizePool: 'TBA',
-        imageColor: '#9933ff',
-        buttonColor: '#FFD700',
-        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-
-    // --- CIVIL EVENTS ---
-    {
-        title: 'BRIDGE BUILDING',
-        date: 'MARCH 16TH',
-        category: 'CIVIL',
-        description: 'Design and build the strongest bridge using limited materials.',
-        prizePool: '15K',
-        imageColor: '#ff6666',
-        buttonColor: '#90EE90',
-        imageUrl: 'https://images.unsplash.com/photo-1545139224-7eb9c2acc995?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Bridge
-        videoUrl: ''
-    },
-    {
-        title: 'CAD MASTER',
-        date: 'MARCH 17TH',
-        category: 'CIVIL',
-        description: 'Showcase your AutoCAD and design skills in this technical challenge.',
-        prizePool: 'TBA',
-        imageColor: '#ffaa66',
-        buttonColor: '#90EE90',
-        imageUrl: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Engineering
-        videoUrl: ''
-    },
-
-    // --- MECHANICAL EVENTS ---
-    {
-        title: 'ROBO RACE',
-        date: 'MARCH 16TH - 17TH',
-        category: 'MECHANICAL',
-        description: 'Build autonomous robots and race them through challenging obstacle courses.',
-        prizePool: '25K',
-        imageColor: '#66ff66',
-        buttonColor: '#FFB6C1',
-        imageUrl: 'https://images.unsplash.com/photo-1531746790731-6c087fecd05a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Robotics
-        videoUrl: ''
-    },
-    {
-        title: 'MECHANISM DESIGN',
-        date: 'MARCH 17TH',
-        category: 'MECHANICAL',
-        description: 'Create innovative mechanical solutions for real-world problems.',
-        prizePool: 'TBA',
-        imageColor: '#66ffcc',
-        buttonColor: '#FFB6C1',
-        imageUrl: 'https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Gears/Mech
-        videoUrl: ''
-    },
-
-    // --- EEE EVENTS ---
-    {
-        title: 'CIRCUIT DEBUGGING',
-        date: 'MARCH 18TH',
-        category: 'EEE',
-        description: 'Find and fix errors in complex electrical circuits under time pressure.',
-        prizePool: '20K',
-        imageColor: '#ff99cc',
-        buttonColor: '#87CEEB',
-        imageUrl: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Electronics
-        videoUrl: ''
-    },
-    {
-        title: 'SMART HOME',
-        date: 'MARCH 18TH',
-        category: 'EEE',
-        description: 'Design an IoT-based smart home automation system.',
-        prizePool: 'TBA',
-        imageColor: '#cc99ff',
-        buttonColor: '#87CEEB',
-        imageUrl: 'https://images.unsplash.com/photo-1558002038-1055907df827?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Smart home
-        videoUrl: ''
-    },
-
-    // --- ROBOTICS EVENTS ---
-    {
-        title: 'LINE FOLLOWER',
-        date: 'MARCH 19TH',
-        category: 'ROBOTICS',
-        description: 'Program robots to follow complex line patterns at maximum speed.',
-        prizePool: '30K',
-        imageColor: '#ffcc66',
-        buttonColor: '#DDA0DD',
-        imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-    {
-        title: 'DRONE RACING',
-        date: 'MARCH 19TH - 20TH',
-        category: 'ROBOTICS',
-        description: 'Pilot your drone through challenging aerial obstacles and courses.',
-        prizePool: '35K',
-        imageColor: '#66cccc',
-        buttonColor: '#DDA0DD',
-        imageUrl: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Drones
-        videoUrl: ''
-    },
-
-    // --- NON-TECH EVENTS ---
-    {
-        title: 'TREASURE HUNT',
-        date: 'MARCH 20TH',
-        category: 'NON-TECH',
-        description: 'Solve clues and puzzles to find hidden treasures across the campus.',
-        prizePool: '10K',
-        imageColor: '#ffff99',
-        buttonColor: '#98FB98',
-        // imageUrl: 'https://images.unsplash.com/photo-1519074063912-ad2fe3f5113c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Map/Adventure
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/4ebcf404-4545-45bd-817e-5e6cc8b6c361.mp4'
-    },
-    {
-        title: 'TALENT SHOW',
-        date: 'MARCH 21ST',
-        category: 'NON-TECH',
-        description: 'Showcase your unique talents - singing, dancing, comedy, and more!',
-        prizePool: 'TBA',
-        imageColor: '#ffccff',
-        buttonColor: '#98FB98',
-        imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Stage/Performance
-        videoUrl: ''
-    },
-];
-
 
 
 const DepartmentsEvents = () => {
@@ -314,7 +137,7 @@ const DepartmentsEvents = () => {
                 </View>
 
                 {/* Body Text */}
-                <Text className=" text-black text-center leading-7 text-base font-semibold p-4 pl-4 text-lg"  //test
+                <Text className=" text-black text-center leading-7 text-base p-4 pl-4 text-lg"  //test
                     style={{ fontFamily: 'Softura' }}>
                     The School of Engineering and Technology stands as a beacon of technical excellence, fostering innovation and shaping the future engineers who will build tomorrow's world.
                 </Text>
@@ -358,7 +181,7 @@ const DepartmentsEvents = () => {
                         style={{ fontFamily: SECTION_FONTS.SECTION_HEADER, paddingRight: 10 }}>SIGNIFIYA</Text>
                     <Text className="text-4xl text-black "
                         style={{ fontFamily: SECTION_FONTS.SECTION_HEADER, paddingRight: 10 }}>EVENTS</Text>
-                    <Text className="text-gray-500 text-center mt-2 px-8 font-semibold"
+                    <Text className="text-gray-500 text-center mt-2 px-8"
                         style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}>
                         Discover the diverse range of events happening at Signifiya'26.
                     </Text>
@@ -395,67 +218,105 @@ const DepartmentsEvents = () => {
                             const { width: layoutWidth } = e.nativeEvent.layout;
                             setContainerWidth(layoutWidth);
                         }}
-                        style={{ height: 650, alignItems: 'center' }}
+                        style={{ height: isSmallDevice ? 600 : 700, alignItems: 'center' }}
                     >
-                        <Carousel
-                            loop={false}
-                            ref={carouselRef}
-                            width={containerWidth}
-                            height={600}
-                            style={{
-                                width: containerWidth,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            }}
-                            mode="parallax"
-                            modeConfig={{
-                                parallaxScrollingScale: 0.9,
-                                parallaxScrollingOffset: 50,
-                                parallaxAdjacentItemScale: 0.8,
-                            }}
-                            {...({
-                                panGestureHandlerProps: {
-                                    activeOffsetX: [-10, 10],
-                                }
-                            } as any)}
-                            data={filteredEvents}
-                            renderItem={({ item, index }: { item: any; index: number }) => (
-                                <View
-                                    style={{
-                                        width: containerWidth,
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        // Z-Index Hack: Active item higher (approximated by index vs current)
-                                        // Since we can't easily animate zIndex here without shared values,
-                                        // we rely on Parallax mode's default z-ordering (usually center on top).
-                                        // We ensure strict clipping:
-                                        overflow: 'hidden'
-                                    }}
-                                >
-                                    <View style={{ width: CARD_WIDTH, marginHorizontal: CARD_SPACING / 2 }}>
-                                        <EventCard
-                                            title={item.title}
-                                            date={item.date}
-                                            category={item.category}
-                                            description={item.description}
-                                            prizePool={item.prizePool}
-                                            imageColor={item.imageColor}
-                                            buttonColor={item.buttonColor}
-                                            imageUrl={item.imageUrl}
-                                            videoUrl={item.videoUrl}
-                                            isActive={index === currentIndex}
-                                        />
+                        <View className="relative w-full items-center justify-center">
+                            <Carousel
+                                key={selectedCategory} // Force re-render on category change to reset index
+                                loop={false}
+                                ref={carouselRef}
+                                width={containerWidth}
+                                height={isSmallDevice ? 580 : 640}
+                                style={{
+                                    width: containerWidth,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}
+                                mode="parallax"
+                                modeConfig={{
+                                    parallaxScrollingScale: 0.9,
+                                    parallaxScrollingOffset: 50,
+                                    parallaxAdjacentItemScale: 0.8,
+                                }}
+                                {...({
+                                    panGestureHandlerProps: {
+                                        activeOffsetX: [-10, 10],
+                                    }
+                                } as any)}
+                                data={filteredEvents}
+                                renderItem={({ item, index }: { item: any; index: number }) => (
+                                    <View
+                                        style={{
+                                            width: containerWidth,
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            // Z-Index Hack: Active item higher (approximated by index vs current)
+                                            // Since we can't easily animate zIndex here without shared values,
+                                            // we rely on Parallax mode's default z-ordering (usually center on top).
+                                            // We ensure strict clipping:
+                                            overflow: 'hidden'
+                                        }}
+                                    >
+                                        <View style={{ width: CARD_WIDTH, marginHorizontal: CARD_SPACING / 2 }}>
+                                            <EventCard
+                                                title={item.title}
+                                                date={item.date}
+                                                category={item.category}
+                                                description={item.description}
+                                                prizePool={item.prizePool}
+                                                imageColor={item.imageColor}
+                                                buttonColor={item.buttonColor}
+                                                imageUrl={item.imageUrl}
+                                                videoUrl={item.videoUrl}
+                                                isActive={index === currentIndex}
+                                            />
+                                        </View>
                                     </View>
-                                </View>
-                            )}
-                            onSnapToItem={(index: number) => {
-                                runOnJS(setCurrentIndex)(index);
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                            }}
-                            onProgressChange={(offset: number, absoluteProgress: number) => {
-                                scrollX.value = absoluteProgress * (CARD_WIDTH + CARD_SPACING);
-                            }}
-                        />
+                                )}
+                                onSnapToItem={(index: number) => {
+                                    runOnJS(setCurrentIndex)(index);
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                }}
+                                onProgressChange={(offset: number, absoluteProgress: number) => {
+                                    scrollX.value = absoluteProgress * (CARD_WIDTH + CARD_SPACING);
+                                }}
+                            />
+
+                            {/* Navigation Buttons (Floating - Fixed Position) */}
+                            <TouchableOpacity
+                                onPress={() => {
+                                    if (currentIndex > 0) {
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                        carouselRef.current?.scrollTo({ index: currentIndex - 1, animated: true });
+                                    }
+                                }}
+                                className="absolute left-1 w-9 h-9 bg-white rounded-full border-[2px] border-black items-center justify-center z-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                style={{
+                                    top: '50%',
+                                    transform: [{ translateY: -18 }]
+                                }}
+                                activeOpacity={0.7}
+                            >
+                                <ChevronLeft size={20} color={currentIndex === 0 ? "#D1D5DB" : "black"} strokeWidth={3} />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => {
+                                    if (currentIndex < filteredEvents.length - 1) {
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                        carouselRef.current?.scrollTo({ index: currentIndex + 1, animated: true });
+                                    }
+                                }}
+                                className="absolute right-1 w-9 h-9 bg-white rounded-full border-[2px] border-black items-center justify-center z-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                style={{
+                                    top: '50%',
+                                    transform: [{ translateY: -18 }]
+                                }}
+                                activeOpacity={0.7}
+                            >
+                                <ChevronRight size={20} color={currentIndex === filteredEvents.length - 1 ? "#D1D5DB" : "black"} strokeWidth={3} />
+                            </TouchableOpacity>
+                        </View>
 
                         {/* ============================================ */}
                         {/* PAGINATION DOTS (Animated)                   */}
@@ -591,6 +452,12 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
         } else {
             player.pause();
             player.currentTime = 0; // Reset video when scrolling away
+
+            // Reset mute state so it's fresh (muted) next time
+            if (!player.muted) {
+                player.muted = true;
+                setIsMuted(true);
+            }
         }
     }, [isActive, player]);
 
@@ -604,13 +471,13 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
     return (
         <View
             className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-            style={{ height: 600, overflow: 'hidden', backfaceVisibility: 'hidden' }} // Strict overflow and backface visibility
+            style={{ height: isSmallDevice ? 580 : 640, overflow: 'hidden', backfaceVisibility: 'hidden' }} // Strict overflow and backface visibility
         >
             {/* Poster Header - Fixed Height */}
             <View
                 className="relative w-full bg-black overflow-hidden"
                 style={{
-                    height: 300,
+                    height: isSmallDevice ? 220 : 280,
                     marginBottom: -5, // Ensure seamless connection with content
                     overflow: 'hidden',
                     borderTopLeftRadius: 29,
@@ -677,12 +544,12 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
             </View>
 
             {/* Content Area - Fixed Layout */}
-            <View className="p-5 bg-white" style={{ flex: 1, justifyContent: 'space-between' }}>
+            <View className={`bg-white ${isSmallDevice ? 'p-3' : 'p-5'}`} style={{ flex: 1, justifyContent: 'space-between' }}>
                 <View>
                     {/* Event Title - Max 2 Lines */}
                     <Text
-                        className="text-black text-3xl uppercase leading-8 mb-1"
-                        style={{ fontFamily: SECTION_FONTS.EVENT_TITLE }}
+                        className="text-black uppercase leading-8 mb-1"
+                        style={{ fontFamily: SECTION_FONTS.EVENT_TITLE, fontSize: isSmallDevice ? 24 : 30, lineHeight: isSmallDevice ? 28 : 32 }}
                         numberOfLines={2}
                         ellipsizeMode="tail"
                     >
@@ -691,15 +558,15 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
 
                     {/* Event Date - Max 1 Line */}
                     <Text
-                        className="text-[#8e99af] text-lg mb-3"
-                        style={{ fontFamily: SECTION_FONTS.DATE }}
+                        className="text-[#8e99af] mb-3"
+                        style={{ fontFamily: SECTION_FONTS.DATE, fontSize: isSmallDevice ? 14 : 18 }}
                         numberOfLines={1}
                     >
                         {date}
                     </Text>
 
                     {/* Prize Pool Tag */}
-                    <View className="bg-[#B9F6CA] self-start px-4 py-1.5 rounded-full border-black mb-4">
+                    <View className={`bg-[#B9F6CA] self-start rounded-full border-black mb-4 ${isSmallDevice ? 'px-3 py-1' : 'px-4 py-1.5'}`}>
                         <Text className="text-black text-xs" style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_LABEL }} numberOfLines={1}>
                             Prize pool: <Text style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_VALUE }}>{prizePool}</Text>
                         </Text>
@@ -708,8 +575,8 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                     {/* Short Description - Max 2 Lines */}
                     <Text
                         className="text-black/80 text-sm leading-5 mb-4"
-                        style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}
-                        numberOfLines={2}
+                        style={{ fontFamily: SECTION_FONTS.DESCRIPTION, fontSize: isSmallDevice ? 12 : 14 }}
+                        numberOfLines={3}
                         ellipsizeMode="tail"
                     >
                         {description || "Join this exciting event and showcase your skills! More details coming soon."}
@@ -717,13 +584,13 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                 </View>
 
                 {/* Action Buttons - Fixed At Bottom */}
-                <View className="gap-4">
+                <View className={`gap-3 ${isSmallDevice ? 'mt-1' : 'mt-4'}`}>
                     <TouchableOpacity
                         onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                        className="border-[3px] border-black py-4 rounded-2xl items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                        className={`border-[3px] border-black rounded-2xl items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${isSmallDevice ? 'py-3' : 'py-4'}`}
                         style={{ backgroundColor: buttonColor }}
                     >
-                        <Text className="text-black uppercase tracking-widest text-[13px]" style={{ fontFamily: SECTION_FONTS.BUTTON }}>
+                        <Text className="text-black uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
                             VIEW DETAILS
                         </Text>
                     </TouchableOpacity>
@@ -731,15 +598,15 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                     {/* Register Button */}
                     <TouchableOpacity
                         onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                        className="bg-black py-4 rounded-2xl items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                        className={`bg-black rounded-2xl items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${isSmallDevice ? 'py-3' : 'py-4'}`}
                     >
-                        <Text className="text-white uppercase tracking-widest text-[13px]" style={{ fontFamily: SECTION_FONTS.BUTTON }}>
+                        <Text className="text-white uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
                             REGISTER
                         </Text>
                     </TouchableOpacity>
                 </View>
             </View>
-        </View >
+        </View>
     );
 };
 

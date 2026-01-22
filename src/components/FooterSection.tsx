@@ -1,6 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Dimensions } from 'react-native';
 import Svg, { Path, G } from 'react-native-svg';
+
+const { width } = Dimensions.get('window');
+const isSmallDevice = width < 380;
 
 const FooterSection = () => {
     return (
@@ -8,31 +11,31 @@ const FooterSection = () => {
 
             {/* Header - Reduced size */}
             <View className="mb-6">
-                <Text className="text-3xl text-black leading-tight uppercase"
-                style={{
-                    fontFamily: 'BBHBartle',
-                }}
+                <Text className={`${isSmallDevice ? 'text-2xl' : 'text-3xl'} text-black leading-tight uppercase`}
+                    style={{
+                        fontFamily: 'BBHBartle',
+                    }}
                 >
                     DOWNLOAD
                 </Text>
-                <Text className="text-3xl text-black leading-tight uppercase"
-                style={{
-                    fontFamily: 'BBHBartle',
-                }}
+                <Text className={`${isSmallDevice ? 'text-2xl' : 'text-3xl'} text-black leading-tight uppercase`}
+                    style={{
+                        fontFamily: 'BBHBartle',
+                    }}
                 >
                     THE SIGNIFIYA
                 </Text>
-                <Text className="text-3xl text-black leading-tight uppercase"
-                style={{
-                    fontFamily: 'BBHBartle',
-                }}
+                <Text className={`${isSmallDevice ? 'text-2xl' : 'text-3xl'} text-black leading-tight uppercase`}
+                    style={{
+                        fontFamily: 'BBHBartle',
+                    }}
                 >
-                    APP                
+                    APP
                 </Text>
-                <Text className="text-3xl text-black leading-tight uppercase"
-                style={{
-                    fontFamily: 'BBHBartle',
-                }}
+                <Text className={`${isSmallDevice ? 'text-2xl' : 'text-3xl'} text-black leading-tight uppercase`}
+                    style={{
+                        fontFamily: 'BBHBartle',
+                    }}
                 >
                     RIGHT NOW.
                 </Text>
@@ -54,10 +57,10 @@ const FooterSection = () => {
             <View className="gap-2 mb-12">
                 {['HOME', 'BECOME A SPONSOR', 'EVENTS', 'CONTACT', 'FAQ', 'RULES & REGULATIONS'].map((item) => (
                     <TouchableOpacity key={item} activeOpacity={0.7}>
-                        <Text className="text-xl text-black uppercase"
-                        style={{
-                            fontFamily: 'Softura',
-                        }}
+                        <Text className={`${isSmallDevice ? 'text-lg' : 'text-xl'} text-black uppercase`}
+                            style={{
+                                fontFamily: 'Softura',
+                            }}
                         >
                             {item}
                         </Text>
@@ -70,34 +73,34 @@ const FooterSection = () => {
                 {/* Links */}
                 <View className="gap-1 mb-6">
                     <TouchableOpacity><Text className="text-xs text-black"
-                    style={{
-                        fontFamily: 'Softura',
-                    }}
+                        style={{
+                            fontFamily: 'Softura',
+                        }}
                     >ASSETS</Text></TouchableOpacity>
                     <TouchableOpacity><Text className="text-xs text-black"
-                    style={{
-                        fontFamily: 'Softura',
-                    }}
+                        style={{
+                            fontFamily: 'Softura',
+                        }}
                     >PRIVACY NOTICE</Text></TouchableOpacity>
                     <TouchableOpacity><Text className="text-xs text-black"
-                    style={{
-                        fontFamily: 'Softura',
-                    }}
+                        style={{
+                            fontFamily: 'Softura',
+                        }}
                     >TERMS OF SERVICE</Text></TouchableOpacity>
                 </View>
 
                 {/* Copyright */}
-                <Text className="text-lg text-black mb-6"
-                style={{
-                    fontFamily: 'Gilton',
-                }}
+                <Text className={`${isSmallDevice ? 'text-base' : 'text-lg'} text-black mb-6`}
+                    style={{
+                        fontFamily: 'Gilton',
+                    }}
                 >
                     © 2026 SIGNIFIYA, SOET.
                 </Text>
 
                 {/* Decorations */}
                 {/* Cartoon Pencil - Positioned */}
-                <View className="absolute right-[-10px] bottom-0 w-24 h-48 pointer-events-none">
+                <View className={`absolute right-[-10px] bottom-0 ${isSmallDevice ? 'w-20 h-40' : 'w-24 h-48'} pointer-events-none`}>
                     <Image
                         source={{ uri: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/e9dcd668-ddfb-4f07-bde7-fc5d8c18be11.png' }}
                         className="w-full h-full"
@@ -118,7 +121,7 @@ const FooterSection = () => {
 const AppStoreButton = ({ storeName, icon }: { storeName: string, icon: React.ReactNode }) => (
     <TouchableOpacity
         className="bg-white border-[3px] border-black rounded-xl px-4 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex-row items-center gap-3"
-        style={{ minWidth: 230 }} // Increased width to prevent text clipping
+        style={{ minWidth: isSmallDevice ? 200 : 230 }} // Increased width to prevent text clipping
         activeOpacity={0.8}
     >
         <View className="w-9 h-9 items-center justify-center">
@@ -126,14 +129,14 @@ const AppStoreButton = ({ storeName, icon }: { storeName: string, icon: React.Re
         </View>
         <View className="flex-1">
             <Text className="text-[#FF0055] text-[9px] uppercase"
-            style={{
-                fontFamily: 'Gilton',
-            }}
+                style={{
+                    fontFamily: 'Gilton',
+                }}
             >COMING SOON !</Text>
             <Text className="text-black text-base leading-4"
-            style={{
-                fontFamily: 'Gilton',
-            }}
+                style={{
+                    fontFamily: 'Gilton',
+                }}
             >{storeName}</Text>
         </View>
     </TouchableOpacity>

@@ -6,6 +6,7 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
+const isSmallDevice = width < 380;
 
 const HeroSection = () => {
     // Marquee Animation
@@ -113,7 +114,7 @@ const HeroSection = () => {
                     colors={['#6A1B9A', '#8E24AA', '#BA68C8', '#E1BEE7']}
                     locations={[0, 0.3, 0.6, 1]}
                     className="w-full rounded-[40px] pt-16 pb-8 px-6 relative overflow-hidden justify-center"
-                    style={{ minHeight: 700 }}
+                    style={{ minHeight: isSmallDevice ? 600 : 700 }}
                 >
                     {/* Background Watermark */}
                     <View className="absolute inset-x-0 bottom-0 items-center justify-end opacity-[0.08]" style={{ bottom: -40 }}>
@@ -127,7 +128,7 @@ const HeroSection = () => {
                     <View className="items-center z-10 w-full mb-20">
                         {/* Title */}
                         <Text
-                            className="text-white text-5xl tracking-[0.25em] text-center mb-8 uppercase"
+                            className={`text-white ${isSmallDevice ? 'text-4xl' : 'text-5xl'} tracking-[0.25em] text-center mb-8 uppercase`}
                             style={{ fontFamily: 'Bicubik' }}
                         >
                             SIGNIFIYA
@@ -141,18 +142,18 @@ const HeroSection = () => {
                                 { num: timeLeft.minutes, label: 'MINUTES' },
                                 { num: timeLeft.seconds, label: 'SECONDS' }
                             ].map((item, index) => (
-                                <View key={index} className="items-center" style={{ minWidth: 70 }}>
+                                <View key={index} className="items-center" style={{ minWidth: isSmallDevice ? 55 : 70 }}>
                                     {/* Container with extra space to prevent italic text clipping */}
-                                    <View className="relative" style={{ paddingHorizontal: 8, minWidth: 60 }}>
+                                    <View className="relative" style={{ paddingHorizontal: 8, minWidth: isSmallDevice ? 45 : 60 }}>
                                         {/* Subtle hard shadow */}
                                         <Text
-                                            className="absolute text-[22px] text-black text-center"
+                                            className={`absolute ${isSmallDevice ? 'text-[18px]' : 'text-[22px]'} text-black text-center`}
                                             style={{ top: 2, left: 2, right: 0, fontFamily: 'BBHBartle', opacity: 0.4 }}
                                         >
                                             {item.num}
                                         </Text>
                                         <Text
-                                            className="text-white text-[20px] text-center"
+                                            className={`text-white ${isSmallDevice ? 'text-[16px]' : 'text-[20px]'} text-center`}
                                             style={{ fontFamily: 'BBHBartle' }}
                                         >
                                             {item.num}
