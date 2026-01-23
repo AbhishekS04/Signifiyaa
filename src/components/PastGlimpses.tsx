@@ -5,19 +5,13 @@ const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
 const PastGlimpses = () => {
-    const photos: { url: string; size: 'large' | 'medium' }[] = [
-        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg', size: 'large' },
-        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg', size: 'medium' },
-        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg', size: 'large' },
-        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg', size: 'medium' },
-        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg', size: 'large' },
+    const photos = [
+        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' },
+        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' },
+        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' },
+        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' },
+        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' },
     ];
-
-    const rotations = ['-4deg', '3.5deg', '-2.5deg', '4deg', '-3deg'];
-    const sizes = {
-        large: { width: isSmallDevice ? 180 : 220, height: isSmallDevice ? 150 : 180 },
-        medium: { width: isSmallDevice ? 160 : 190, height: isSmallDevice ? 130 : 155 }
-    };
 
     return (
         <View className="bg-[#FFF0F5] py-12 w-full items-center rounded-[40px] mb-6 overflow-hidden">
@@ -27,11 +21,10 @@ const PastGlimpses = () => {
                     fontFamily: 'Gilton',
                     letterSpacing: -1,
                 }}>GLIMPSES OF</Text>
-                <Text className={`text-black -mt-3 uppercase ${isSmallDevice ? 'text-5xl' : 'text-6xl'}`} style={
-                    {
-                        fontFamily: 'Gilton',
-                        letterSpacing: -1,
-                    }}>PAST</Text>
+                <Text className={`text-black -mt-3 uppercase ${isSmallDevice ? 'text-5xl' : 'text-6xl'}`} style={{
+                    fontFamily: 'Gilton',
+                    letterSpacing: -1,
+                }}>PAST</Text>
                 <View className="w-16 h-1 bg-red-500 mt-4 rounded-full" />
                 <Text className="text-gray-600 text-center text-base px-6 mt-6 leading-6"
                     style={{
@@ -41,78 +34,20 @@ const PastGlimpses = () => {
                 </Text>
             </View>
 
-            {/* Vertical Timeline with Photos */}
-            <View className="w-full items-center relative">
-                {/* Red vertical line */}
-                <View
-                    className="absolute bg-red-500 rounded-full"
-                    style={{
-                        width: 3,
-                        top: 30,
-                        bottom: 30,
-                        left: '50%',
-                        marginLeft: -1.5,
-                    }}
-                />
+            {/* Polaroid Timeline */}
+            <View className="w-full relative" style={{ minHeight: 900 }}>
 
-                {/* Photos */}
-                <View className="w-full items-center gap-10 px-6">
-                    {photos.map((photo, index) => {
-                        const rotation = rotations[index];
-                        const photoSize = sizes[photo.size];
 
-                        return (
-                            <View key={index} className="items-center relative" style={{ zIndex: 10 }}>
-                                {/* Enhanced red dot */}
-                                <View className="w-4 h-4 bg-red-500 rounded-full border-[3px] border-white mb-5 shadow-md" />
-
-                                {/* Premium Polaroid frame */}
-                                <View
-                                    className="bg-white rounded-2xl shadow-2xl"
-                                    style={{
-                                        transform: [{ rotate: rotation }],
-                                        width: photoSize.width,
-                                        padding: 12,
-                                        paddingBottom: 36,
-                                        borderWidth: 1,
-                                        borderColor: '#e5e5e5',
-                                    }}
-                                >
-                                    {/* Subtle tape effect */}
-                                    <View
-                                        className="absolute -top-2 bg-white/40 border border-gray-200/50 rounded-sm"
-                                        style={{
-                                            width: 50,
-                                            height: 20,
-                                            left: '50%',
-                                            marginLeft: -25,
-                                            transform: [{ rotate: '-5deg' }],
-                                        }}
-                                    />
-
-                                    <Image
-                                        source={{ uri: photo.url }}
-                                        style={{
-                                            width: '100%',
-                                            height: photoSize.height,
-                                            borderRadius: 6,
-                                        }}
-                                        resizeMode="cover"
-                                    />
-
-                                    {/* Inner shadow for depth */}
-                                    <View
-                                        className="absolute inset-0 rounded-2xl"
-                                        style={{
-                                            borderWidth: 1,
-                                            borderColor: 'rgba(0,0,0,0.05)',
-                                            pointerEvents: 'none',
-                                        }}
-                                    />
-                                </View>
-                            </View>
-                        );
-                    })}
+                {/* Photos in Zigzag Pattern */}
+                <View className="w-full px-4">
+                    {photos.map((photo, index) => (
+                        <PolaroidCard
+                            key={index}
+                            photo={photo}
+                            index={index}
+                            isLeft={index % 2 === 0}
+                        />
+                    ))}
                 </View>
             </View>
 
@@ -130,7 +65,75 @@ const PastGlimpses = () => {
                     </Text>
                 </TouchableOpacity>
             </View>
+        </View>
+    );
+};
 
+// Polaroid Card Component with Tape
+const PolaroidCard = ({ photo, index, isLeft }: { photo: { url: string }, index: number, isLeft: boolean }) => {
+    // Enhanced rotation angles for more impact
+    const rotations = ['-6deg', '5deg', '-4deg', '6deg', '-5deg'];
+    const rotation = rotations[index];
+
+    return (
+        <View style={{ marginBottom: 50, position: 'relative' }}>
+
+
+            {/* Polaroid Card */}
+            <View
+                style={{
+                    alignSelf: isLeft ? 'flex-start' : 'flex-end',
+                    width: isSmallDevice ? 200 : 240,
+                    transform: [{ rotate: rotation }],
+                    position: 'relative', // Ensure tape is relative to this
+                }}
+            >
+                {/* Tape Strip - Realistic Look */}
+                <View
+                    style={{
+                        position: 'absolute',
+                        width: 50,
+                        height: 20,
+                        backgroundColor: 'rgba(240, 230, 200, 0.97)', // Higher opacity for realism
+                        top: -8, // Overlaps top edge
+                        left: '50%',
+                        marginLeft: -25, // Center it
+                        zIndex: 20,
+                        transform: [{ rotate: isLeft ? '-2deg' : '3deg' }], // Slight independent rotation
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.15,
+                        shadowRadius: 1,
+                        elevation: 3,
+                        // Irregular edges simulation (subtle)
+                        borderRightWidth: 0.5,
+                        borderLeftWidth: 0.5,
+                        borderColor: 'rgba(255,255,255,0.3)',
+                    }}
+                />
+
+                {/* Polaroid Frame */}
+                <View
+                    className="bg-white rounded-xl shadow-xl border-[3px] border-black"
+                    style={{
+                        padding: 12,
+                        paddingBottom: 40,
+                    }}
+                >
+                    {/* Photo */}
+                    <Image
+                        source={{ uri: photo.url }}
+                        className="w-full rounded-lg"
+                        style={{
+                            height: isSmallDevice ? 160 : 190,
+                        }}
+                        resizeMode="cover"
+                    />
+
+                    {/* Polaroid Bottom Space (simulates instant film) */}
+                    <View className="absolute bottom-3 left-0 right-0 h-8" />
+                </View>
+            </View>
         </View>
     );
 };

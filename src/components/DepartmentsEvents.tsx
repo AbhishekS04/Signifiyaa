@@ -234,8 +234,8 @@ const DepartmentsEvents = () => {
                                 }}
                                 mode="parallax"
                                 modeConfig={{
-                                    parallaxScrollingScale: 0.9,
-                                    parallaxScrollingOffset: 50,
+                                    parallaxScrollingScale: 1.0,
+                                    parallaxScrollingOffset: 60,
                                     parallaxAdjacentItemScale: 0.8,
                                 }}
                                 {...({
@@ -470,7 +470,7 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
 
     return (
         <View
-            className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+            className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
             style={{ height: isSmallDevice ? 580 : 640, overflow: 'hidden', backfaceVisibility: 'hidden' }} // Strict overflow and backface visibility
         >
             {/* Poster Header - Fixed Height */}
