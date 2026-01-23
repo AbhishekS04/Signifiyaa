@@ -239,12 +239,7 @@ const DepartmentsEvents = () => {
                                 onProgressChange={(progress, absoluteProgress) => {
                                     scrollProgress.value = absoluteProgress;
                                 }}
-                                mode="parallax"
-                                modeConfig={{
-                                    parallaxScrollingScale: 0.9, // Side items shrink slightly
-                                    parallaxScrollingOffset: 60, // Peak offset (visible side parts)
-                                    parallaxAdjacentItemScale: 0.8,
-                                }}
+                                // Parallax mode removed to prevent video clipping artifacts
                                 windowSize={3} // Rendering optimization
                                 renderItem={({ item, index, animationValue }) => {
                                     return (
@@ -440,8 +435,8 @@ const NavButton = ({ direction, onPress }: { direction: 'left' | 'right', onPres
             onPressOut={onPressOut}
             className={`absolute ${direction === 'left' ? 'left-0' : 'right-0'} w-12 h-12 bg-white rounded-full border-[3px] border-black items-center justify-center z-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`}
             style={{
-                top: '50%',
-                transform: [{ translateY: -24 }] // Perfect center alignment
+                top: '105%', // To move UP/DOWN change this percentage (e.g. 50% is center, 60% is lower)
+                transform: [{ translateY: -24 }] // Centers the button itself
             }}
             activeOpacity={0.9}
         >
@@ -587,11 +582,11 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
             </View>
 
             {/* Content Area - Fixed Layout */}
-            <View className={`bg-white ${isSmallDevice ? 'p-3' : 'p-5'}`} style={{ flex: 1, justifyContent: 'space-between' }}>
-                <View>
+            <View className={`bg-white ${isSmallDevice ? 'p-3' : 'p-5'}`} style={{ flex: 1, justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={{ alignItems: 'center', width: '100%' }}>
                     {/* Event Title - Max 2 Lines */}
                     <Text
-                        className="text-black uppercase leading-8 mb-1"
+                        className="text-black uppercase leading-8 mb-1 text-center"
                         style={{ fontFamily: SECTION_FONTS.EVENT_TITLE, fontSize: isSmallDevice ? 24 : 30, lineHeight: isSmallDevice ? 28 : 32 }}
                         numberOfLines={2}
                         ellipsizeMode="tail"
@@ -601,7 +596,7 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
 
                     {/* Event Date - Max 1 Line */}
                     <Text
-                        className="text-[#8e99af] mb-3"
+                        className="text-[#8e99af] mb-3 text-center"
                         style={{ fontFamily: SECTION_FONTS.DATE, fontSize: isSmallDevice ? 14 : 18 }}
                         numberOfLines={1}
                     >
@@ -609,15 +604,15 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                     </Text>
 
                     {/* Prize Pool Tag */}
-                    <View className={`bg-[#B9F6CA] self-start rounded-full border-black mb-4 ${isSmallDevice ? 'px-3 py-1' : 'px-4 py-1.5'}`}>
-                        <Text className="text-black text-xs" style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_LABEL }} numberOfLines={1}>
+                    <View className={`bg-[#B9F6CA] rounded-full border-black mb-4 ${isSmallDevice ? 'px-3 py-1' : 'px-4 py-1.5'}`}>
+                        <Text className="text-black text-xs text-center" style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_LABEL }} numberOfLines={1}>
                             Prize pool: <Text style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_VALUE }}>{prizePool}</Text>
                         </Text>
                     </View>
 
                     {/* Short Description - Max 2 Lines */}
                     <Text
-                        className="text-black/80 text-sm leading-5 mb-4"
+                        className="text-black/80 text-sm leading-5 mb-4 text-center px-2"
                         style={{ fontFamily: SECTION_FONTS.DESCRIPTION, fontSize: isSmallDevice ? 12 : 14 }}
                         numberOfLines={3}
                         ellipsizeMode="tail"
@@ -627,7 +622,7 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
                 </View>
 
                 {/* Action Buttons - Fixed At Bottom */}
-                <View className={`gap-3 ${isSmallDevice ? 'mt-1' : 'mt-4'}`}>
+                <View className={`gap-3 w-full ${isSmallDevice ? 'mt-1' : 'mt-4'}`}>
                     <TouchableOpacity
                         onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
                         className={`border-[3px] border-black rounded-2xl items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${isSmallDevice ? 'py-3' : 'py-4'}`}

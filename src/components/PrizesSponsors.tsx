@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -142,6 +142,24 @@ const PrizesSponsors = () => {
         };
     });
 
+    // ============================================
+    // SPONSORS DATA (Easy to update)
+    // ============================================
+    // how to use:
+    // 1. Upload your logo to `assets/sponsors/google.png`
+    // 2. Import it: `import googleLogo from '../../assets/sponsors/google.png'`
+    // 3. Or use a URL: `logo: 'https://example.com/logo.png'`
+    const SPONSORS = [
+        { name: 'RoyalEnfield', logo: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/c332f625-7ac1-46d4-9dac-c479487b1760.png' },
+        { name: 'DadaBoudi', logo: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/78ff25cb-b1a8-487e-a798-eba73a0745d9.png' },
+        { name: 'Amazon', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/2560px-Amazon_logo.svg.png' },
+        { name: 'Meta', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Meta-Logo.png/800px-Meta-Logo.png' },
+        { name: 'Spotify', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Spotify_logo_with_text.svg/2560px-Spotify_logo_with_text.svg.png' },
+        { name: 'Tesla', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tesla_logo.png/1200px-Tesla_logo.png' },
+        { name: 'DadaBoudi', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tesla_logo.png/1200px-Tesla_logo.png' },
+        { name: 'Tesla', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tesla_logo.png/1200px-Tesla_logo.png' },
+    ];
+
     return (
         <View className="w-full pb-8">
             {/* Section A: Prize Pool Card with Floating Money */}
@@ -219,14 +237,18 @@ const PrizesSponsors = () => {
                     </Text>
                 </View>
 
-                {/* Sponsor Grid */}
-                <View className="flex-row flex-wrap justify-between gap-y-8 px-4 mb-8">
-                    {[1, 2, 3, 4, 5, 6].map((item) => (
-                        <View key={item} className="w-[45%] h-20 items-center justify-center">
-                            {/* Placeholder for Logos */}
-                            <Text className="font-[Inter_700Bold] text-gray-300 text-lg">
-                                Sponsor {item}
-                            </Text>
+                {/* Sponsor Grid - Professional Layout */}
+                <View className="flex-row flex-wrap justify-center gap-8 mb-10 pt-4">
+                    {SPONSORS.map((sponsor, index) => (
+                        <View
+                            key={index}
+                            className="w-[45%] h-32 items-center justify-center p-0"
+                        >
+                            <Image
+                                source={{ uri: sponsor.logo }}
+                                className="w-full h-full"
+                                resizeMode="contain"
+                            />
                         </View>
                     ))}
                 </View>
