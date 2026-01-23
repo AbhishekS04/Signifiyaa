@@ -120,7 +120,7 @@ const DepartmentsEvents = () => {
             {/* ============================================ */}
             {/* SECTION A: ABOUT SOET CARD                  */}
             {/* ============================================ */}
-            <View className="bg-[#E3F2FD] rounded-3xl border-[3px] border-black pb-6 relative mb-4" style={{ padding: 24 }}>
+            <View className="bg-[#E3F2FD] rounded-[40px] border-[3px] border-black pb-6 relative mb-4" style={{ padding: 24 }}>
                 {/* Star Icon */}
                 <View className="absolute top-6 left-6 bg-red-400 p-2 rounded-full border-2 border-black">
                     <Star color="black" fill="black" size={20} />
@@ -173,7 +173,7 @@ const DepartmentsEvents = () => {
             {/* ============================================ */}
             {/* SECTION C: SIGNIFIYA EVENTS CARD             */}
             {/* ============================================ */}
-            <View className="bg-[#FFF8E1] border-[3px] border-black rounded-3xl p-4 pb-10 min-h-[500px]" style={{ overflow: 'hidden' }}>
+            <View className="bg-[#FFF8E1] border-[3px] border-black rounded-[40px] p-4 pb-10 min-h-[500px]" style={{ overflow: 'hidden' }}>
 
                 {/* Header */}
                 <View className="items-center my-6">
