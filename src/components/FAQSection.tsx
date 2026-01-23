@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, LayoutChangeEvent } from 'react-native';
+import { View, Text, TouchableOpacity, LayoutChangeEvent, Dimensions } from 'react-native';
 import { Plus } from 'lucide-react-native';
+
+const { width } = Dimensions.get('window');
+const isSmallDevice = width < 380;
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -29,7 +32,7 @@ const FAQSection = () => {
     return (
         <View className="bg-[#F3E5F5] rounded-[40px] px-6 py-10 mb-10 mx-2 border-2 border-black">
             <View className="mb-8">
-                <Text className="text-3xl text-black text-center leading-tight"
+                <Text className={`text-black text-center leading-tight ${isSmallDevice ? 'text-2xl' : 'text-3xl'}`}
                     style={{
                         fontFamily: FAQ_FONTS.QUESTION,
                     }}

@@ -1,5 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+const isSmallDevice = width < 380;
 
 const PastGlimpses = () => {
     const photos: { url: string; size: 'large' | 'medium' }[] = [
@@ -12,19 +15,19 @@ const PastGlimpses = () => {
 
     const rotations = ['-4deg', '3.5deg', '-2.5deg', '4deg', '-3deg'];
     const sizes = {
-        large: { width: 220, height: 180 },
-        medium: { width: 190, height: 155 }
+        large: { width: isSmallDevice ? 180 : 220, height: isSmallDevice ? 150 : 180 },
+        medium: { width: isSmallDevice ? 160 : 190, height: isSmallDevice ? 130 : 155 }
     };
 
     return (
         <View className="bg-[#FFF0F5] py-12 w-full items-center rounded-[40px] mb-6 overflow-hidden">
             {/* Header */}
-            <View className="items-center mb-14 px-6">
-                <Text className="text-6xl text-black uppercase leading-tight" style={{
+            <View className={`items-center px-6 ${isSmallDevice ? 'mb-10' : 'mb-14'}`}>
+                <Text className={`text-black uppercase leading-tight ${isSmallDevice ? 'text-5xl' : 'text-6xl'}`} style={{
                     fontFamily: 'Gilton',
                     letterSpacing: -1,
                 }}>GLIMPSES OF</Text>
-                <Text className="text-6xl text-black -mt-3 uppercase" style={
+                <Text className={`text-black -mt-3 uppercase ${isSmallDevice ? 'text-5xl' : 'text-6xl'}`} style={
                     {
                         fontFamily: 'Gilton',
                         letterSpacing: -1,

@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const { height, width } = Dimensions.get('window');
+const isSmallDevice = width < 380;
 
 // Realistic Paper Money with Curved Bend and Natural Physics
 const MoneyBill = ({
@@ -164,33 +165,33 @@ const PrizesSponsors = () => {
                 <View className="z-10">
                     {/* Massive Typography Block */}
                     <View className="items-center mb-4">
-                            <Text className="text-[50px] leading-[50px] text-black"
-                                style={{
-                                    fontFamily: 'BBHBartle',
-                                }}
-                            >
-                                120K+
-                            </Text>
-                        <Text className="text-[50px] leading-[50px] text-black -mt-2"
-                                style={{
-                                    fontFamily: 'BBHBartle',
-                                }}
-                            >
-                                INR
-                            </Text>
+                        <Text className={`leading-[50px] text-black ${isSmallDevice ? 'text-[40px]' : 'text-[50px]'}`}
+                            style={{
+                                fontFamily: 'BBHBartle',
+                            }}
+                        >
+                            120K+
+                        </Text>
+                        <Text className={`leading-[50px] text-black -mt-2 ${isSmallDevice ? 'text-[40px]' : 'text-[50px]'}`}
+                            style={{
+                                fontFamily: 'BBHBartle',
+                            }}
+                        >
+                            INR
+                        </Text>
                         <Text className="text-xl text-black mt-1 tracking-widest uppercase"
-                        style={{
-                            fontFamily: 'Gilton',
-                        }}>
+                            style={{
+                                fontFamily: 'Gilton',
+                            }}>
                             IN PRIZE POOL
                         </Text>
                     </View>
 
                     {/* Footer Text with sparkle */}
                     <Text className="text-gray-800 text-center uppercase text-sm tracking-wide"
-                    style={{
-                        fontFamily: 'Softura',
-                    }}>
+                        style={{
+                            fontFamily: 'Softura',
+                        }}>
                         GOODIES, MERCHES &{'\n'}MANY MORE...
                     </Text>
                 </View>
@@ -203,10 +204,10 @@ const PrizesSponsors = () => {
                 <View className="items-center mb-8">
                     <View className="flex-row items-baseline">
                         <View className="items-center">
-                            <Text className="text-5xl text-black" style={{
+                            <Text className={`text-black ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`} style={{
                                 fontFamily: 'Gilton',
                             }}>OUR</Text>
-                            <Text className="text-5xl text-black -mt-2" style={{
+                            <Text className={`text-black -mt-2 ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`} style={{
                                 fontFamily: 'Gilton',
                             }}>SPONSORS</Text>
                         </View>
@@ -233,9 +234,9 @@ const PrizesSponsors = () => {
                 {/* Action Button */}
                 <TouchableOpacity className="bg-black py-4 rounded-full items-center shadow-md">
                     <Text className="text-white text-lg"
-                    style={{
-                        fontFamily: 'Softura',
-                    }}>
+                        style={{
+                            fontFamily: 'Softura',
+                        }}>
                         BECOME A SPONSOR
                     </Text>
                 </TouchableOpacity>

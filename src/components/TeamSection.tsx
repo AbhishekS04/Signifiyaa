@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, Linking, Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+const isSmallDevice = width < 380;
 import { Instagram, Linkedin, Github } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
@@ -91,7 +94,7 @@ const TeamSection = () => {
     };
 
     return (
-        <View className="bg-[#F3E5F5] rounded-[40px] px-6 py-10 mb-6 mx-2 border-2 border-black">
+        <View className={`bg-[#F3E5F5] rounded-[40px] mb-6 mx-2 border-2 border-black ${isSmallDevice ? 'px-4 py-8' : 'px-6 py-10'}`}>
 
             {/* Active Member Display Card */}
             <View className="mb-10 items-center">
@@ -115,7 +118,7 @@ const TeamSection = () => {
                         />
                     </View>
 
-                    <Text className="text-3xl text-black text-center mb-1 uppercase" style={{ fontFamily: SECTION_FONTS.NAME }}>
+                    <Text className={`text-black text-center mb-1 uppercase ${isSmallDevice ? 'text-2xl' : 'text-3xl'}`} style={{ fontFamily: SECTION_FONTS.NAME }}>
                         {activeMember.name}
                     </Text>
                     <Text className="text-[#8e99af] text-[12px] tracking-[0.2em] uppercase mb-4 text-center" style={{ fontFamily: SECTION_FONTS.ROLE }}>

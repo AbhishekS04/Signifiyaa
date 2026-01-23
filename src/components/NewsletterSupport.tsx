@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+const isSmallDevice = width < 380;
 import { ArrowUpRight } from 'lucide-react-native';
 
 const NewsletterSupport = () => {
@@ -10,48 +13,48 @@ const NewsletterSupport = () => {
         <View className="px-2 mb-10 gap-6">
 
             {/* --- Card 1: Newsletter (Purple) --- */}
-            <View className="bg-[#E1BEE7] rounded-[40px] p-8 pb-12">
+            <View className={`bg-[#E1BEE7] rounded-[40px] pb-12 ${isSmallDevice ? 'p-6' : 'p-8'}`}>
 
                 {/* Header Typography Mix */}
                 <View className="mb-4">
-                    <Text className="text-5xl text-black leading-[0.9]">
+                    <Text className={`text-black leading-[0.9] ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
                         <Text className=""
-                        style={{
-                            fontFamily: 'Gilton',
-                        }}
+                            style={{
+                                fontFamily: 'Gilton',
+                            }}
                         >YOUR </Text>
                         <Text className=" "
-                        style={{
-                            fontFamily: 'Gilton',
-                        }}
+                            style={{
+                                fontFamily: 'Gilton',
+                            }}
                         >INBOX</Text>
                     </Text>
-                    <Text className="text-5xl text-black leading-[0.9]">
+                    <Text className={`text-black leading-[0.9] ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
                         <Text className=""
-                        style={{
-                            fontFamily: 'Gilton',
-                        }}
+                            style={{
+                                fontFamily: 'Gilton',
+                            }}
                         >JUST</Text>
                     </Text>
-                    <Text className="text-5xl text-black leading-[0.9] -mt-1">
+                    <Text className={`text-black leading-[0.9] -mt-1 ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
                         <Text className=""
-                        style={{
-                            fontFamily: 'Gilton',
-                        }}
+                            style={{
+                                fontFamily: 'Gilton',
+                            }}
                         >GOT </Text>
                         <Text className=""
-                        style={{
-                            fontFamily: 'Gilton',
-                        }}
+                            style={{
+                                fontFamily: 'Gilton',
+                            }}
                         >BETTER</Text>
                     </Text>
                 </View>
 
                 {/* Subtext */}
                 <Text className="font-[Inter_500Medium] text-black text-base mb-8 leading-5"
-                style={{
-                    fontFamily: 'Softura',
-                }}
+                    style={{
+                        fontFamily: 'Softura',
+                    }}
                 >
                     Subscribe to our newsletter for VIP access to news, offers, and insights!
                 </Text>
@@ -77,9 +80,9 @@ const NewsletterSupport = () => {
                     activeOpacity={0.8}
                 >
                     <Text className="text-white text-lg tracking-widest uppercase"
-                    style={{
-                        fontFamily: 'Softura',
-                    }}
+                        style={{
+                            fontFamily: 'Softura',
+                        }}
                     >
                         SUBSCRIBE
                     </Text>
@@ -106,36 +109,36 @@ const NewsletterSupport = () => {
 
 
             {/* --- Card 2: Support Section (Blue) --- */}
-            <View className="bg-[#448AFF] rounded-[40px] p-8 pb-12">
+            <View className={`bg-[#448AFF] rounded-[40px] pb-12 ${isSmallDevice ? 'p-6' : 'p-8'}`}>
 
                 {/* Header Typography Mix */}
                 <View className="mb-10">
-                    <Text className="text-5xl text-black leading-[0.9]">
+                    <Text className={`text-black leading-[0.9] ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
                         <Text className="font-[ArchivoBlack_400Regular]"
-                        style={{
-                            fontFamily: 'Gilton',
-                        }}
+                            style={{
+                                fontFamily: 'Gilton',
+                            }}
                         >ALWAYS HERE</Text>
                     </Text>
-                    <Text className="text-5xl text-black leading-[0.9]">
+                    <Text className={`text-black leading-[0.9] ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
                         <Text className="font-[ArchivoBlack_400Regular]"
-                        style={{
-                            fontFamily: 'Gilton',
-                        }}
+                            style={{
+                                fontFamily: 'Gilton',
+                            }}
                         >TO </Text>
                         <Text className="font-[Inter_900Black] "
-                        style={{
-                            fontFamily: 'Gilton',
-                        }}
+                            style={{
+                                fontFamily: 'Gilton',
+                            }}
                         >HELP</Text>
                     </Text>
                 </View>
 
                 {/* Body Text */}
                 <Text className="font-[Inter_600SemiBold] text-black text-xl mb-12 leading-7"
-                style={{
-                    fontFamily: 'Softura',
-                }}
+                    style={{
+                        fontFamily: 'Softura',
+                    }}
                 >
                     Got questions ? Our Support Team is here to help 24*7!
                 </Text>
@@ -146,9 +149,9 @@ const NewsletterSupport = () => {
                     activeOpacity={0.8}
                 >
                     <Text className="text-white font-[Inter_700Bold] text-lg uppercase"
-                    style={{
-                        fontFamily: 'Softura',
-                    }}
+                        style={{
+                            fontFamily: 'Softura',
+                        }}
                     >
                         GET SUPPORT
                     </Text>
