@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions, LayoutAnimation, Platform, UIManager } from 'react-native';
-import { Star, Plus, X, Volume2, VolumeX } from 'lucide-react-native';
+import { Star, Plus, X, Volume2, VolumeX, ArrowLeft, ArrowRight } from 'lucide-react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -11,11 +11,11 @@ import Animated, {
     interpolate,
     runOnJS,
     useAnimatedScrollHandler,
-    SharedValue
+    SharedValue,
+    Extrapolation
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import { EVENTS_DATA } from '../data/EventsData';
 
@@ -52,16 +52,19 @@ const DepartmentsEvents = () => {
     const [textWidth, setTextWidth] = useState(0);
     const [currentIndex, setCurrentIndex] = useState(0);
     const translateX = useSharedValue(0);
-    const scrollX = useSharedValue(0);
+
+    // Shared value for real-time scroll sync (smoother dots)
+    const scrollProgress = useSharedValue(0);
     const carouselRef = useRef<any>(null);
 
     const filters = ['ESPORTS', 'CSE', 'CIVIL', 'MECHANICAL', 'EEE', 'ROBOTICS', 'NON-TECH'];
     const MARQUEE_TEXT = "EVENTS ★ ★ SOET ★ ★ ";
 
-    // Carousel configuration - 72% width for better peek visibility
-    const CARD_WIDTH = Math.round(width * 0.72);
-    const CARD_SPACING = 20;
-    const SIDE_PADDING = (width - CARD_WIDTH) / 2;
+    // Carousel configuration - Center + Previews
+    // We use a smaller card width so side items (previews) are visible
+    const PEAK_WIDTH = 40; // Amount of next/prev card visible
+    const CARD_WIDTH = width * 0.78; // 78% of screen width
+    const CARD_HEIGHT = isSmallDevice ? 580 : 640;
 
     // ============================================
     // MARQUEE ANIMATION
@@ -106,11 +109,12 @@ const DepartmentsEvents = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         setSelectedCategory(filter);
         setCurrentIndex(0);
+        scrollProgress.value = 0; // Reset scroll
 
         // Reset ScrollView to first item
         setTimeout(() => {
             if (carouselRef.current) {
-                carouselRef.current.scrollTo({ x: 0, animated: false });
+                carouselRef.current.scrollTo({ index: 0, animated: false });
             }
         }, 50);
     };
@@ -137,7 +141,7 @@ const DepartmentsEvents = () => {
                 </View>
 
                 {/* Body Text */}
-                <Text className=" text-black text-center leading-7 text-base p-4 pl-4 text-lg"  //test
+                <Text className=" text-black text-center leading-7 text-base p-4 pl-4 text-lg"
                     style={{ fontFamily: 'Softura' }}>
                     The School of Engineering and Technology stands as a beacon of technical excellence, fostering innovation and shaping the future engineers who will build tomorrow's world.
                 </Text>
@@ -210,127 +214,79 @@ const DepartmentsEvents = () => {
 
                 {/* CAROUSEL: Swipeable Event Cards             */}
                 {/* ============================================ */}
-                {/* CAROUSEL: Swipeable Event Cards             */}
-                {/* ============================================ */}
                 {filteredEvents.length > 0 ? (
                     <View
                         onLayout={(e) => {
                             const { width: layoutWidth } = e.nativeEvent.layout;
                             setContainerWidth(layoutWidth);
                         }}
-                        style={{ height: isSmallDevice ? 600 : 700, alignItems: 'center' }}
+                        style={{ height: isSmallDevice ? 620 : 720, alignItems: 'center' }}
                     >
                         <View className="relative w-full items-center justify-center">
                             <Carousel
-                                key={selectedCategory} // Force re-render on category change to reset index
-                                loop={false}
+                                key={selectedCategory} // Force re-render on category change
+                                loop={true} // Infinite loop for smoother feel
                                 ref={carouselRef}
-                                width={containerWidth}
-                                height={isSmallDevice ? 580 : 640}
-                                style={{
-                                    width: containerWidth,
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                }}
-                                mode="parallax"
-                                modeConfig={{
-                                    parallaxScrollingScale: 1.0,
-                                    parallaxScrollingOffset: 60,
-                                    parallaxAdjacentItemScale: 0.8,
-                                }}
-                                {...({
-                                    panGestureHandlerProps: {
-                                        activeOffsetX: [-10, 10],
-                                    }
-                                } as any)}
+                                width={containerWidth} // Full container width for parallax calculation
+                                height={CARD_HEIGHT}
+                                autoPlay={false}
                                 data={filteredEvents}
-                                renderItem={({ item, index }: { item: any; index: number }) => (
-                                    <View
-                                        style={{
-                                            width: containerWidth,
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            // Z-Index Hack: Active item higher (approximated by index vs current)
-                                            // Since we can't easily animate zIndex here without shared values,
-                                            // we rely on Parallax mode's default z-ordering (usually center on top).
-                                            // We ensure strict clipping:
-                                            overflow: 'hidden'
-                                        }}
-                                    >
-                                        <View style={{ width: CARD_WIDTH, marginHorizontal: CARD_SPACING / 2 }}>
-                                            <EventCard
-                                                title={item.title}
-                                                date={item.date}
-                                                category={item.category}
-                                                description={item.description}
-                                                prizePool={item.prizePool}
-                                                imageColor={item.imageColor}
-                                                buttonColor={item.buttonColor}
-                                                imageUrl={item.imageUrl}
-                                                videoUrl={item.videoUrl}
-                                                isActive={index === currentIndex}
-                                            />
-                                        </View>
-                                    </View>
-                                )}
-                                onSnapToItem={(index: number) => {
+                                scrollAnimationDuration={600} // Snappier but smooth
+                                onSnapToItem={(index) => {
                                     runOnJS(setCurrentIndex)(index);
                                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                 }}
-                                onProgressChange={(offset: number, absoluteProgress: number) => {
-                                    scrollX.value = absoluteProgress * (CARD_WIDTH + CARD_SPACING);
+                                onProgressChange={(progress, absoluteProgress) => {
+                                    scrollProgress.value = absoluteProgress;
+                                }}
+                                mode="parallax"
+                                modeConfig={{
+                                    parallaxScrollingScale: 0.9, // Side items shrink slightly
+                                    parallaxScrollingOffset: 60, // Peak offset (visible side parts)
+                                    parallaxAdjacentItemScale: 0.8,
+                                }}
+                                windowSize={3} // Rendering optimization
+                                renderItem={({ item, index, animationValue }) => {
+                                    return (
+                                        <CustomItem
+                                            item={item}
+                                            animationValue={animationValue}
+                                            isActive={index === currentIndex}
+                                            width={CARD_WIDTH}
+                                        />
+                                    );
                                 }}
                             />
 
-                            {/* Navigation Buttons (Floating - Fixed Position) */}
-                            <TouchableOpacity
+                            {/* Navigation Buttons - With Press Animation */}
+                            <NavButton
+                                direction="left"
                                 onPress={() => {
-                                    if (currentIndex > 0) {
-                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                        carouselRef.current?.scrollTo({ index: currentIndex - 1, animated: true });
-                                    }
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    carouselRef.current?.scrollTo({ count: -1, animated: true });
                                 }}
-                                className="absolute left-1 w-9 h-9 bg-white rounded-full border-[2px] border-black items-center justify-center z-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                                style={{
-                                    top: '50%',
-                                    transform: [{ translateY: -18 }]
-                                }}
-                                activeOpacity={0.7}
-                            >
-                                <ChevronLeft size={20} color={currentIndex === 0 ? "#D1D5DB" : "black"} strokeWidth={3} />
-                            </TouchableOpacity>
+                            />
 
-                            <TouchableOpacity
+                            <NavButton
+                                direction="right"
                                 onPress={() => {
-                                    if (currentIndex < filteredEvents.length - 1) {
-                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                        carouselRef.current?.scrollTo({ index: currentIndex + 1, animated: true });
-                                    }
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    carouselRef.current?.scrollTo({ count: 1, animated: true });
                                 }}
-                                className="absolute right-1 w-9 h-9 bg-white rounded-full border-[2px] border-black items-center justify-center z-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                                style={{
-                                    top: '50%',
-                                    transform: [{ translateY: -18 }]
-                                }}
-                                activeOpacity={0.7}
-                            >
-                                <ChevronRight size={20} color={currentIndex === filteredEvents.length - 1 ? "#D1D5DB" : "black"} strokeWidth={3} />
-                            </TouchableOpacity>
+                            />
                         </View>
 
                         {/* ============================================ */}
-                        {/* PAGINATION DOTS (Animated)                   */}
+                        {/* PAGINATION DOTS (Real-time Sync)             */}
                         {/* ============================================ */}
                         {filteredEvents.length > 1 && (
-                            <View className="flex-row justify-center items-center mt-6 gap-2">
+                            <View className="flex-row justify-center items-center mt-8 gap-2">
                                 {filteredEvents.map((_, index) => (
                                     <PaginationDot
                                         key={index}
                                         index={index}
-                                        isActive={index === currentIndex}
-                                        scrollX={scrollX}
-                                        cardWidth={CARD_WIDTH}
-                                        cardSpacing={CARD_SPACING}
+                                        scrollProgress={scrollProgress}
+                                        length={filteredEvents.length}
                                         onPress={() => {
                                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                             carouselRef.current?.scrollTo({ index, animated: true });
@@ -357,61 +313,148 @@ const DepartmentsEvents = () => {
 };
 
 // ============================================
-// PAGINATION DOT COMPONENT (Animated)
+// CUSTOM ANIMATED ITEM (Simpler 3D Effect)
 // ============================================
-interface PaginationDotProps {
-    index: number;
-    isActive: boolean;
-    onPress: () => void;
-    scrollX: SharedValue<number>;
-    cardWidth: number;
-    cardSpacing: number;
-}
-
-const PaginationDot = ({ index, isActive, onPress, scrollX, cardWidth, cardSpacing }: PaginationDotProps) => {
-    // Real-time scroll-based animation for fluid expansion
+const CustomItem = ({ item, animationValue, isActive, width }: { item: any, animationValue: SharedValue<number>, isActive: boolean, width: number }) => {
     const animatedStyle = useAnimatedStyle(() => {
-        const inputRange = [
-            (index - 1) * (cardWidth + cardSpacing),
-            index * (cardWidth + cardSpacing),
-            (index + 1) * (cardWidth + cardSpacing),
-        ];
-
-        const widthInterpolation = interpolate(
-            scrollX.value,
-            inputRange,
-            [8, 24, 8], // Inactive: 8px, Active: 24px (3x expansion)
-            'clamp'
+        // Simple Scale - Middle is 1, Sides are 0.9
+        const scale = interpolate(
+            animationValue.value,
+            [-1, 0, 1],
+            [0.9, 1, 0.9],
+            Extrapolation.CLAMP
         );
 
-        const opacityInterpolation = interpolate(
-            scrollX.value,
-            inputRange,
-            [0.4, 1, 0.4], // Inactive: dim, Active: full
-            'clamp'
+        // Simple Opacity - Middle is 1, Sides are 0.7
+        const opacity = interpolate(
+            animationValue.value,
+            [-1, 0, 1],
+            [0.7, 1, 0.7],
+            Extrapolation.CLAMP
         );
 
         return {
-            width: widthInterpolation,
-            opacity: opacityInterpolation,
+            transform: [
+                { scale },
+                // removed heavy 3D rotation for a cleaner "preview" look
+            ],
+            opacity,
+            zIndex: isActive ? 10 : 1, // Ensure active card is on top
         };
     });
 
     return (
-        <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+        <Animated.View style={[{ flex: 1, justifyContent: 'center', alignItems: 'center' }, animatedStyle]}>
+            <View style={{ width: width, height: '100%', alignItems: 'center' }}>
+                <EventCard
+                    title={item.title}
+                    date={item.date}
+                    category={item.category}
+                    description={item.description}
+                    prizePool={item.prizePool}
+                    imageColor={item.imageColor}
+                    buttonColor={item.buttonColor}
+                    imageUrl={item.imageUrl}
+                    videoUrl={item.videoUrl}
+                    isActive={isActive}
+                />
+            </View>
+        </Animated.View>
+    );
+};
+
+// ============================================
+// PAGINATION DOT COMPONENT (Reanimated)
+// ============================================
+const PaginationDot = ({ index, scrollProgress, length, onPress }: { index: number, scrollProgress: SharedValue<number>, length: number, onPress: () => void }) => {
+
+    // Animate width based on scroll progress (0 to length-1)
+    const animatedStyle = useAnimatedStyle(() => {
+        // We use absolute progress which naturally handles loops in some carousel configs,
+        // but for basic length, we might need modulo if loop is purely index based.
+        // However, standard absolute progress usually maps directly to index.
+        // Let's use a "distance" approach for highlighting.
+
+        // Handle varying loop indices if necessary, but direct diff is usually fine for these props
+        // We'll create a range around the current index.
+
+        // Clamp scrollProgress for safer interpolation if mostly linear
+        // Note: infinite loop scrollProgress keeps increasing. 
+        // We need modulo logic for infinite loop dots:
+        const currentScrollIndex = Math.abs(scrollProgress.value) % length;
+
+        // Check "distance" from this dot's index
+        // Circular distance for infinite loop
+        let dist = Math.abs(currentScrollIndex - index);
+        if (dist > length / 2) {
+            dist = length - dist;
+        }
+
+        // Active if distance is close to 0
+        const isActive = dist < 0.5;
+
+        // Smooth Interpolation
+        const width = interpolate(dist, [0, 1], [32, 8], Extrapolation.CLAMP);
+        const opacity = interpolate(dist, [0, 1], [1, 0.3], Extrapolation.CLAMP);
+        const color = isActive ? 'black' : '#D1D5DB'; // black vs gray-300
+
+        return {
+            width,
+            opacity,
+            backgroundColor: color
+        };
+    });
+
+    return (
+        <TouchableOpacity onPress={onPress} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 5, right: 5 }}>
             <Animated.View
-                style={[
-                    {
-                        height: 8,
-                        borderRadius: 4,
-                        backgroundColor: 'black',
-                    },
-                    animatedStyle
-                ]}
+                className="h-2 rounded-full"
+                style={animatedStyle}
             />
         </TouchableOpacity>
     );
 };
+
+// ============================================
+// NAV BUTTON (With Press Animation)
+// ============================================
+const NavButton = ({ direction, onPress }: { direction: 'left' | 'right', onPress: () => void }) => {
+    const scale = useSharedValue(1);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }]
+    }));
+
+    const onPressIn = () => {
+        scale.value = withSpring(0.9);
+    };
+
+    const onPressOut = () => {
+        scale.value = withSpring(1);
+    };
+
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
+            className={`absolute ${direction === 'left' ? 'left-0' : 'right-0'} w-12 h-12 bg-white rounded-full border-[3px] border-black items-center justify-center z-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`}
+            style={{
+                top: '50%',
+                transform: [{ translateY: -24 }] // Perfect center alignment
+            }}
+            activeOpacity={0.9}
+        >
+            <Animated.View style={animatedStyle}>
+                {direction === 'left' ? (
+                    <ArrowLeft size={24} color="black" strokeWidth={3} />
+                ) : (
+                    <ArrowRight size={24} color="black" strokeWidth={3} />
+                )}
+            </Animated.View>
+        </TouchableOpacity>
+    );
+}
 
 // ============================================
 // REUSABLE EVENT CARD COMPONENT
@@ -470,8 +513,8 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
 
     return (
         <View
-            className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-            style={{ height: isSmallDevice ? 580 : 640, overflow: 'hidden', backfaceVisibility: 'hidden' }} // Strict overflow and backface visibility
+            className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] w-full h-full"
+            style={{ backfaceVisibility: 'hidden' }} // Strict overflow and backface visibility
         >
             {/* Poster Header - Fixed Height */}
             <View

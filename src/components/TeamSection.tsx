@@ -22,7 +22,7 @@ const TEAM_MEMBERS = [
         id: 1,
         name: 'Ashish Yadav',
         role: 'BLOCKCHAIN DEV',
-        desc: 'Developing smart contracts.',
+        desc: 'Developing smart contracts and securing decentralized applications.',
         image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Ashish',
         socials: { instagram: 'https://instagram.com/ashish', linkedin: 'https://linkedin.com/in/ashish', github: 'https://github.com/ashish' }
     },
@@ -30,7 +30,7 @@ const TEAM_MEMBERS = [
         id: 2,
         name: 'Garima Roy',
         role: 'FRONTEND DEV',
-        desc: 'Building beautiful UIs.',
+        desc: 'Building beautiful, responsive, and interactive user interfaces.',
         image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Garima',
         socials: { instagram: 'https://instagram.com/garima', linkedin: 'https://linkedin.com/in/garima', github: 'https://github.com/garima' }
     },
@@ -38,7 +38,7 @@ const TEAM_MEMBERS = [
         id: 3,
         name: 'Leeza Bhowal',
         role: 'UI/UX DESIGNER',
-        desc: 'Crafting user experiences.',
+        desc: 'Crafting intuitive user experiences and stunning visual designs.',
         image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Leeza',
         socials: { instagram: 'https://instagram.com/leeza', linkedin: 'https://linkedin.com/in/leeza', github: 'https://github.com/leeza' }
     },
@@ -46,7 +46,7 @@ const TEAM_MEMBERS = [
         id: 4,
         name: 'Somnath Singha',
         role: 'BACKEND DEV',
-        desc: 'Managing servers & APIs.',
+        desc: 'Managing servers, APIs, and database architecture efficiency.',
         image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Somnath',
         socials: { instagram: 'https://instagram.com/somnath', linkedin: 'https://linkedin.com/in/somnath', github: 'https://github.com/somnath' }
     },
@@ -54,7 +54,7 @@ const TEAM_MEMBERS = [
         id: 5,
         name: 'Srijita Bera',
         role: 'CONTENT LEAD',
-        desc: 'Writing compelling stories.',
+        desc: 'Writing compelling stories and managing brand narratives.',
         image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Srijita',
         socials: { instagram: 'https://instagram.com/srijita', linkedin: 'https://linkedin.com/in/srijita', github: 'https://github.com/srijita' }
     },
@@ -62,7 +62,7 @@ const TEAM_MEMBERS = [
         id: 6,
         name: 'Siddhartha',
         role: 'TECH LEAD',
-        desc: 'Overseeing technology.',
+        desc: 'Overseeing technology strategy and guiding the dev team.',
         image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Siddhartha',
         socials: { instagram: 'https://instagram.com/siddhartha', linkedin: 'https://linkedin.com/in/siddhartha', github: 'https://github.com/siddhartha' }
     },
@@ -70,7 +70,7 @@ const TEAM_MEMBERS = [
         id: 7,
         name: 'Snehasish Mondal',
         role: 'EVENT MANAGER',
-        desc: 'Organizing chaos.',
+        desc: 'Organizing chaos into seamless and memorable event experiences.',
         image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/c6682553-ae50-45c1-9fc3-5ff2918f194d.jpg',
         socials: { instagram: 'https://instagram.com/snehasish', linkedin: 'https://linkedin.com/in/snehasish', github: 'https://github.com/snehasish' }
     },
@@ -78,7 +78,7 @@ const TEAM_MEMBERS = [
         id: 8,
         name: 'Abhishek Singh',
         role: 'Application Developer',
-        desc: 'Building beautiful UIs.',
+        desc: 'Building cross-platform mobile experiences with React Native.',
         image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/68e0efce-84a4-42ae-9bd7-a2be6aca73d8.jpg',
         socials: { instagram: 'https://instagram.com/abhishek', linkedin: 'https://linkedin.com/in/abhishek', github: 'https://github.com/abhishek' }
     },
@@ -96,10 +96,21 @@ const TeamSection = () => {
     return (
         <View className={`bg-[#F3E5F5] rounded-[40px] mb-6 mx-2 border-2 border-black ${isSmallDevice ? 'px-4 py-8' : 'px-6 py-10'}`}>
 
-            {/* Active Member Display Card */}
-            <View className="mb-10 items-center">
-                <View className="bg-white border-[3px] border-black rounded-[32px] p-8 w-full items-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                    <View className="w-32 h-32 bg-black rounded-[28px] mb-6 overflow-hidden relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            {/* Header */}
+            <View className="items-center mb-6">
+                <Text className="text-2xl text-black uppercase" style={{ fontFamily: SECTION_FONTS.SECTION_HEADER }}>
+                    MEET THE TEAM
+                </Text>
+            </View>
+
+            {/* Active Member Display Card - FIXED HEIGHT */}
+            <View className="items-center mb-8">
+                <View
+                    className="bg-white border-[3px] border-black rounded-[40px] p-8 w-full items-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden"
+                    style={{ minHeight: 460 }} // Fixed minimum height ensures card doesn't shrink/grow
+                >
+                    {/* Member Image - Centered and Larger */}
+                    <View className="w-36 h-36 bg-black rounded-[28px] mb-6 overflow-hidden relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                         <Image
                             source={{ uri: activeMember.image }}
                             style={{
@@ -111,31 +122,51 @@ const TeamSection = () => {
                             }}
                             resizeMode="cover"
                         />
-                        {/* Perfect Border Overlay - Eliminates sub-pixel gaps */}
+                        {/* Perfect Border Overlay */}
                         <View
                             style={{ position: 'absolute', inset: 0, borderWidth: 3, borderColor: 'black', borderRadius: 28 }}
                             pointerEvents="none"
                         />
                     </View>
 
-                    <Text className={`text-black text-center mb-1 uppercase ${isSmallDevice ? 'text-2xl' : 'text-3xl'}`} style={{ fontFamily: SECTION_FONTS.NAME }}>
-                        {activeMember.name}
-                    </Text>
-                    <Text className="text-[#8e99af] text-[12px] tracking-[0.2em] uppercase mb-4 text-center" style={{ fontFamily: SECTION_FONTS.ROLE }}>
-                        {activeMember.role}
-                    </Text>
-                    <Text className="text-black text-center text-sm mb-8 leading-6 px-4" style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}>
-                        {activeMember.desc}
-                    </Text>
+                    {/* Name - Truncated if too long, fixed height container */}
+                    <View style={{ height: 40, justifyContent: 'center', marginBottom: 4, width: '100%' }}>
+                        <Text
+                            className={`text-black text-center uppercase ${isSmallDevice ? 'text-2xl' : 'text-3xl'}`}
+                            style={{ fontFamily: SECTION_FONTS.NAME }}
+                            numberOfLines={1}
+                            adjustsFontSizeToFit
+                        >
+                            {activeMember.name}
+                        </Text>
+                    </View>
 
-                    {/* Socials - Premium Icons */}
-                    <View className="flex-row gap-4">
+                    {/* Role - Fixed height container */}
+                    <View style={{ height: 24, justifyContent: 'center', marginBottom: 16 }}>
+                        <Text className="text-[#8e99af] text-[12px] tracking-[0.2em] uppercase text-center" style={{ fontFamily: SECTION_FONTS.ROLE }}>
+                            {activeMember.role}
+                        </Text>
+                    </View>
+
+                    {/* Description - Fixed height text area */}
+                    <View style={{ height: 48, marginBottom: 32, width: '100%' }}>
+                        <Text
+                            className="text-black text-center text-sm leading-6 px-4"
+                            style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}
+                            numberOfLines={2}
+                        >
+                            {activeMember.desc}
+                        </Text>
+                    </View>
+
+                    {/* Socials - Premium Icons - Anchored at bottom via flex or absolute */}
+                    <View className="flex-row gap-4 mt-auto">
                         <TouchableOpacity
                             onPress={() => {
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                 openLink(activeMember.socials.instagram);
                             }}
-                            className="p-3 bg-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                            className="w-12 h-12 bg-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] items-center justify-center"
                         >
                             <Instagram size={20} color="black" strokeWidth={2.5} />
                         </TouchableOpacity>
@@ -144,7 +175,7 @@ const TeamSection = () => {
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                 openLink(activeMember.socials.linkedin);
                             }}
-                            className="p-3 bg-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] items-center justify-center"
+                            className="w-12 h-12 bg-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] items-center justify-center"
                         >
                             <Linkedin size={20} color="black" strokeWidth={2.5} />
                         </TouchableOpacity>
@@ -153,7 +184,7 @@ const TeamSection = () => {
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                 openLink(activeMember.socials.github);
                             }}
-                            className="p-3 bg-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] items-center justify-center"
+                            className="w-12 h-12 bg-white border-[3px] border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] items-center justify-center"
                         >
                             <Github size={20} color="black" strokeWidth={2.5} />
                         </TouchableOpacity>
@@ -162,17 +193,13 @@ const TeamSection = () => {
             </View>
 
             {/* Compact Member Selector - Horizontal Scroll for Infinite Members */}
-            <View className="mb-8">
-                <View className="items-center mb-6">
-                    <Text className="text-2xl text-black uppercase" style={{ fontFamily: SECTION_FONTS.SECTION_HEADER }}>
-                        MEET THE TEAM
-                    </Text>
-                </View>
-
+            {/* NOW AT THE BOTTOM */}
+            <View>
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    contentContainerClassName="px-2 gap-4"
+                    contentContainerClassName="px-2 gap-3"
+                    className="py-2"
                 >
                     {TEAM_MEMBERS.map((member) => (
                         <TouchableOpacity
@@ -182,32 +209,41 @@ const TeamSection = () => {
                                 setActiveMember(member);
                             }}
                             activeOpacity={0.7}
-                            className={`w-16 h-16 rounded-2xl overflow-hidden bg-black relative`}
+                            className={`rounded-2xl overflow-hidden bg-black relative transition-all duration-200`}
                             style={{
+                                width: 68,
+                                height: 68,
                                 borderWidth: activeMember.id === member.id ? 3 : 2,
-                                borderColor: activeMember.id === member.id ? '#B9F6CA' : 'black',
+                                borderColor: activeMember.id === member.id ? '#000' : 'rgba(0,0,0,0.3)', // Black active, subtle inactive
+                                transform: [{ scale: activeMember.id === member.id ? 1.05 : 0.95 }],
+                                opacity: activeMember.id === member.id ? 1 : 0.7,
+                                // Active indicator styling
                                 shadowColor: '#000',
-                                shadowOffset: { width: 4, height: 4 },
-                                shadowOpacity: 1,
+                                shadowOffset: { width: activeMember.id === member.id ? 4 : 0, height: activeMember.id === member.id ? 4 : 0 },
+                                shadowOpacity: activeMember.id === member.id ? 0.3 : 0,
                                 shadowRadius: 0,
+                                elevation: activeMember.id === member.id ? 5 : 0,
                             }}
                         >
                             <Image
                                 source={{ uri: member.image }}
-                                className={`w-full h-full ${activeMember.id === member.id ? 'opacity-100' : 'opacity-60'}`}
+                                className="w-full h-full"
                                 style={{
-                                    width: '125%',
-                                    height: '125%',
-                                    position: 'absolute',
-                                    left: '-10%',
-                                    top: '-12.5%'
+                                    width: '100%',
+                                    height: '100%',
                                 }}
                                 resizeMode="cover"
                             />
+
+                            {/* Active Indicator Overlay */}
+                            {activeMember.id === member.id && (
+                                <View className="absolute inset-0 bg-black/0 border-2 border-white/20 rounded-xl" pointerEvents="none" />
+                            )}
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
             </View>
+
         </View>
     );
 };
