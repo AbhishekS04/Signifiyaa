@@ -14,62 +14,12 @@ import Animated, {
 // Import footer components as requested
 import SocialConnect from '../components/SocialConnect';
 import FooterSection from '../components/FooterSection';
+// NewsletterSupport removed as per user request
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 // Mock Data matching the reference image
-const GALLERY_ITEMS = [
-    {
-        id: '1',
-        title: 'THE OPENING CEREMONY',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
-        tag: 'CULTURAL',
-        filename: 'IMG_1_2026.png',
-        desc: 'Signifiya 26 Inauguration'
-    },
-    {
-        id: '2',
-        title: 'HACKATHON GRIND',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
-        tag: 'TECH',
-        filename: 'IMG_2_2026.png',
-        desc: '36 Hours Hackathon'
-    },
-    {
-        id: '3',
-        title: 'ROBO WARS ARENA',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
-        tag: 'TECH',
-        filename: 'IMG_3_2026.png',
-        desc: 'Battle of the bots'
-    },
-    {
-        id: '4',
-        title: 'DJ NIGHT MADNESS',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
-        tag: 'VIBES',
-        filename: 'IMG_4_2026.png',
-        desc: 'Pure energy on the floor'
-    },
-    {
-        id: '5',
-        title: 'BEHIND THE SCENES',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
-        tag: 'BTS',
-        filename: 'IMG_5_2026.png',
-        desc: 'Magic in the making'
-    },
-    {
-        id: '6',
-        title: 'PRIZE DISTRIBUTION',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
-        tag: 'CULTURAL',
-        filename: 'IMG_6_2026.png',
-        desc: 'Celebrating success'
-    }
-];
-
-const FILTERS = ['ALL', 'TECH', 'CULTURAL', 'VIBES', 'BTS'];
+import { GALLERY_ITEMS, GALLERY_FILTERS } from '../data/GalleryData';
 
 const GalleryScreen = () => {
     const [selectedFilter, setSelectedFilter] = useState('ALL');
@@ -101,6 +51,11 @@ const GalleryScreen = () => {
     const filteredItems = selectedFilter === 'ALL'
         ? GALLERY_ITEMS
         : GALLERY_ITEMS.filter(item => item.tag === selectedFilter);
+
+    // Helper to get font for a specific filter label
+    const getFilterFont = (label: string) => {
+        return GALLERY_FILTERS.find(f => f.label === label)?.font || 'Gilton';
+    }
 
     return (
         <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
@@ -186,11 +141,13 @@ const GalleryScreen = () => {
                                     label="ALL"
                                     isActive={selectedFilter === 'ALL'}
                                     onPress={() => setSelectedFilter('ALL')}
+                                    font={getFilterFont('ALL')}
                                 />
                                 <FilterButton
                                     label="TECH"
                                     isActive={selectedFilter === 'TECH'}
                                     onPress={() => setSelectedFilter('TECH')}
+                                    font={getFilterFont('TECH')}
                                 />
                             </View>
 
@@ -200,11 +157,13 @@ const GalleryScreen = () => {
                                     label="CULTURAL"
                                     isActive={selectedFilter === 'CULTURAL'}
                                     onPress={() => setSelectedFilter('CULTURAL')}
+                                    font={getFilterFont('CULTURAL')}
                                 />
                                 <FilterButton
                                     label="VIBES"
                                     isActive={selectedFilter === 'VIBES'}
                                     onPress={() => setSelectedFilter('VIBES')}
+                                    font={getFilterFont('VIBES')}
                                 />
                             </View>
 
@@ -214,6 +173,7 @@ const GalleryScreen = () => {
                                     label="BTS"
                                     isActive={selectedFilter === 'BTS'}
                                     onPress={() => setSelectedFilter('BTS')}
+                                    font={getFilterFont('BTS')}
                                 />
                             </View>
                         </View>
@@ -237,7 +197,7 @@ const GalleryScreen = () => {
                                                 style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                                             />
 
-                                            {/* Badge ONLY - Description removed to avoid blurriness */}
+                                            {/* Tag Badge */}
                                             <View className="absolute top-3 right-3 bg-black px-3 py-1.5 rounded-md border border-white/20">
                                                 <Text className="text-white text-[10px] font-black tracking-widest uppercase" style={{ fontFamily: 'Gilton' }}>
                                                     {item.tag}
@@ -248,7 +208,8 @@ const GalleryScreen = () => {
                                         {/* Content Block */}
                                         <View className="flex-row justify-between items-center mt-6 mb-2 px-1">
                                             <View className="flex-1">
-                                                <Text className="text-black text-2xl tracking-tighter uppercase font-black" style={{ fontFamily: 'Gilton' }}>
+                                                <Text className="text-black text-2xl tracking-tighter uppercase"
+                                                    style={{ fontFamily: item.titleFont || 'Gilton' }}>
                                                     {item.title}
                                                 </Text>
                                                 <Text className="text-black/40 text-[11px] mt-1 tracking-wider" style={{ fontFamily: 'Softura' }}>
@@ -284,8 +245,8 @@ const GalleryScreen = () => {
     );
 };
 
-// Extracted Filter Button with Tactile Click (Font Optimized)
-const FilterButton = ({ label, isActive, onPress }: { label: string, isActive: boolean, onPress: () => void }) => (
+// Extracted Filter Button with Tactile Click (Font Configurable)
+const FilterButton = ({ label, isActive, onPress, font }: { label: string, isActive: boolean, onPress: () => void, font: string }) => (
     <View className="relative">
         <View className="absolute top-1.5 left-1.5 w-full h-full bg-black rounded-2xl" />
         <TouchableOpacity
@@ -294,7 +255,7 @@ const FilterButton = ({ label, isActive, onPress }: { label: string, isActive: b
             className={`px-8 py-2.5 border-[2.5px] border-black rounded-2xl active:translate-x-1.5 active:translate-y-1.5 ${isActive ? 'bg-[#9d4edd]' : 'bg-white'}`}
             style={{ minWidth: 100, alignItems: 'center' }}
         >
-            <Text className={`uppercase text-[13px] tracking-widest font-black ${isActive ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Gilton' }}>
+            <Text className={`uppercase text-[13px] tracking-widest ${isActive ? 'text-white' : 'text-black'}`} style={{ fontFamily: font }}>
                 {label}
             </Text>
         </TouchableOpacity>
