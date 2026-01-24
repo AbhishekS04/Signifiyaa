@@ -196,19 +196,22 @@ const DepartmentsEvents = () => {
                 {/* ============================================ */}
                 <View className="flex-row flex-wrap justify-center gap-2 mb-8" >
                     {filters.map((filter, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            onPress={() => handleFilterChange(filter)}
-                            className={`px-4 py-2 rounded-full border-2 border-black ${selectedCategory === filter ? 'bg-black' : 'bg-white'
-                                }`}
-                        >
-                            <Text
-                                className={`text-[12px] uppercase tracking-wider ${selectedCategory === filter ? 'text-white' : 'text-black'}`}
-                                style={{ fontFamily: SECTION_FONTS.FILTER_LABEL }}
+                        <View key={index} className="relative">
+                            <View className="absolute top-1 left-1 w-full h-full bg-black rounded-full" />
+                            <TouchableOpacity
+                                onPress={() => handleFilterChange(filter)}
+                                activeOpacity={1}
+                                className={`px-4 py-2 rounded-full border-2 border-black active:translate-x-1 active:translate-y-1 ${selectedCategory === filter ? 'bg-[#9d4edd]' : 'bg-white'
+                                    }`}
                             >
-                                {filter}
-                            </Text>
-                        </TouchableOpacity>
+                                <Text
+                                    className={`text-[12px] uppercase tracking-wider ${selectedCategory === filter ? 'text-white' : 'text-black'}`}
+                                    style={{ fontFamily: SECTION_FONTS.FILTER_LABEL }}
+                                >
+                                    {filter}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     ))}
                 </View>
 
@@ -507,141 +510,154 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
     };
 
     return (
-        <View
-            className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] w-full h-full"
-            style={{ backfaceVisibility: 'hidden' }} // Strict overflow and backface visibility
-        >
-            {/* Poster Header - Fixed Height */}
+        <View className="relative w-full h-full">
+            {/* Main 3D Shadow for Card */}
+            <View className="absolute top-2 left-2 w-full h-full bg-black rounded-[32px]" />
+
             <View
-                className="relative w-full bg-black overflow-hidden"
-                style={{
-                    height: isSmallDevice ? 220 : 280,
-                    marginBottom: -5, // Ensure seamless connection with content
-                    overflow: 'hidden',
-                    borderTopLeftRadius: 29,
-                    borderTopRightRadius: 29
-                }}
+                className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden w-full h-full"
+                style={{ backfaceVisibility: 'hidden' }} // Strict overflow and backface visibility
             >
-                {/* Media Container with absolute positioning fixes */}
-                <View className="absolute inset-0 w-full h-full overflow-hidden bg-black">
-                    {videoUrl ? (
-                        <View className="w-full h-full" pointerEvents="box-none">
-                            <VideoView
-                                player={player}
+                {/* Poster Header - Fixed Height */}
+                <View
+                    className="relative w-full bg-black overflow-hidden"
+                    style={{
+                        height: isSmallDevice ? 220 : 280,
+                        marginBottom: -5, // Ensure seamless connection with content
+                        overflow: 'hidden',
+                        borderTopLeftRadius: 29,
+                        borderTopRightRadius: 29
+                    }}
+                >
+                    {/* Media Container with absolute positioning fixes */}
+                    <View className="absolute inset-0 w-full h-full overflow-hidden bg-black">
+                        {videoUrl ? (
+                            <View className="w-full h-full" pointerEvents="box-none">
+                                <VideoView
+                                    player={player}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                    }}
+                                    contentFit="cover"
+                                    nativeControls={false}
+                                    pointerEvents="none"
+                                />
+                                <TouchableOpacity
+                                    onPress={toggleMute}
+                                    className="absolute bottom-4 right-4 bg-black/60 p-2 rounded-full border border-white/20 z-10"
+                                >
+                                    {isMuted ? (
+                                        <VolumeX size={18} color="white" />
+                                    ) : (
+                                        <Volume2 size={18} color="white" />
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+                        ) : imageUrl ? (
+                            <Image
+                                source={{ uri: imageUrl }}
                                 style={{
                                     width: '100%',
                                     height: '100%',
                                 }}
-                                contentFit="cover"
-                                nativeControls={false}
-                                pointerEvents="none"
+                                resizeMode="cover"
                             />
-                            <TouchableOpacity
-                                onPress={toggleMute}
-                                className="absolute bottom-4 right-4 bg-black/60 p-2 rounded-full border border-white/20 z-10"
-                            >
-                                {isMuted ? (
-                                    <VolumeX size={18} color="white" />
-                                ) : (
-                                    <Volume2 size={18} color="white" />
-                                )}
-                            </TouchableOpacity>
-                        </View>
-                    ) : imageUrl ? (
-                        <Image
-                            source={{ uri: imageUrl }}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                            }}
-                            resizeMode="cover"
-                        />
-                    ) : (
-                        <View className="w-full h-full items-center justify-center" style={{ backgroundColor: imageColor }}>
-                            <Text className="text-black font-bold opacity-20">POSTER GOES HERE</Text>
-                        </View>
-                    )}
+                        ) : (
+                            <View className="w-full h-full items-center justify-center" style={{ backgroundColor: imageColor }}>
+                                <Text className="text-black font-bold opacity-20">POSTER GOES HERE</Text>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* Perfect Border Bottom Overlay */}
+                    <View
+                        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: 'black' }}
+                        pointerEvents="none"
+                    />
+
+                    {/* Category Badge */}
+                    <View className="absolute top-4 right-4 bg-black px-4 py-2 rounded-full border-2 border-white/20">
+                        <Text
+                            className="text-white text-[10px] tracking-widest uppercase"
+                            style={{ fontFamily: SECTION_FONTS.BADGE }}
+                            numberOfLines={1}
+                        >
+                            {category}
+                        </Text>
+                    </View>
                 </View>
 
-                {/* Perfect Border Bottom Overlay */}
-                <View
-                    style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: 'black' }}
-                    pointerEvents="none"
-                />
+                {/* Content Area - Fixed Layout */}
+                <View className={`bg-white ${isSmallDevice ? 'p-3' : 'p-5'}`} style={{ flex: 1, justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View style={{ alignItems: 'center', width: '100%' }}>
+                        {/* Event Title - Max 2 Lines */}
+                        <Text
+                            className="text-black uppercase leading-8 mb-1 text-center"
+                            style={{ fontFamily: SECTION_FONTS.EVENT_TITLE, fontSize: isSmallDevice ? 24 : 30, lineHeight: isSmallDevice ? 28 : 32 }}
+                            numberOfLines={2}
+                            ellipsizeMode="tail"
+                        >
+                            {title}
+                        </Text>
 
-                {/* Category Badge */}
-                <View className="absolute top-4 right-4 bg-black px-4 py-2 rounded-full border-2 border-white/20">
-                    <Text
-                        className="text-white text-[10px] tracking-widest uppercase"
-                        style={{ fontFamily: SECTION_FONTS.BADGE }}
-                        numberOfLines={1}
-                    >
-                        {category}
-                    </Text>
-                </View>
-            </View>
+                        {/* Event Date - Max 1 Line */}
+                        <Text
+                            className="text-[#8e99af] mb-3 text-center"
+                            style={{ fontFamily: SECTION_FONTS.DATE, fontSize: isSmallDevice ? 14 : 18 }}
+                            numberOfLines={1}
+                        >
+                            {date}
+                        </Text>
 
-            {/* Content Area - Fixed Layout */}
-            <View className={`bg-white ${isSmallDevice ? 'p-3' : 'p-5'}`} style={{ flex: 1, justifyContent: 'space-between', alignItems: 'center' }}>
-                <View style={{ alignItems: 'center', width: '100%' }}>
-                    {/* Event Title - Max 2 Lines */}
-                    <Text
-                        className="text-black uppercase leading-8 mb-1 text-center"
-                        style={{ fontFamily: SECTION_FONTS.EVENT_TITLE, fontSize: isSmallDevice ? 24 : 30, lineHeight: isSmallDevice ? 28 : 32 }}
-                        numberOfLines={2}
-                        ellipsizeMode="tail"
-                    >
-                        {title}
-                    </Text>
+                        {/* Prize Pool Tag */}
+                        <View className={`bg-[#B9F6CA] rounded-full border-black mb-4 ${isSmallDevice ? 'px-3 py-1' : 'px-4 py-1.5'}`}>
+                            <Text className="text-black text-xs text-center" style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_LABEL }} numberOfLines={1}>
+                                Prize pool: <Text style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_VALUE }}>{prizePool}</Text>
+                            </Text>
+                        </View>
 
-                    {/* Event Date - Max 1 Line */}
-                    <Text
-                        className="text-[#8e99af] mb-3 text-center"
-                        style={{ fontFamily: SECTION_FONTS.DATE, fontSize: isSmallDevice ? 14 : 18 }}
-                        numberOfLines={1}
-                    >
-                        {date}
-                    </Text>
-
-                    {/* Prize Pool Tag */}
-                    <View className={`bg-[#B9F6CA] rounded-full border-black mb-4 ${isSmallDevice ? 'px-3 py-1' : 'px-4 py-1.5'}`}>
-                        <Text className="text-black text-xs text-center" style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_LABEL }} numberOfLines={1}>
-                            Prize pool: <Text style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_VALUE }}>{prizePool}</Text>
+                        {/* Short Description - Max 2 Lines */}
+                        <Text
+                            className="text-black/80 text-sm leading-5 mb-4 text-center px-2"
+                            style={{ fontFamily: SECTION_FONTS.DESCRIPTION, fontSize: isSmallDevice ? 12 : 14 }}
+                            numberOfLines={3}
+                            ellipsizeMode="tail"
+                        >
+                            {description || "Join this exciting event and showcase your skills! More details coming soon."}
                         </Text>
                     </View>
 
-                    {/* Short Description - Max 2 Lines */}
-                    <Text
-                        className="text-black/80 text-sm leading-5 mb-4 text-center px-2"
-                        style={{ fontFamily: SECTION_FONTS.DESCRIPTION, fontSize: isSmallDevice ? 12 : 14 }}
-                        numberOfLines={3}
-                        ellipsizeMode="tail"
-                    >
-                        {description || "Join this exciting event and showcase your skills! More details coming soon."}
-                    </Text>
-                </View>
+                    {/* Action Buttons - Fixed At Bottom */}
+                    <View className={`gap-4 w-full ${isSmallDevice ? 'mt-1' : 'mt-4'}`}>
+                        <View className="relative">
+                            <View className="absolute top-1.5 left-1.5 w-full h-full bg-black rounded-2xl" />
+                            <TouchableOpacity
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                                activeOpacity={1}
+                                className={`border-[3px] border-black rounded-2xl items-center active:translate-x-1.5 active:translate-y-1.5 ${isSmallDevice ? 'py-3' : 'py-4'}`}
+                                style={{ backgroundColor: buttonColor }}
+                            >
+                                <Text className="text-black uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
+                                    VIEW DETAILS
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
 
-                {/* Action Buttons - Fixed At Bottom */}
-                <View className={`gap-3 w-full ${isSmallDevice ? 'mt-1' : 'mt-4'}`}>
-                    <TouchableOpacity
-                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                        className={`border-[3px] border-black rounded-2xl items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${isSmallDevice ? 'py-3' : 'py-4'}`}
-                        style={{ backgroundColor: buttonColor }}
-                    >
-                        <Text className="text-black uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
-                            VIEW DETAILS
-                        </Text>
-                    </TouchableOpacity>
-
-                    {/* Register Button */}
-                    <TouchableOpacity
-                        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                        className={`bg-black rounded-2xl items-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${isSmallDevice ? 'py-3' : 'py-4'}`}
-                    >
-                        <Text className="text-white uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
-                            REGISTER
-                        </Text>
-                    </TouchableOpacity>
+                        {/* Register Button */}
+                        <View className="relative">
+                            <View className="absolute top-1.5 left-1.5 w-full h-full bg-black rounded-2xl" />
+                            <TouchableOpacity
+                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                                activeOpacity={1}
+                                className={`bg-black rounded-2xl items-center active:translate-x-1.5 active:translate-y-1.5 ${isSmallDevice ? 'py-3' : 'py-4'}`}
+                            >
+                                <Text className="text-white uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
+                                    REGISTER
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
             </View>
         </View>

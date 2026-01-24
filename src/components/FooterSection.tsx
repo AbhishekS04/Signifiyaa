@@ -119,27 +119,30 @@ const FooterSection = () => {
 // --- Subcomponents ---
 
 const AppStoreButton = ({ storeName, icon }: { storeName: string, icon: React.ReactNode }) => (
-    <TouchableOpacity
-        className="bg-white border-[3px] border-black rounded-xl px-4 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex-row items-center gap-3"
-        style={{ minWidth: isSmallDevice ? 200 : 230 }} // Increased width to prevent text clipping
-        activeOpacity={0.8}
-    >
-        <View className="w-9 h-9 items-center justify-center">
-            {icon}
-        </View>
-        <View className="flex-1">
-            <Text className="text-[#FF0055] text-[9px] uppercase"
-                style={{
-                    fontFamily: 'Gilton',
-                }}
-            >COMING SOON !</Text>
-            <Text className="text-black text-base leading-4"
-                style={{
-                    fontFamily: 'Gilton',
-                }}
-            >{storeName}</Text>
-        </View>
-    </TouchableOpacity>
+    <View className="relative">
+        <View className="absolute top-1.5 left-1.5 w-full h-full bg-black rounded-xl" />
+        <TouchableOpacity
+            className="bg-white border-[3px] border-black rounded-xl px-4 py-3 flex-row items-center gap-3 active:translate-x-1.5 active:translate-y-1.5"
+            style={{ minWidth: isSmallDevice ? 200 : 230 }} // Increased width to prevent text clipping
+            activeOpacity={1}
+        >
+            <View className="w-9 h-9 items-center justify-center">
+                {icon}
+            </View>
+            <View className="flex-1">
+                <Text className="text-[#FF0055] text-[9px] uppercase"
+                    style={{
+                        fontFamily: 'Gilton',
+                    }}
+                >COMING SOON !</Text>
+                <Text className="text-black text-base leading-4"
+                    style={{
+                        fontFamily: 'Gilton',
+                    }}
+                >{storeName}</Text>
+            </View>
+        </TouchableOpacity>
+    </View>
 );
 
 // --- Icons ---

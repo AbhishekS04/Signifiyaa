@@ -92,71 +92,65 @@ const TeamSection = () => {
 
             {/* COMPACT MAIN CARD */}
             <View className="items-center mb-6">
-                <View
-                    className="bg-white border-[3px] border-black rounded-[24px] p-4 w-full items-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden"
-                    style={{ minHeight: 280 }}
-                >
-                    <View className="w-20 h-20 bg-black rounded-[16px] mb-3 overflow-hidden relative shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                        <Image
-                            source={{ uri: activeMember.image }}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                            }}
-                            resizeMode="cover"
-                        />
-                        <View
-                            style={{ position: 'absolute', inset: 0, borderWidth: 2, borderColor: 'black', borderRadius: 16 }}
-                            pointerEvents="none"
-                        />
-                    </View>
+                <View className="relative w-full" style={{ minHeight: 280 }}>
+                    <View className="absolute top-2 left-2 w-full h-full bg-black rounded-[24px]" />
+                    <View
+                        className="bg-white border-[3px] border-black rounded-[24px] p-4 w-full items-center relative overflow-hidden"
+                        style={{ minHeight: 280 }}
+                    >
+                        <View className="w-20 h-20 bg-black rounded-[16px] mb-3 overflow-hidden relative shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <Image
+                                source={{ uri: activeMember.image }}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                }}
+                                resizeMode="cover"
+                            />
+                            <View
+                                style={{ position: 'absolute', inset: 0, borderWidth: 2, borderColor: 'black', borderRadius: 16 }}
+                                pointerEvents="none"
+                            />
+                        </View>
 
-                    <View style={{ height: 28, justifyContent: 'center', marginBottom: 2, width: '100%' }}>
-                        <Text
-                            className={`text-black text-center uppercase text-lg`}
-                            style={{ fontFamily: SECTION_FONTS.NAME }}
-                            numberOfLines={1}
-                            adjustsFontSizeToFit
-                        >
-                            {activeMember.name}
-                        </Text>
-                    </View>
+                        <View style={{ height: 28, justifyContent: 'center', marginBottom: 2, width: '100%' }}>
+                            <Text
+                                className={`text-black text-center uppercase text-lg`}
+                                style={{ fontFamily: SECTION_FONTS.NAME }}
+                                numberOfLines={1}
+                                adjustsFontSizeToFit
+                            >
+                                {activeMember.name}
+                            </Text>
+                        </View>
 
-                    <View style={{ height: 16, justifyContent: 'center', marginBottom: 8 }}>
-                        <Text className="text-[#8e99af] text-[10px] tracking-[0.1em] uppercase text-center" style={{ fontFamily: SECTION_FONTS.ROLE }}>
-                            {activeMember.role}
-                        </Text>
-                    </View>
+                        <View style={{ height: 16, justifyContent: 'center', marginBottom: 8 }}>
+                            <Text className="text-[#8e99af] text-[10px] tracking-[0.1em] uppercase text-center" style={{ fontFamily: SECTION_FONTS.ROLE }}>
+                                {activeMember.role}
+                            </Text>
+                        </View>
 
-                    <View style={{ height: 36, marginBottom: 12, width: '100%' }}>
-                        <Text
-                            className="text-black text-center text-xs leading-4 px-1"
-                            style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}
-                            numberOfLines={2}
-                        >
-                            {activeMember.desc}
-                        </Text>
-                    </View>
+                        <View style={{ height: 36, marginBottom: 12, width: '100%' }}>
+                            <Text
+                                className="text-black text-center text-xs leading-4 px-1"
+                                style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}
+                                numberOfLines={2}
+                            >
+                                {activeMember.desc}
+                            </Text>
+                        </View>
 
-                    <View className="flex-row gap-3 mt-auto">
-                        <TouchableOpacity
-                            onPress={() => openLink(activeMember.socials.instagram)}
-                            className="w-9 h-9 bg-white border-[2px] border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] items-center justify-center"
-                        >
-                            <Instagram size={16} color="black" strokeWidth={2} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => openLink(activeMember.socials.linkedin)}
-                            className="w-9 h-9 bg-white border-[2px] border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] items-center justify-center"
-                        >
-                            <Linkedin size={16} color="black" strokeWidth={2} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => openLink(activeMember.socials.github)}
-                            className="w-9 h-9 bg-white border-[2px] border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] items-center justify-center"
-                        >
-                            <Github size={16} color="black" strokeWidth={2} />
-                        </TouchableOpacity>
+                        <View className="flex-row gap-4 mt-auto">
+                            <SocialButton onPress={() => openLink(activeMember.socials.instagram)}>
+                                <Instagram size={16} color="black" strokeWidth={2} />
+                            </SocialButton>
+                            <SocialButton onPress={() => openLink(activeMember.socials.linkedin)}>
+                                <Linkedin size={16} color="black" strokeWidth={2} />
+                            </SocialButton>
+                            <SocialButton onPress={() => openLink(activeMember.socials.github)}>
+                                <Github size={16} color="black" strokeWidth={2} />
+                            </SocialButton>
+                        </View>
                     </View>
                 </View>
             </View>
@@ -197,5 +191,18 @@ const TeamSection = () => {
         </View>
     );
 };
+
+// Extracted Social Button
+const SocialButton = ({ children, onPress }: { children: React.ReactNode, onPress: () => void }) => (
+    <View className="relative w-9 h-9">
+        <View className="absolute top-[2px] left-[2px] w-full h-full bg-black rounded-lg" />
+        <TouchableOpacity
+            onPress={onPress}
+            className="w-full h-full bg-white border-[2px] border-black rounded-lg items-center justify-center active:translate-x-[2px] active:translate-y-[2px]"
+        >
+            {children}
+        </TouchableOpacity>
+    </View>
+);
 
 export default TeamSection;

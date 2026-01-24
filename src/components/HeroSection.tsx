@@ -117,7 +117,7 @@ const HeroSection = () => {
                     style={{ minHeight: isSmallDevice ? 600 : 700 }}
                 >
                     {/* Background Watermark */}
-                    <View className="absolute inset-x-0 bottom-0 items-center justify-end opacity-[0.08]" style={{ bottom: -40 }}>
+                    <View className="absolute inset-x-0 bottom-0 items-center justify-end opacity-[0.10]" style={{ bottom: -40 }}>
                         <Image
                             source={require('../../assets/bglogo.png')}
                             style={{ width: 600, height: 700, resizeMode: 'contain', tintColor: 'white' }}
@@ -167,15 +167,18 @@ const HeroSection = () => {
                             ))}
                         </View>
 
-                        {/* Button */}
-                        <TouchableOpacity
-                            className="bg-[#E1BEE7]/60 border-2 border-black rounded-full px-14 py-4 active:bg-[#E1BEE7]/80 mb-16"
-                        >
-                            <Text className="text-black text-[12px] uppercase tracking-[0.15em]"
-                                style={{ fontFamily: 'Gilton' }} >
-                                SIGN IN / SIGN UP
-                            </Text>
-                        </TouchableOpacity>
+                        {/* Button with Tactile 3D Effect */}
+                        <View className="bg-black rounded-full mb-16" style={{ alignSelf: 'center' }}>
+                            <TouchableOpacity
+                                activeOpacity={1}
+                                className="bg-[#E1BEE7] border-2 border-black rounded-full px-14 py-4 -translate-y-1.5 -translate-x-1.5 active:translate-y-0 active:translate-x-0"
+                            >
+                                <Text className="text-black text-[12px] uppercase tracking-[0.15em]"
+                                    style={{ fontFamily: 'Gilton' }} >
+                                    SIGN IN / SIGN UP
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
 
                         {/* Description */}
                         <Text className="text-black/50 text-[9px] uppercase text-center mb-8 leading-4 tracking-tighter px-6"

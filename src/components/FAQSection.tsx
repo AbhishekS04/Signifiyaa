@@ -139,51 +139,54 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
     }));
 
     return (
-        <TouchableOpacity
-            activeOpacity={0.95}
-            onPress={toggleOpen}
-            className="bg-white border-[3px] border-black rounded-xl overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-        >
-            <View className="p-5 flex-row justify-between items-center">
-                <Text
-                    className="text-lg text-black w-[80%] leading-6 uppercase"
-                    style={{ fontFamily: FAQ_FONTS.QUESTION }}
-                >
-                    {question}
-                </Text>
-
-                <Animated.View style={[
-                    {
-                        width: 32,
-                        height: 32,
-                        borderRadius: 16,
-                        borderWidth: 2,
-                        borderColor: 'black',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: '#E0B0FF'
-                    },
-                    iconContainerStyle
-                ]}>
-                    <Plus size={18} color="black" strokeWidth={3} />
-                </Animated.View>
-            </View>
-
-            {/* Animated Content Container - No measurement needed */}
-            <Animated.View style={containerStyle}>
-                <Animated.View
-                    style={contentAnimatedStyle}
-                    className="px-5 pb-5 border-t-[1px] border-black/10 pt-4"
-                >
+        <View className="relative mb-4">
+            <View className="absolute top-1.5 left-1.5 w-full h-full bg-black rounded-xl" />
+            <TouchableOpacity
+                activeOpacity={1}
+                onPress={toggleOpen}
+                className="bg-white border-[3px] border-black rounded-xl overflow-hidden active:translate-x-1.5 active:translate-y-1.5"
+            >
+                <View className="p-5 flex-row justify-between items-center">
                     <Text
-                        className="text-gray-800 text-base leading-6"
-                        style={{ fontFamily: FAQ_FONTS.ANSWER }}
+                        className="text-lg text-black w-[80%] leading-6 uppercase"
+                        style={{ fontFamily: FAQ_FONTS.QUESTION }}
                     >
-                        {answer}
+                        {question}
                     </Text>
+
+                    <Animated.View style={[
+                        {
+                            width: 32,
+                            height: 32,
+                            borderRadius: 16,
+                            borderWidth: 2,
+                            borderColor: 'black',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: '#E0B0FF'
+                        },
+                        iconContainerStyle
+                    ]}>
+                        <Plus size={18} color="black" strokeWidth={3} />
+                    </Animated.View>
+                </View>
+
+                {/* Animated Content Container - No measurement needed */}
+                <Animated.View style={containerStyle}>
+                    <Animated.View
+                        style={contentAnimatedStyle}
+                        className="px-5 pb-5 border-t-[1px] border-black/10 pt-4"
+                    >
+                        <Text
+                            className="text-gray-800 text-base leading-6"
+                            style={{ fontFamily: FAQ_FONTS.ANSWER }}
+                        >
+                            {answer}
+                        </Text>
+                    </Animated.View>
                 </Animated.View>
-            </Animated.View>
-        </TouchableOpacity>
+            </TouchableOpacity>
+        </View>
     );
 };
 
