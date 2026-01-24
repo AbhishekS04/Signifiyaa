@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Dimensions } from 'react-native';
+import Animated, { Layout } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
@@ -10,7 +11,10 @@ const NewsletterSupport = () => {
     const [agreed, setAgreed] = useState(false);
 
     return (
-        <View className="px-2 mb-10 gap-6">
+        <Animated.View
+            className="px-2 mb-10 gap-6"
+            layout={Layout.springify().damping(20).stiffness(100).mass(1)} // SYNC with FAQ Parent
+        >
 
             {/* --- Card 1: Newsletter (Purple) --- */}
             <View className={`bg-[#E1BEE7] rounded-[30px] pb-12 ${isSmallDevice ? 'p-6' : 'p-8'}`}>
@@ -160,7 +164,7 @@ const NewsletterSupport = () => {
 
             </View>
 
-        </View>
+        </Animated.View>
     );
 };
 

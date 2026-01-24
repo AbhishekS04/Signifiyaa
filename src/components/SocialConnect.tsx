@@ -7,12 +7,16 @@ import Animated, {
     useAnimatedStyle,
     withRepeat,
     withTiming,
-    Easing
+    Easing,
+    Layout
 } from 'react-native-reanimated';
 
 const SocialConnect = () => {
     return (
-        <View className="px-6 pb-20 pt-4 bg-black">
+        <Animated.View
+            className="px-6 pb-20 pt-4 bg-black"
+            layout={Layout.springify().damping(20).stiffness(100).mass(1)} // SYNC with FAQ Parent
+        >
 
             {/* --- Row 1 --- */}
             <View className="flex-row gap-6 mb-8 h-40">
@@ -37,7 +41,7 @@ const SocialConnect = () => {
                 </SocialCard>
             </View>
 
-        </View>
+        </Animated.View>
     );
 };
 

@@ -6,7 +6,8 @@ import Animated, {
     withSpring,
     WithSpringConfig,
     interpolate,
-    Extrapolation
+    Extrapolation,
+    Layout
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
@@ -20,6 +21,7 @@ interface SmoothButtonProps {
     depth?: number; // How deep the 3D effect is (default 6)
     springConfig?: WithSpringConfig;
     disabled?: boolean;
+    active?: boolean; // If true, the button stays in the pressed state
 }
 
 const SmoothButton: React.FC<SmoothButtonProps> = ({
@@ -35,9 +37,20 @@ const SmoothButton: React.FC<SmoothButtonProps> = ({
         stiffness: 150,
         mass: 1,
     },
-    disabled = false
+    disabled = false,
+    active = false
 }) => {
-    const offset = useSharedValue(-depth);
+    // If active, start at 0 (pressed), otherwise start at -depth (unpressed)
+    const offset = useSharedValue(active ? 0 : -depth);
+
+    // React to prop changes
+    React.useEffect(() => {
+        if (active) {
+            offset.value = withSpring(0, springConfig);
+        } else {
+            offset.value = withSpring(-depth, springConfig);
+        }
+    }, [active, depth, springConfig]);
 
     const animatedStyle = useAnimatedStyle(() => {
         return {
@@ -60,7 +73,11 @@ const SmoothButton: React.FC<SmoothButtonProps> = ({
     };
 
     return (
-        <View style={containerStyle} className={shadowStyle}>
+        <Animated.View
+            style={containerStyle}
+            className={shadowStyle}
+            layout={Layout.springify().damping(15).stiffness(150).mass(1)} // Sync shadow expansion
+        >
             <Pressable
                 onPress={onPress}
                 onPressIn={handlePressIn}
@@ -74,11 +91,12 @@ const SmoothButton: React.FC<SmoothButtonProps> = ({
                         animatedStyle,
                         innerButtonStyle // Apply dynamic styles here
                     ]}
+                    layout={Layout.springify().damping(15).stiffness(150).mass(1)} // Sync button expansion
                 >
                     {children}
                 </Animated.View>
             </Pressable>
-        </View>
+        </Animated.View>
     );
 };
 
