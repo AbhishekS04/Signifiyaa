@@ -123,7 +123,7 @@ const GalleryScreen = () => {
 
                                 {/* Card 2025 (Fully Highlighted) */}
                                 <View className="bg-black border-[3px] border-black w-48 h-12 items-center justify-center shadow-xl z-40 rounded-md">
-                                    <Text className="text-white  text-xl tracking-widest"
+                                    <Text className="text-white text-xl tracking-widest"
                                     style={{
                                         fontFamily: 'Gilton'
                                     }}
@@ -134,14 +134,26 @@ const GalleryScreen = () => {
 
                         {/* Subtitle */}
                         <View className="items-center mt-6">
-                            <Text className="text-white text-lg font-bold opacity-90 tracking-tight">
+                            <Text className="text-white text-lg opacity-90 tracking-tight"
+                            style={{
+                                fontFamily: 'Gilton'
+                            }}
+                            >
                                 A collection of chaotic, beautiful, and
                             </Text>
                             <View className="flex-row items-center mt-1">
                                 <View className="bg-black px-2 py-0.5 mr-1 rotate-[-2deg] rounded-sm">
-                                    <Text className="text-white text-lg font-bold italic tracking-wide">unforgettable</Text>
+                                    <Text className="text-white text-lg tracking-wide"
+                                    style={{
+                                        fontFamily: 'Gilton'
+                                    }}
+                                    >unforgettable</Text>
                                 </View>
-                                <Text className="text-white text-lg font-bold opacity-90 tracking-tight">
+                                <Text className="text-white text-lg opacity-90 tracking-tight"
+                                style={{
+                                    fontFamily: 'Gilton'
+                                }}
+                                >
                                     moments.
                                 </Text>
                             </View>
