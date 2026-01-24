@@ -313,7 +313,10 @@ const DepartmentsEvents = () => {
 // ============================================
 // CUSTOM ANIMATED ITEM (Simpler 3D Effect)
 // ============================================
-const CustomItem = ({ item, animationValue, isActive, width }: { item: any, animationValue: SharedValue<number>, isActive: boolean, width: number }) => {
+// ============================================
+// CUSTOM ANIMATED ITEM (Simpler 3D Effect)
+// ============================================
+const CustomItem = React.memo(({ item, animationValue, isActive, width }: { item: any, animationValue: SharedValue<number>, isActive: boolean, width: number }) => {
     const animatedStyle = useAnimatedStyle(() => {
         // Simple Scale - Middle is 1, Sides are 0.9
         const scale = interpolate(
@@ -359,12 +362,15 @@ const CustomItem = ({ item, animationValue, isActive, width }: { item: any, anim
             </View>
         </Animated.View>
     );
-};
+});
 
 // ============================================
 // PAGINATION DOT COMPONENT (Reanimated)
 // ============================================
-const PaginationDot = ({ index, scrollProgress, length, onPress }: { index: number, scrollProgress: SharedValue<number>, length: number, onPress: () => void }) => {
+// ============================================
+// PAGINATION DOT COMPONENT (Reanimated)
+// ============================================
+const PaginationDot = React.memo(({ index, scrollProgress, length, onPress }: { index: number, scrollProgress: SharedValue<number>, length: number, onPress: () => void }) => {
 
     // Animate width based on scroll progress (0 to length-1)
     const animatedStyle = useAnimatedStyle(() => {
@@ -411,12 +417,15 @@ const PaginationDot = ({ index, scrollProgress, length, onPress }: { index: numb
             />
         </TouchableOpacity>
     );
-};
+});
 
 // ============================================
 // NAV BUTTON (With Press Animation)
 // ============================================
-const NavButton = ({ direction, onPress }: { direction: 'left' | 'right', onPress: () => void }) => {
+// ============================================
+// NAV BUTTON (With Press Animation)
+// ============================================
+const NavButton = React.memo(({ direction, onPress }: { direction: 'left' | 'right', onPress: () => void }) => {
     const scale = useSharedValue(1);
 
     const animatedStyle = useAnimatedStyle(() => ({
@@ -452,7 +461,7 @@ const NavButton = ({ direction, onPress }: { direction: 'left' | 'right', onPres
             </Animated.View>
         </TouchableOpacity>
     );
-}
+});
 
 // ============================================
 // REUSABLE EVENT CARD COMPONENT
@@ -470,7 +479,7 @@ interface EventCardProps {
     isActive: boolean; // Controls video playback visibility
 }
 
-const EventCard = ({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl, isActive }: EventCardProps) => {
+const EventCard = React.memo(({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl, isActive }: EventCardProps) => {
     // Track muted state for UI updates
     const [isMuted, setIsMuted] = useState(true);
 
@@ -658,6 +667,6 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
             </View>
         </View>
     );
-};
+});
 
-export default DepartmentsEvents;
+export default React.memo(DepartmentsEvents);

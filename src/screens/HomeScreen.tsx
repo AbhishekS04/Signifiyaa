@@ -22,15 +22,14 @@ export default function HomeScreen() {
                 contentContainerStyle={{ paddingBottom: 0 }}
 
                 // 🚀 Premium Scroll Performance
-                removeClippedSubviews={false} // Disabled to prevent stuttering on some devices
-                decelerationRate={0.988} // Stable momentum - not too fast to prevent jank
+                removeClippedSubviews={true} // Enabled to improve performance on long lists
+                decelerationRate="normal" // Native feel, usually smoother than custom values
                 scrollEventThrottle={16} // 60fps - sweet spot for smoothness without over-processing
 
                 // 🎨 Visual Smoothness
                 overScrollMode="never" // Cleaner scroll experience (Android)
                 bounces={true} // Natural iOS bounce
                 alwaysBounceVertical={false} // Only bounce when content exceeds screen
-                disableIntervalMomentum={true} // Smoother continuous scrolling
                 keyboardShouldPersistTaps="handled" // Prevent scroll interruption
 
                 // ⚡ Performance Optimizations

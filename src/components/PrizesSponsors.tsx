@@ -16,7 +16,7 @@ const { height, width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
 // Realistic Paper Money with Curved Bend and Natural Physics
-const MoneyBill = ({
+const MoneyBill = React.memo(({
     delay,
     startX,
     drift,
@@ -124,11 +124,11 @@ const MoneyBill = ({
             </View>
         </Animated.View>
     );
-};
+});
 
 const PrizesSponsors = () => {
     // LOTS of money flowing in waves/bursts
-    const moneyBills = Array.from({ length: 25 }, (_, i) => {
+    const moneyBills = React.useMemo(() => Array.from({ length: 25 }, (_, i) => {
         const wave = Math.floor(i / 8); // Group into waves of 8 bills
         const positionInWave = i % 8;
 
@@ -141,7 +141,7 @@ const PrizesSponsors = () => {
             swaySpeed: 3000 + Math.random() * 2000, // 3-5 seconds (faster)
             turbulence: 10 + Math.random() * 20,
         };
-    });
+    }), []);
 
     // ============================================
     // SPONSORS DATA (Easy to update)
@@ -275,4 +275,4 @@ const PrizesSponsors = () => {
     );
 };
 
-export default PrizesSponsors;
+export default React.memo(PrizesSponsors);
