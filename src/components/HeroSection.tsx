@@ -87,7 +87,7 @@ const HeroSection = () => {
     });
 
     return (
-        <View className="mb-4 mt-12">
+        <View className="mb-4">
 
             {/* --- 1. Top Marquee Strip (Outside Card) --- */}
             <View className="w-full h-10 bg-[#E1BEE7] overflow-hidden justify-center mb-5 border-y-2 border-black">

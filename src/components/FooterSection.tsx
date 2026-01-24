@@ -8,7 +8,7 @@ const isSmallDevice = width < 380;
 
 const FooterSection = () => {
     return (
-        <View className="bg-[#4ADE80] rounded-t-[30px] px-6 py-5 mt-[-30px] z-10">
+        <View className="bg-[#4ADE80] rounded-t-[30px] px-6 pt-5 pb-18 mt-[-30px] z-10">
 
             {/* Header - Reduced size */}
             <View className="mb-6">
