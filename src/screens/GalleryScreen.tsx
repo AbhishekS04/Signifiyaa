@@ -81,7 +81,7 @@ const GalleryScreen = () => {
                         start={{ x: 0.5, y: 0 }}
                         end={{ x: 0.5, y: 1 }}
                         className="mx-4 my-2 rounded-[50px] overflow-hidden pt-12 pb-16 items-center"
-                        style={{ minHeight: 600 }} // Ensure it takes up significant space like the image
+                        style={{ minHeight: 500 }} // Ensure it takes up significant space like the image
                     >
                         {/* Title */}
                         <Text className="text-white text-6xl tracking-tighter mb-12 shadow-sm"
@@ -133,7 +133,7 @@ const GalleryScreen = () => {
                         </View>
 
                         {/* Subtitle */}
-                        <View className="items-center mt-6">
+                        <View className="items-center mt-8">
                             <Text className="text-white text-lg opacity-90 tracking-tight"
                             style={{
                                 fontFamily: 'Gilton'
