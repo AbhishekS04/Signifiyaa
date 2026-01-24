@@ -94,14 +94,14 @@ const HeroSection = () => {
                     {/* Render one invisible to measure */}
                     <Text
                         onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
-                        className="absolute opacity-0 text-black font-[Inter_900Black] text-[11px] uppercase tracking-widest"
+                        className="absolute opacity-0 text-black font-[Gilton] text-[11px] uppercase tracking-widest"
                     >
                         {MARQUEE_TEXT}
                     </Text>
 
                     {/* Render multiple copies for the loop */}
                     {[...Array(10)].map((_, i) => (
-                        <Text key={i} className="text-black font-[Inter_900Black] text-[11px] uppercase tracking-widest">
+                        <Text key={i} className="text-black font-[Gilton] text-[11px] uppercase tracking-widest">
                             {MARQUEE_TEXT}
                         </Text>
                     ))}
@@ -113,7 +113,7 @@ const HeroSection = () => {
                 <LinearGradient
                     colors={['#6A1B9A', '#8E24AA', '#BA68C8', '#E1BEE7']}
                     locations={[0, 0.3, 0.6, 1]}
-                    className="w-full rounded-[40px] pt-16 pb-8 px-6 relative overflow-hidden justify-center"
+                    className="w-full rounded-[30px] pt-16 pb-8 px-6 relative overflow-hidden justify-center"
                     style={{ minHeight: isSmallDevice ? 600 : 700 }}
                 >
                     {/* Background Watermark */}
@@ -135,7 +135,7 @@ const HeroSection = () => {
                         </Text>
 
                         {/* Countdown Timer */}
-                        <View className="flex-row justify-between w-full mb-10" style={{ paddingHorizontal: 8, maxWidth: 420 }}>
+                        <View className="flex-row  justify-between w-full mb-10" style={{ paddingHorizontal: 8, maxWidth: 420, }}>
                             {[
                                 { num: timeLeft.days, label: 'DAYS' },
                                 { num: timeLeft.hours, label: 'HOURS' },

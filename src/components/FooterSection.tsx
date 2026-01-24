@@ -7,32 +7,32 @@ const isSmallDevice = width < 380;
 
 const FooterSection = () => {
     return (
-        <View className="bg-[#4ADE80] rounded-t-[30px] px-6 py-8 mt-[-30px] z-10">
+        <View className="bg-[#4ADE80] rounded-t-[30px] px-6 py-5 mt-[-30px] z-10">
 
             {/* Header - Reduced size */}
             <View className="mb-6">
-                <Text className={`${isSmallDevice ? 'text-2xl' : 'text-3xl'} text-black leading-tight uppercase`}
+                <Text className={`${isSmallDevice ? 'text-xl' : 'text-2xl'} text-black leading-tight uppercase`}
                     style={{
                         fontFamily: 'BBHBartle',
                     }}
                 >
                     DOWNLOAD
                 </Text>
-                <Text className={`${isSmallDevice ? 'text-2xl' : 'text-3xl'} text-black leading-tight uppercase`}
+                <Text className={`${isSmallDevice ? 'text-xl' : 'text-2xl'} text-black leading-tight uppercase`}
                     style={{
                         fontFamily: 'BBHBartle',
                     }}
                 >
                     THE SIGNIFIYA
                 </Text>
-                <Text className={`${isSmallDevice ? 'text-2xl' : 'text-3xl'} text-black leading-tight uppercase`}
+                <Text className={`${isSmallDevice ? 'text-xl' : 'text-2xl'} text-black leading-tight uppercase`}
                     style={{
                         fontFamily: 'BBHBartle',
                     }}
                 >
                     APP
                 </Text>
-                <Text className={`${isSmallDevice ? 'text-2xl' : 'text-3xl'} text-black leading-tight uppercase`}
+                <Text className={`${isSmallDevice ? 'text-xl' : 'text-2xl'} text-black leading-tight uppercase`}
                     style={{
                         fontFamily: 'BBHBartle',
                     }}
@@ -42,7 +42,7 @@ const FooterSection = () => {
             </View>
 
             {/* App Buttons - Proper Icons */}
-            <View className="gap-4 mb-10 self-start">
+            <View className="gap-3 mb-6 self-start">
                 <AppStoreButton
                     storeName="Google Play"
                     icon={<PlayStoreIcon />}
@@ -54,7 +54,7 @@ const FooterSection = () => {
             </View>
 
             {/* Main Menu - Compact spacing */}
-            <View className="gap-2 mb-12">
+            <View className="gap-2 mb-8">
                 {['HOME', 'BECOME A SPONSOR', 'EVENTS', 'CONTACT', 'FAQ', 'RULES & REGULATIONS'].map((item) => (
                     <TouchableOpacity key={item} activeOpacity={0.7}>
                         <Text className={`${isSmallDevice ? 'text-lg' : 'text-xl'} text-black uppercase`}
