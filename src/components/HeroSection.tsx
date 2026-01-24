@@ -37,7 +37,7 @@ const HeroSection = () => {
     });
 
     // --- COUNTDOWN LOGIC (Easy to change target date here) ---
-    const TARGET_DATE = new Date('2026-02-14T00:00:00');
+    const TARGET_DATE = new Date('2026-03-13T00:00:00');
     const [timeLeft, setTimeLeft] = React.useState({
         days: '29',
         hours: '23',
@@ -160,7 +160,7 @@ const HeroSection = () => {
                                         </Text>
                                     </View>
                                     <View className="w-10 h-[1.5px] bg-black my-1" />
-                                    <Text className="text-black font-[Inter_700Bold] text-[9px] uppercase tracking-tighter opacity-80">
+                                    <Text className="text-black font-[Softura] text-[10px] uppercase tracking-tighter opacity-80">
                                         {item.label}
                                     </Text>
                                 </View>
