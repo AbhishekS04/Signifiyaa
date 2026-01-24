@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, Dimensions } from 'react-native';
 import Svg, { Path, G } from 'react-native-svg';
+import SmoothButton from './ui/SmoothButton';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
@@ -56,7 +57,11 @@ const FooterSection = () => {
             {/* Main Menu - Compact spacing */}
             <View className="gap-2 mb-8">
                 {['HOME', 'BECOME A SPONSOR', 'EVENTS', 'CONTACT', 'FAQ', 'RULES & REGULATIONS'].map((item) => (
-                    <TouchableOpacity key={item} activeOpacity={0.7}>
+                    <TouchableOpacity
+                        key={item}
+                        activeOpacity={1}
+                        onPressIn={() => { /* Add local scale logic or leave as simple opacity if not wanting full 3D */ }}
+                    >
                         <Text className={`${isSmallDevice ? 'text-lg' : 'text-xl'} text-black uppercase`}
                             style={{
                                 fontFamily: 'Softura',
@@ -119,30 +124,28 @@ const FooterSection = () => {
 // --- Subcomponents ---
 
 const AppStoreButton = ({ storeName, icon }: { storeName: string, icon: React.ReactNode }) => (
-    <View className="relative">
-        <View className="absolute top-1.5 left-1.5 w-full h-full bg-black rounded-xl" />
-        <TouchableOpacity
-            className="bg-white border-[3px] border-black rounded-xl px-4 py-3 flex-row items-center gap-3 active:translate-x-1.5 active:translate-y-1.5"
-            style={{ minWidth: isSmallDevice ? 200 : 230 }} // Increased width to prevent text clipping
-            activeOpacity={1}
-        >
-            <View className="w-9 h-9 items-center justify-center">
-                {icon}
-            </View>
-            <View className="flex-1">
-                <Text className="text-[#FF0055] text-[9px] uppercase"
-                    style={{
-                        fontFamily: 'Gilton',
-                    }}
-                >COMING SOON !</Text>
-                <Text className="text-black text-base leading-4"
-                    style={{
-                        fontFamily: 'Gilton',
-                    }}
-                >{storeName}</Text>
-            </View>
-        </TouchableOpacity>
-    </View>
+    <SmoothButton
+        containerStyle={{ minWidth: isSmallDevice ? 200 : 230 }}
+        buttonStyle="bg-white border-[3px] border-black rounded-xl px-4 py-3 flex-row items-center gap-3"
+        shadowStyle="bg-black rounded-xl"
+        depth={6}
+    >
+        <View className="w-9 h-9 items-center justify-center">
+            {icon}
+        </View>
+        <View className="flex-1">
+            <Text className="text-[#FF0055] text-[9px] uppercase"
+                style={{
+                    fontFamily: 'Gilton',
+                }}
+            >COMING SOON !</Text>
+            <Text className="text-black text-base leading-4"
+                style={{
+                    fontFamily: 'Gilton',
+                }}
+            >{storeName}</Text>
+        </View>
+    </SmoothButton>
 );
 
 // --- Icons ---

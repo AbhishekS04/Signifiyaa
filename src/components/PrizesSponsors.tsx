@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
+import SmoothButton from './ui/SmoothButton';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -254,14 +255,20 @@ const PrizesSponsors = () => {
                 </View>
 
                 {/* Action Button */}
-                <TouchableOpacity className="bg-black py-4 rounded-full items-center shadow-md">
+                <SmoothButton
+                    onPress={() => { }}
+                    containerStyle={{ width: '100%' }}
+                    buttonStyle="bg-black py-4 rounded-full items-center"
+                    shadowStyle="bg-black rounded-full"
+                    depth={1}
+                >
                     <Text className="text-white text-lg"
                         style={{
                             fontFamily: 'Softura',
                         }}>
                         BECOME A SPONSOR
                     </Text>
-                </TouchableOpacity>
+                </SmoothButton>
 
             </View>
         </View>

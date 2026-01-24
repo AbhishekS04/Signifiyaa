@@ -343,7 +343,7 @@ const CustomItem = ({ item, animationValue, isActive, width }: { item: any, anim
 
     return (
         <Animated.View style={[{ flex: 1, justifyContent: 'center', alignItems: 'center' }, animatedStyle]}>
-            <View style={{ width: width, height: '100%', alignItems: 'center' }}>
+            <View style={{ width: width, height: '100%', alignItems: 'center', paddingBottom: 12 }}>
                 <EventCard
                     title={item.title}
                     date={item.date}
