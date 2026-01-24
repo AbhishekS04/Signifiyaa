@@ -18,6 +18,7 @@ import * as Haptics from 'expo-haptics';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import Carousel from 'react-native-reanimated-carousel';
 import { EVENTS_DATA } from '../data/EventsData';
+import SmoothButton from './ui/SmoothButton';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -196,13 +197,12 @@ const DepartmentsEvents = () => {
                 {/* ============================================ */}
                 <View className="flex-row flex-wrap justify-center gap-2 mb-8" >
                     {filters.map((filter, index) => (
-                        <View key={index} className="relative">
-                            <View className="absolute top-1 left-1 w-full h-full bg-black rounded-full" />
-                            <TouchableOpacity
+                        <View key={index}>
+                            <SmoothButton
                                 onPress={() => handleFilterChange(filter)}
-                                activeOpacity={1}
-                                className={`px-4 py-2 rounded-full border-2 border-black active:translate-x-1 active:translate-y-1 ${selectedCategory === filter ? 'bg-[#9d4edd]' : 'bg-white'
-                                    }`}
+                                buttonStyle={`px-4 py-2 rounded-full border-2 border-black ${selectedCategory === filter ? 'bg-[#9d4edd]' : 'bg-white'}`}
+                                shadowStyle="bg-black rounded-full"
+                                depth={4}
                             >
                                 <Text
                                     className={`text-[12px] uppercase tracking-wider ${selectedCategory === filter ? 'text-white' : 'text-black'}`}
@@ -210,7 +210,7 @@ const DepartmentsEvents = () => {
                                 >
                                     {filter}
                                 </Text>
-                            </TouchableOpacity>
+                            </SmoothButton>
                         </View>
                     ))}
                 </View>
@@ -630,33 +630,29 @@ const EventCard = ({ title, date, category, description, prizePool, imageColor, 
 
                     {/* Action Buttons - Fixed At Bottom */}
                     <View className={`gap-4 w-full ${isSmallDevice ? 'mt-1' : 'mt-4'}`}>
-                        <View className="relative">
-                            <View className="absolute top-1.5 left-1.5 w-full h-full bg-black rounded-2xl" />
-                            <TouchableOpacity
-                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                                activeOpacity={1}
-                                className={`border-[3px] border-black rounded-2xl items-center active:translate-x-1.5 active:translate-y-1.5 ${isSmallDevice ? 'py-3' : 'py-4'}`}
-                                style={{ backgroundColor: buttonColor }}
-                            >
-                                <Text className="text-black uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
-                                    VIEW DETAILS
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+                        <SmoothButton
+                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                            buttonStyle={`border-[3px] border-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`}
+                            innerButtonStyle={{ backgroundColor: buttonColor }}
+                            shadowStyle="bg-black rounded-2xl"
+                            depth={6}
+                        >
+                            <Text className="text-black uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
+                                VIEW DETAILS
+                            </Text>
+                        </SmoothButton>
 
                         {/* Register Button */}
-                        <View className="relative">
-                            <View className="absolute top-1.5 left-1.5 w-full h-full bg-black rounded-2xl" />
-                            <TouchableOpacity
-                                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                                activeOpacity={1}
-                                className={`bg-black rounded-2xl items-center active:translate-x-1.5 active:translate-y-1.5 ${isSmallDevice ? 'py-3' : 'py-4'}`}
-                            >
-                                <Text className="text-white uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
-                                    REGISTER
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+                        <SmoothButton
+                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
+                            buttonStyle={`bg-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`}
+                            shadowStyle="bg-black rounded-2xl"
+                            depth={6}
+                        >
+                            <Text className="text-white uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
+                                REGISTER
+                            </Text>
+                        </SmoothButton>
                     </View>
                 </View>
             </View>

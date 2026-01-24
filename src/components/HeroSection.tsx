@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowDown } from 'lucide-react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
+import SmoothButton from './ui/SmoothButton';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
@@ -168,17 +169,16 @@ const HeroSection = () => {
                         </View>
 
                         {/* Button with Tactile 3D Effect */}
-                        <View className="bg-black rounded-full mb-16" style={{ alignSelf: 'center' }}>
-                            <TouchableOpacity
-                                activeOpacity={1}
-                                className="bg-[#E1BEE7] border-2 border-black rounded-full px-14 py-4 -translate-y-1.5 -translate-x-1.5 active:translate-y-0 active:translate-x-0"
-                            >
-                                <Text className="text-black text-[12px] uppercase tracking-[0.15em]"
-                                    style={{ fontFamily: 'Gilton' }} >
-                                    SIGN IN / SIGN UP
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+                        <SmoothButton
+                            containerStyle={{ alignSelf: 'center', marginBottom: 64 }}
+                            buttonStyle="bg-[#E1BEE7] border-2 border-black rounded-full px-14 py-4"
+                            depth={6}
+                        >
+                            <Text className="text-black text-[12px] uppercase tracking-[0.15em]"
+                                style={{ fontFamily: 'Gilton' }} >
+                                SIGN IN / SIGN UP
+                            </Text>
+                        </SmoothButton>
 
                         {/* Description */}
                         <Text className="text-black/50 text-[9px] uppercase text-center mb-8 leading-4 tracking-tighter px-6"

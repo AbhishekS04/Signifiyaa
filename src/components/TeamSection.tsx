@@ -5,6 +5,7 @@ const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 import { Instagram, Linkedin, Github } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import SmoothButton from './ui/SmoothButton';
 
 const SECTION_FONTS = {
     NAME: 'Gilton',
@@ -194,15 +195,15 @@ const TeamSection = () => {
 
 // Extracted Social Button
 const SocialButton = ({ children, onPress }: { children: React.ReactNode, onPress: () => void }) => (
-    <View className="relative w-9 h-9">
-        <View className="absolute top-[2px] left-[2px] w-full h-full bg-black rounded-lg" />
-        <TouchableOpacity
-            onPress={onPress}
-            className="w-full h-full bg-white border-[2px] border-black rounded-lg items-center justify-center active:translate-x-[2px] active:translate-y-[2px]"
-        >
-            {children}
-        </TouchableOpacity>
-    </View>
+    <SmoothButton
+        onPress={onPress}
+        containerStyle={{ width: 36, height: 36 }} // w-9 = 36px
+        buttonStyle="w-full h-full bg-white border-[2px] border-black rounded-lg items-center justify-center"
+        shadowStyle="bg-black rounded-lg"
+        depth={2}
+    >
+        {children}
+    </SmoothButton>
 );
 
 export default TeamSection;

@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 // Import footer components as requested
+import SmoothButton from '../components/ui/SmoothButton';
 import SocialConnect from '../components/SocialConnect';
 import FooterSection from '../components/FooterSection';
 // NewsletterSupport removed as per user request
@@ -218,16 +219,15 @@ const GalleryScreen = () => {
                                             </View>
 
                                             {/* Heart Button with Tactile 3D Effect */}
-                                            <View className="relative w-12 h-12">
-                                                <View className="absolute top-1.5 left-1.5 w-full h-full bg-black rounded-full" />
-                                                <TouchableOpacity
-                                                    activeOpacity={1}
-                                                    className="w-full h-full bg-red-500 border-[2.5px] border-black rounded-full items-center justify-center active:translate-x-1.5 active:translate-y-1.5"
-                                                    onPress={() => { }}
-                                                >
-                                                    <Heart fill="white" color="white" size={20} strokeWidth={2.5} />
-                                                </TouchableOpacity>
-                                            </View>
+                                            <SmoothButton
+                                                onPress={() => { }}
+                                                containerStyle={{ width: 48, height: 48 }}
+                                                buttonStyle="w-full h-full bg-red-500 border-[2.5px] border-black rounded-full items-center justify-center"
+                                                shadowStyle="bg-black rounded-full"
+                                                depth={6}
+                                            >
+                                                <Heart fill="white" color="white" size={20} strokeWidth={2.5} />
+                                            </SmoothButton>
                                         </View>
                                     </View>
                                 </View>
@@ -247,19 +247,17 @@ const GalleryScreen = () => {
 
 // Extracted Filter Button with Tactile Click (Font Configurable)
 const FilterButton = ({ label, isActive, onPress, font }: { label: string, isActive: boolean, onPress: () => void, font: string }) => (
-    <View className="relative">
-        <View className="absolute top-1.5 left-1.5 w-full h-full bg-black rounded-2xl" />
-        <TouchableOpacity
-            activeOpacity={1}
-            onPress={onPress}
-            className={`px-8 py-2.5 border-[2.5px] border-black rounded-2xl active:translate-x-1.5 active:translate-y-1.5 ${isActive ? 'bg-[#9d4edd]' : 'bg-white'}`}
-            style={{ minWidth: 100, alignItems: 'center' }}
-        >
-            <Text className={`uppercase text-[13px] tracking-widest ${isActive ? 'text-white' : 'text-black'}`} style={{ fontFamily: font }}>
-                {label}
-            </Text>
-        </TouchableOpacity>
-    </View>
+    <SmoothButton
+        onPress={onPress}
+        containerStyle={{ minWidth: 100 }}
+        buttonStyle={`px-8 py-2.5 border-[2.5px] border-black rounded-2xl items-center ${isActive ? 'bg-[#9d4edd]' : 'bg-white'}`}
+        shadowStyle="bg-black rounded-2xl"
+        depth={6}
+    >
+        <Text className={`uppercase text-[13px] tracking-widest ${isActive ? 'text-white' : 'text-black'}`} style={{ fontFamily: font }}>
+            {label}
+        </Text>
+    </SmoothButton>
 );
 
 export default GalleryScreen;
