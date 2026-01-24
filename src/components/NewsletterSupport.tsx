@@ -13,7 +13,7 @@ const NewsletterSupport = () => {
         <View className="px-2 mb-10 gap-6">
 
             {/* --- Card 1: Newsletter (Purple) --- */}
-            <View className={`bg-[#E1BEE7] rounded-[40px] pb-12 ${isSmallDevice ? 'p-6' : 'p-8'}`}>
+            <View className={`bg-[#E1BEE7] rounded-[30px] pb-12 ${isSmallDevice ? 'p-6' : 'p-8'}`}>
 
                 {/* Header Typography Mix */}
                 <View className="mb-4">
@@ -109,7 +109,7 @@ const NewsletterSupport = () => {
 
 
             {/* --- Card 2: Support Section (Blue) --- */}
-            <View className={`bg-[#448AFF] rounded-[40px] pb-12 ${isSmallDevice ? 'p-6' : 'p-8'}`}>
+            <View className={`bg-[#448AFF] rounded-[30px] pb-12 ${isSmallDevice ? 'p-6' : 'p-8'}`}>
 
                 {/* Header Typography Mix */}
                 <View className="mb-10">

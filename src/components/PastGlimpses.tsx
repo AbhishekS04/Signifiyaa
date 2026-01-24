@@ -14,7 +14,7 @@ const PastGlimpses = () => {
     ];
 
     return (
-        <View className="bg-[#FFF0F5] py-12 w-full items-center rounded-[40px] mb-6 overflow-hidden">
+        <View className="bg-[#FFF0F5] py-12 w-full items-center rounded-[30px] mb-6 overflow-hidden">
             {/* Header */}
             <View className={`items-center px-6 ${isSmallDevice ? 'mb-10' : 'mb-14'}`}>
                 <Text className={`text-black uppercase leading-tight ${isSmallDevice ? 'text-5xl' : 'text-6xl'}`} style={{

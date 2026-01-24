@@ -6,7 +6,7 @@ const isSmallDevice = width < 380;
 
 const AboutSection = () => {
     return (
-        <View className={`bg-[#F3E5F5] rounded-[40px] mb-4 mt-6 ${isSmallDevice ? 'p-6' : 'p-8'}`}>
+        <View className={`bg-[#F3E5F5] rounded-[30px] mb-4 mt-6 ${isSmallDevice ? 'p-6' : 'p-8'}`}>
             {/* Pale Pink Background, No Border, Larger Radius */}
 
             {/* Header Row */}

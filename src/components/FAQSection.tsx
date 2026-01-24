@@ -30,7 +30,7 @@ const FAQS = [
 
 const FAQSection = () => {
     return (
-        <View className="bg-[#F3E5F5] rounded-[40px] px-6 py-10 mb-10 mx-2 border-2 border-black">
+        <View className="bg-[#F3E5F5] rounded-[30px] px-6 py-10 mb-10 mx-2 border-2 border-black">
             <View className="mb-8">
                 <Text className={`text-black text-center leading-tight ${isSmallDevice ? 'text-2xl' : 'text-3xl'}`}
                     style={{

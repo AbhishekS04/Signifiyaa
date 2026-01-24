@@ -184,14 +184,14 @@ const PrizesSponsors = () => {
                 <View className="z-10">
                     {/* Massive Typography Block */}
                     <View className="items-center mb-4">
-                        <Text className={`leading-[50px] text-black ${isSmallDevice ? 'text-[40px]' : 'text-[50px]'}`}
+                        <Text className={`leading-[50px] text-black ${isSmallDevice ? 'text-[30px]' : 'text-[50px]'}`}
                             style={{
                                 fontFamily: 'BBHBartle',
                             }}
                         >
                             120K+
                         </Text>
-                        <Text className={`leading-[50px] text-black -mt-2 ${isSmallDevice ? 'text-[40px]' : 'text-[50px]'}`}
+                        <Text className={`leading-[50px] text-black -mt-2 ${isSmallDevice ? 'text-[30px]' : 'text-[50px]'}`}
                             style={{
                                 fontFamily: 'BBHBartle',
                             }}
