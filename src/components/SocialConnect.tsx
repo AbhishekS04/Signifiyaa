@@ -15,7 +15,7 @@ const SocialConnect = () => {
     return (
         <Animated.View
             className="px-6 pb-20 pt-4 bg-black"
-            layout={Layout.springify().damping(20).stiffness(100).mass(1)} // SYNC with FAQ Parent
+            layout={Layout.springify().damping(30).stiffness(100).mass(1)} // SYNC with FAQ Parent
         >
 
             {/* --- Row 1 --- */}
