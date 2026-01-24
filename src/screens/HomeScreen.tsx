@@ -19,7 +19,7 @@ export default function HomeScreen() {
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 60 }}
+                contentContainerStyle={{ paddingBottom: 0 }}
 
                 // 🚀 Premium Scroll Performance
                 removeClippedSubviews={false} // Disabled to prevent stuttering on some devices

@@ -9,15 +9,13 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
 
     return (
         <View
-            className="w-full absolute bottom-0 left-0 right-0 border-t border-white/10"
+            className="w-full border-t border-white/10 bg-black"
             style={{
-                paddingBottom: Platform.OS === 'ios' ? insets.bottom : 20,
-                paddingTop: 12,
-                backgroundColor: '#000000',
-                height: Platform.OS === 'ios' ? 85 : 70,
+                paddingBottom: Platform.OS === 'ios' ? insets.bottom : Math.max(insets.bottom, 10),
+                paddingTop: 10,
             }}
         >
-            <View className="flex-row items-center justify-between px-2 h-full">
+            <View className="flex-row items-center justify-between px-4 pb-2">
                 {state.routes.map((route, index) => {
                     const { options } = descriptors[route.key];
                     const isFocused = state.index === index;

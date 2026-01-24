@@ -13,8 +13,8 @@ export default function AppNavigator() {
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: {
+                    // Removed absolute positioning to allow content to flow naturally above the tab bar
                     backgroundColor: 'transparent',
-                    position: 'absolute',
                     borderTopWidth: 0,
                     elevation: 0,
                 },
