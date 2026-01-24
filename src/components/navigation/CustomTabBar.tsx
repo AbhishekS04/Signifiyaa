@@ -38,39 +38,44 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
                         // 🚀 Smart Home Button Behavior
                         if (route.name === 'Home') {
                             if (isFocused) {
-                                // Already on Home → Single click scrolls to top
-                                (navigation as any).emit({
-                                    type: 'homeScrollToTop',
-                                    target: route.key,
-                                });
+                                // Already on Home → Set param to trigger scroll
+                                navigation.navigate('Home', { scrollToTop: Date.now() });
+                                return;
                             } else {
-                                // Coming from another tab → Navigate and detect double-click
+                                // Coming from another tab → Detect double-click
                                 const now = Date.now();
                                 const DOUBLE_TAP_DELAY = 300; // ms
 
                                 if (now - lastTapTime.current < DOUBLE_TAP_DELAY) {
-                                    // Double-click detected → Scroll to top after navigation
+                                    // Double-click detected → Navigate and trigger scroll
+                                    if (tapTimeout.current) {
+                                        clearTimeout(tapTimeout.current);
+                                        tapTimeout.current = null;
+                                    }
+
+                                    // Navigate immediately with scroll param
+                                    if (!event.defaultPrevented) {
+                                        navigation.navigate(route.name, { ...route.params, scrollToTop: Date.now() });
+                                    }
+
+                                    lastTapTime.current = 0;
+                                    return;
+                                } else {
+                                    // First click → Set timeout for single-click navigation
                                     if (tapTimeout.current) {
                                         clearTimeout(tapTimeout.current);
                                     }
-                                    navigation.navigate(route.name, route.params);
-                                    setTimeout(() => {
-                                        (navigation as any).emit({
-                                            type: 'homeScrollToTop',
-                                            target: route.key,
-                                        });
-                                    }, 100); // Small delay to ensure screen is mounted
-                                } else {
-                                    // Single click → Just navigate (remember position)
+
                                     tapTimeout.current = setTimeout(() => {
                                         if (!event.defaultPrevented) {
                                             navigation.navigate(route.name, route.params);
                                         }
+                                        tapTimeout.current = null;
                                     }, DOUBLE_TAP_DELAY);
-                                }
 
-                                lastTapTime.current = now;
-                                return; // Skip default navigation
+                                    lastTapTime.current = now;
+                                    return;
+                                }
                             }
                         }
 
