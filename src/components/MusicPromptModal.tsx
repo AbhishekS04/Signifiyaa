@@ -5,7 +5,9 @@ import Animated, {
     useAnimatedStyle,
     withTiming,
     withDelay,
-    Easing
+    withSpring,
+    Easing,
+    interpolate
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import SmoothButton from './ui/SmoothButton';
@@ -14,12 +16,11 @@ const { width } = Dimensions.get('window');
 
 // ============================================
 // 🎨 FONT CONFIGURATION
-// Change fonts here - easy to customize!
 // ============================================
 const FONT_CONFIG = {
-    title: 'Gilton',          // Current: Gilton | Try: 'Bicubik', 'RampartOne', 'BBHBartle', 'Softura'
-    buttons: 'Gilton',         // Current: Gilton | Try: 'Bicubik', 'RampartOne', 'BBHBartle', 'Softura'
-    footer: 'Gilton',        // Current: Gilton | Try: 'Bicubik', 'RampartOne', 'BBHBartle', 'Softura'
+    title: 'Gilton',
+    buttons: 'Softura',
+    footer: 'Gilton',
 };
 
 interface MusicPromptModalProps {
@@ -27,148 +28,108 @@ interface MusicPromptModalProps {
 }
 
 export default function MusicPromptModal({ onSelectMusic }: MusicPromptModalProps) {
-    const opacity = useSharedValue(0);
-    const scale = useSharedValue(0.92);
-    const titleOpacity = useSharedValue(0);
-    const titleTranslateY = useSharedValue(20);
-    const button1Opacity = useSharedValue(0);
-    const button1TranslateY = useSharedValue(30);
-    const button2Opacity = useSharedValue(0);
-    const button2TranslateY = useSharedValue(30);
-    const footerOpacity = useSharedValue(0);
-    const [isMusicSelected, setIsMusicSelected] = useState(false);
+    // Shared Values
+    const backdropOpacity = useSharedValue(0); // Controls Blur + Red Overlay
+    const cardScale = useSharedValue(0.9);
+    const cardOpacity = useSharedValue(0);
+    const contentOpacity = useSharedValue(0);
+    const contentTranslateY = useSharedValue(20);
 
     useEffect(() => {
-        // Backdrop fade-in
-        opacity.value = withTiming(1, {
-            duration: 800,
+        // SEQUENCE:
+        // 1. Background (Blur + Blood) fades in FIRST (0ms -> 500ms)
+        // 2. Card Springs in AFTER background is set (500ms+)
+
+        // 1. Background Entrance
+        backdropOpacity.value = withTiming(1, {
+            duration: 600,
             easing: Easing.out(Easing.cubic)
         });
 
-        // Card pop-in - "Premium Snap"
-        // Using a focused bezier curve that starts fast and lands soft
-        const PREMIUM_EASE = Easing.bezier(0.33, 1, 0.68, 1);
-
-        scale.value = withDelay(150, withTiming(1, {
-            duration: 800,
-            easing: PREMIUM_EASE
+        // 2. Card Entrance (Spring) - Starts after background is mostly visible
+        cardScale.value = withDelay(500, withSpring(1, {
+            damping: 12,
+            stiffness: 90,
+            mass: 1
         }));
 
-        // Title slide up
-        titleOpacity.value = withDelay(300, withTiming(1, {
-            duration: 700,
-            easing: Easing.out(Easing.quad)
+        cardOpacity.value = withDelay(500, withTiming(1, {
+            duration: 400
         }));
 
-        titleTranslateY.value = withDelay(300, withTiming(0, {
-            duration: 700,
-            easing: PREMIUM_EASE
+        // 3. Content Slide Up (Title, Buttons)
+        contentOpacity.value = withDelay(700, withTiming(1, {
+            duration: 600
         }));
 
-        // Button 1: Enter With Music
-        button1Opacity.value = withDelay(400, withTiming(1, {
-            duration: 600,
-            easing: Easing.out(Easing.quad)
+        contentTranslateY.value = withDelay(700, withSpring(0, {
+            damping: 14,
+            stiffness: 100
         }));
 
-        button1TranslateY.value = withDelay(400, withTiming(0, {
-            duration: 600,
-            easing: PREMIUM_EASE
-        }));
-
-        // Button 2: Enter Without Music
-        button2Opacity.value = withDelay(500, withTiming(1, {
-            duration: 600,
-            easing: Easing.out(Easing.quad)
-        }));
-
-        button2TranslateY.value = withDelay(500, withTiming(0, {
-            duration: 600,
-            easing: PREMIUM_EASE
-        }));
-
-        // Footer fade in (Late arrival)
-        footerOpacity.value = withDelay(800, withTiming(1, {
-            duration: 800,
-            easing: Easing.inOut(Easing.cubic)
-        }));
     }, []);
 
     const backdropStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
+        opacity: backdropOpacity.value,
     }));
 
     const cardStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: scale.value }]
+        opacity: cardOpacity.value,
+        transform: [{ scale: cardScale.value }]
     }));
 
-    const titleStyle = useAnimatedStyle(() => ({
-        opacity: titleOpacity.value,
-        transform: [{ translateY: titleTranslateY.value }]
-    }));
-
-    const button1Style = useAnimatedStyle(() => ({
-        opacity: button1Opacity.value,
-        transform: [{ translateY: button1TranslateY.value }]
-    }));
-
-    const button2Style = useAnimatedStyle(() => ({
-        opacity: button2Opacity.value,
-        transform: [{ translateY: button2TranslateY.value }]
-    }));
-
-    const footerStyle = useAnimatedStyle(() => ({
-        opacity: footerOpacity.value,
+    const contentStyle = useAnimatedStyle(() => ({
+        opacity: contentOpacity.value,
+        transform: [{ translateY: contentTranslateY.value }]
     }));
 
     return (
         <View style={styles.overlay}>
-            {/* Backdrop with blur */}
+            {/* Backdrop: Blur + Blood Red Overlay */}
             <Animated.View style={[StyleSheet.absoluteFill, backdropStyle]}>
-                <BlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
+                <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
                 {/* Subtle dark gradient overlay for depth */}
                 <View style={styles.gradientOverlay} />
             </Animated.View>
 
             <Animated.View style={[styles.card, cardStyle]}>
-                {/* Title with animation */}
-                <Animated.View style={titleStyle}>
-                    <Text style={{ fontSize: 26, color: '#000000', marginBottom: 35, textAlign: 'center', fontFamily: 'Gilton', letterSpacing: 0.3, lineHeight: 36 }}>Welcome to Signifiya</Text>
+                {/* Title */}
+                <Animated.View style={contentStyle}>
+                    <Text style={styles.title}>Welcome to Signifiya</Text>
                 </Animated.View>
 
-                {/* Button 1: Enter With Music - Pure Black */}
-                <Animated.View style={[styles.buttonContainer, button1Style]}>
+                {/* Button 1: Enter With Music */}
+                <Animated.View style={[styles.buttonContainer, contentStyle]}>
                     <SmoothButton
-                        onPressIn={() => setIsMusicSelected(true)}
                         onPress={() => {
-                            // setIsMusicSelected(true); // Already set on press in
-                            setTimeout(() => onSelectMusic(true), 50); // Faster response
+                            setTimeout(() => onSelectMusic(true), 50);
                         }}
-                        buttonStyle={isMusicSelected ? "bg-[#6A1B9A] rounded-full" : "bg-black rounded-full"}
-                        shadowStyle={isMusicSelected ? "bg-[#4A148C] rounded-full" : "bg-black rounded-full"}
-                        depth={5}
+                        // Fixed Colors: No purple shift on press
+                        buttonStyle="bg-black rounded-full"
+                        shadowStyle="bg-[#2a0a0a] rounded-full" // Dark bloody shadow
+                        depth={10} // Increased depth for more "Kick"
                         innerButtonStyle={styles.primaryButtonInner}
                     >
-                        <Text style={{ color: '#FFFFFF', fontSize: 12, letterSpacing: 2.5, fontFamily: 'Gilton', textAlign: 'center' }}>ENTER WITH MUSIC</Text>
+                        <Text style={styles.buttonTextWhite}>ENTER WITH MUSIC</Text>
                     </SmoothButton>
                 </Animated.View>
 
-                {/* Button 2: Enter Without Music - White with Black Border */}
-                <Animated.View style={[styles.buttonContainer, button2Style]}>
+                {/* Button 2: Enter Without Music */}
+                <Animated.View style={[styles.buttonContainer, contentStyle]}>
                     <SmoothButton
                         onPress={() => onSelectMusic(false)}
                         buttonStyle="bg-white rounded-full"
                         shadowStyle="bg-black rounded-full"
-                        depth={5}
+                        depth={10} // Increased depth for more "Kick"
                         innerButtonStyle={styles.secondaryButtonInner}
                     >
-                        <Text style={{ color: '#000000', fontSize: 12, letterSpacing: 1, fontFamily: 'Gilton', textAlign: 'center' }}>ENTER WITHOUT MUSIC</Text>
+                        <Text style={styles.buttonTextBlack}>ENTER WITHOUT MUSIC</Text>
                     </SmoothButton>
                 </Animated.View>
 
-                {/* Footer Text with animation */}
-                <Animated.View style={footerStyle}>
-                    <Text style={{ fontSize: 14, color: '#666666', textAlign: 'center', marginTop: 8, fontFamily: 'RampartOne' }}>dabake, dekhlee lala!</Text>
+                {/* Footer Text */}
+                <Animated.View style={contentStyle}>
+                    <Text style={styles.sarcasticText}>dabake, dekhlee lala!</Text>
                 </Animated.View>
             </Animated.View>
         </View>
@@ -188,7 +149,7 @@ const styles = StyleSheet.create({
     },
     gradientOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backgroundColor: 'rgba(0, 0, 0, 0.2)', // Subtle dark tint for depth
     },
     card: {
         backgroundColor: '#FFFFFF',
@@ -197,18 +158,17 @@ const styles = StyleSheet.create({
         width: width * 0.85,
         maxWidth: 380,
         alignItems: 'center',
-        // Premium shadow for strong depth
+        // Premium shadow
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 16 },
-        shadowOpacity: 0.5,
-        shadowRadius: 32,
-        elevation: 24,
+        shadowOffset: { width: 0, height: 20 },
+        shadowOpacity: 0.4,
+        shadowRadius: 40,
+        elevation: 30,
     },
     title: {
-        fontSize: 28,
-        fontWeight: 'bold',
+        fontSize: 26,
         color: '#000000',
-        marginBottom: 32,
+        marginBottom: 35,
         textAlign: 'center',
         fontFamily: FONT_CONFIG.title,
         letterSpacing: 0.3,
@@ -217,10 +177,10 @@ const styles = StyleSheet.create({
     buttonContainer: {
         width: '100%',
         alignSelf: 'center',
-        marginBottom: 16,
+        marginBottom: 20, // Increased spacing for 3D depth room
     },
     primaryButtonInner: {
-        paddingVertical: 16,
+        paddingVertical: 18,
         paddingHorizontal: 24,
         borderRadius: 9999,
     },
@@ -228,33 +188,28 @@ const styles = StyleSheet.create({
         paddingVertical: 18,
         paddingHorizontal: 24,
         borderRadius: 9999,
-        borderWidth: 3,
+        borderWidth: 2,
         borderColor: '#000000',
     },
     buttonTextWhite: {
         color: '#FFFFFF',
-        fontSize: 14,
-        fontWeight: '700',
+        fontSize: 12,
         letterSpacing: 2.5,
         fontFamily: FONT_CONFIG.buttons,
-        textTransform: 'uppercase',
         textAlign: 'center',
     },
     buttonTextBlack: {
         color: '#000000',
-        fontSize: 14,
-        fontWeight: '700',
-        letterSpacing: 2.5,
+        fontSize: 12,
+        letterSpacing: 1,
         fontFamily: FONT_CONFIG.buttons,
-        textTransform: 'uppercase',
         textAlign: 'center',
     },
     sarcasticText: {
         fontSize: 14,
         color: '#666666',
-        fontStyle: 'italic',
         textAlign: 'center',
-        marginTop: 8,
-        fontFamily: FONT_CONFIG.footer,
+        marginTop: 12,
+        fontFamily: 'RampartOne',
     },
 });

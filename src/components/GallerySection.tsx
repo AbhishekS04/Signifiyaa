@@ -3,7 +3,7 @@ import { View, Image } from 'react-native';
 
 const GallerySection = () => {
     return (
-        <View className="gap-6 px-4 mb-8 mt-8">
+        <View className="gap-6 px-4 mb-8">
             <View
                 className="w-full rounded-[30px] overflow-hidden border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
                 style={{ height: 250 }}

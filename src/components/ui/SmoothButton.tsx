@@ -97,7 +97,7 @@ const SmoothButton: React.FC<SmoothButtonProps> = ({
                         animatedStyle,
                         innerButtonStyle // Apply dynamic styles here
                     ]}
-                    layout={Layout.springify().damping(15).stiffness(150).mass(1)} // Sync button expansion
+                // Removed Layout prop that might cause jitter on android
                 >
                     {children}
                 </Animated.View>

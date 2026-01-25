@@ -125,7 +125,7 @@ export default function HomeScreen() {
                             <AboutSection />
                         </View>
 
-                        <View className="mt-6">
+                        <View className="mb-0">
                             <GallerySection />
                         </View>
 
