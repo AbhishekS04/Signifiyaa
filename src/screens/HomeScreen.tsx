@@ -4,6 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Animated, {
     useAnimatedRef,
+    useSharedValue,
+    useAnimatedScrollHandler,
+    useAnimatedStyle,
 } from 'react-native-reanimated';
 import HeroSection from '../components/HeroSection';
 import AboutSection from '../components/AboutSection';
@@ -24,6 +27,7 @@ import GlobalMusicButton from '../components/GlobalMusicButton';
 export default function HomeScreen() {
     // 🔑 Use Reanimated Ref for Animated Components
     const scrollRef = useAnimatedRef<Animated.ScrollView>();
+    const scrollY = useSharedValue(0); // 1. Shared Value for scroll position
     const navigation = useNavigation();
     const route = useRoute();
     const [refreshing, setRefreshing] = useState(false);
@@ -56,13 +60,32 @@ export default function HomeScreen() {
         }
     }, [(route.params as any)?.scrollToTop]);
 
+    // 🌀 Scroll Handler for Animations
+    const scrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            scrollY.value = event.contentOffset.y;
+        },
+    });
+
+    // 🎬 Animated Style for Global Music Button (Fixed normally, moves on Refresh)
+    const musicButtonStyle = useAnimatedStyle(() => {
+        return {
+            transform: [
+                { translateY: scrollY.value < 0 ? -scrollY.value : 0 }
+            ],
+        };
+    });
+
     return (
         <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
             <PageTransition style={{ flex: 1 }}>
+                {/* 🎵 Global Music Button - Fixed but moves with Refresh */}
+                <GlobalMusicButton style={musicButtonStyle} />
 
                 {/* Main Scroll Content */}
                 <Animated.ScrollView
                     ref={scrollRef}
+                    onScroll={scrollHandler} // Attach Handler
                     className="flex-1"
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{
@@ -92,13 +115,21 @@ export default function HomeScreen() {
                         />
                     }
                 >
+                    {/* Fixed: Removed duplicate Music Button from here */}
+
                     <StaggerEntrance key={refreshKey}>
                         <View className="mb-4">
                             <HeroSection />
                         </View>
-                        <View className="px-4 gap-4">
+                        <View className="px-4 gap-4 pb-4">
                             <AboutSection />
+                        </View>
+
+                        <View className="mt-6">
                             <GallerySection />
+                        </View>
+
+                        <View className="px-4 gap-4">
                             <DepartmentsEvents />
                             <PrizesSponsors />
                             <PastGlimpses />
@@ -109,11 +140,10 @@ export default function HomeScreen() {
                         <SocialConnect />
                         <FooterSection />
                     </StaggerEntrance>
+
+                    {/* Fixed: Removed duplicate Music Button from here */}
                 </Animated.ScrollView>
             </PageTransition>
-
-            {/* Global Music Button - Fixed Top Right */}
-            <GlobalMusicButton />
         </SafeAreaView >
     );
 }

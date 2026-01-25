@@ -17,14 +17,14 @@ const FooterSection = () => {
                         fontFamily: 'BBHBartle',
                     }}
                 >
-                    DOWNLOAD
+                    DOWNLOAD THE
                 </Text>
                 <Text className={`${isSmallDevice ? 'text-xl' : 'text-2xl'} text-black leading-tight uppercase`}
                     style={{
                         fontFamily: 'BBHBartle',
                     }}
                 >
-                    THE SIGNIFIYA
+                    SIGNIFIYA
                 </Text>
                 <Text className={`${isSmallDevice ? 'text-xl' : 'text-2xl'} text-black leading-tight uppercase`}
                     style={{
@@ -134,14 +134,14 @@ const AppStoreButton = ({ storeName, icon }: { storeName: string, icon: React.Re
             {icon}
         </View>
         <View className="flex-1">
-            <Text className="text-[#FF0055] text-[9px] uppercase"
+            <Text className="text-[#00000] text-[9px] uppercase"
                 style={{
-                    fontFamily: 'Gilton',
+                    fontFamily: 'Softura',
                 }}
             >COMING SOON !</Text>
             <Text className="text-black text-base leading-4"
                 style={{
-                    fontFamily: 'Gilton',
+                    fontFamily: 'Softura',
                 }}
             >{storeName}</Text>
         </View>

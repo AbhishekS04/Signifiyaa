@@ -14,6 +14,8 @@ import * as Haptics from 'expo-haptics';
 interface SmoothButtonProps {
     children: React.ReactNode;
     onPress?: () => void;
+    onPressIn?: () => void;
+    onPressOut?: () => void;
     containerStyle?: StyleProp<ViewStyle>;
     buttonStyle?: string; // Tailwind class string
     innerButtonStyle?: StyleProp<ViewStyle>; // For dynamic styles (like background colors)
@@ -27,6 +29,8 @@ interface SmoothButtonProps {
 const SmoothButton: React.FC<SmoothButtonProps> = ({
     children,
     onPress,
+    onPressIn,
+    onPressOut,
     containerStyle,
     buttonStyle = "",
     innerButtonStyle,
@@ -63,12 +67,14 @@ const SmoothButton: React.FC<SmoothButtonProps> = ({
 
     const handlePressIn = () => {
         if (disabled) return;
+        if (onPressIn) onPressIn();
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         offset.value = withSpring(0, springConfig);
     };
 
     const handlePressOut = () => {
         if (disabled) return;
+        if (onPressOut) onPressOut();
         offset.value = withSpring(-depth, springConfig);
     };
 

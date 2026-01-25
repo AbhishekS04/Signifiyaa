@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Animated, {
     useSharedValue,
@@ -36,43 +36,62 @@ export default function MusicPromptModal({ onSelectMusic }: MusicPromptModalProp
     const button2Opacity = useSharedValue(0);
     const button2TranslateY = useSharedValue(30);
     const footerOpacity = useSharedValue(0);
+    const [isMusicSelected, setIsMusicSelected] = useState(false);
 
     useEffect(() => {
         // Backdrop fade-in
         opacity.value = withTiming(1, {
-            duration: 400,
-            easing: Easing.out(Easing.quad)
+            duration: 800,
+            easing: Easing.out(Easing.cubic)
         });
 
-        // Card pop-in
-        scale.value = withDelay(200, withTiming(1, {
-            duration: 600,
-            easing: Easing.out(Easing.back(1.2)) // Slight overshoot for premium feel
+        // Card pop-in - "Premium Snap"
+        // Using a focused bezier curve that starts fast and lands soft
+        const PREMIUM_EASE = Easing.bezier(0.33, 1, 0.68, 1);
+
+        scale.value = withDelay(150, withTiming(1, {
+            duration: 800,
+            easing: PREMIUM_EASE
         }));
 
         // Title slide up
-        titleOpacity.value = withDelay(400, withTiming(1, { duration: 500 }));
-        titleTranslateY.value = withDelay(400, withTiming(0, {
-            duration: 500,
-            easing: Easing.out(Easing.cubic)
+        titleOpacity.value = withDelay(300, withTiming(1, {
+            duration: 700,
+            easing: Easing.out(Easing.quad)
         }));
 
-        // Button 1 slide up (staggered)
-        button1Opacity.value = withDelay(600, withTiming(1, { duration: 400 }));
-        button1TranslateY.value = withDelay(600, withTiming(0, {
-            duration: 400,
-            easing: Easing.out(Easing.cubic)
+        titleTranslateY.value = withDelay(300, withTiming(0, {
+            duration: 700,
+            easing: PREMIUM_EASE
         }));
 
-        // Button 2 slide up (staggered)
-        button2Opacity.value = withDelay(750, withTiming(1, { duration: 400 }));
-        button2TranslateY.value = withDelay(750, withTiming(0, {
-            duration: 400,
-            easing: Easing.out(Easing.cubic)
+        // Button 1: Enter With Music
+        button1Opacity.value = withDelay(400, withTiming(1, {
+            duration: 600,
+            easing: Easing.out(Easing.quad)
         }));
 
-        // Footer fade in
-        footerOpacity.value = withDelay(900, withTiming(1, { duration: 400 }));
+        button1TranslateY.value = withDelay(400, withTiming(0, {
+            duration: 600,
+            easing: PREMIUM_EASE
+        }));
+
+        // Button 2: Enter Without Music
+        button2Opacity.value = withDelay(500, withTiming(1, {
+            duration: 600,
+            easing: Easing.out(Easing.quad)
+        }));
+
+        button2TranslateY.value = withDelay(500, withTiming(0, {
+            duration: 600,
+            easing: PREMIUM_EASE
+        }));
+
+        // Footer fade in (Late arrival)
+        footerOpacity.value = withDelay(800, withTiming(1, {
+            duration: 800,
+            easing: Easing.inOut(Easing.cubic)
+        }));
     }, []);
 
     const backdropStyle = useAnimatedStyle(() => ({
@@ -120,9 +139,13 @@ export default function MusicPromptModal({ onSelectMusic }: MusicPromptModalProp
                 {/* Button 1: Enter With Music - Pure Black */}
                 <Animated.View style={[styles.buttonContainer, button1Style]}>
                     <SmoothButton
-                        onPress={() => onSelectMusic(true)}
-                        buttonStyle="bg-black rounded-full"
-                        shadowStyle="bg-black rounded-full"
+                        onPressIn={() => setIsMusicSelected(true)}
+                        onPress={() => {
+                            // setIsMusicSelected(true); // Already set on press in
+                            setTimeout(() => onSelectMusic(true), 50); // Faster response
+                        }}
+                        buttonStyle={isMusicSelected ? "bg-[#6A1B9A] rounded-full" : "bg-black rounded-full"}
+                        shadowStyle={isMusicSelected ? "bg-[#4A148C] rounded-full" : "bg-black rounded-full"}
                         depth={5}
                         innerButtonStyle={styles.primaryButtonInner}
                     >
@@ -145,7 +168,7 @@ export default function MusicPromptModal({ onSelectMusic }: MusicPromptModalProp
 
                 {/* Footer Text with animation */}
                 <Animated.View style={footerStyle}>
-                    <Text style={{ fontSize: 14, color: '#666666', textAlign: 'center', marginTop: 8, fontFamily: 'Softura' }}>music's fun, dekhlee lala!</Text>
+                    <Text style={{ fontSize: 14, color: '#666666', textAlign: 'center', marginTop: 8, fontFamily: 'RampartOne' }}>dabake, dekhlee lala!</Text>
                 </Animated.View>
             </Animated.View>
         </View>

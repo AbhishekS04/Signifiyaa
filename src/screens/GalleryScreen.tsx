@@ -16,6 +16,7 @@ import SmoothButton from '../components/ui/SmoothButton';
 import SocialConnect from '../components/SocialConnect';
 import FooterSection from '../components/FooterSection';
 import { PageTransition } from '../components/navigation/PageTransition';
+import GlobalMusicButton from '../components/GlobalMusicButton';
 
 // NewsletterSupport removed as per user request
 
@@ -63,6 +64,9 @@ const GalleryScreen = () => {
     return (
         <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
             <PageTransition style={{ flex: 1 }}>
+                {/* Global Music Button - Fixed Position */}
+                <GlobalMusicButton />
+
                 <View className="flex-1 bg-black">
                     <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
 

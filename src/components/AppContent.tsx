@@ -32,12 +32,22 @@ export default function AppContent() {
             // Option 2: Load from local assets (Commented out)
             // const musicSource = require('../../assets/The Weeknd, Playboi Carti - Timeless (Official Audio).mp4');
 
-            // Play the selected music
-            await MusicService.playMusic(musicSource);
-            setIsPlaying(true); // ✅ Set to playing - button shows PAUSE icon
+            // Play or Load the selected music
+            // We ALWAYS load the music, but only play it if withMusic is true.
+            // This ensures the global play button works later if the user changes their mind.
+            await MusicService.playMusic(musicSource, withMusic);
+            setIsPlaying(withMusic);
         } else {
             // User chose "Enter Without Music"
-            setIsPlaying(false); // ✅ Set to paused - button shows PLAY icon
+            // We still need to load the music so it can be played later!
+
+            // Option 1: Stream from URL (Same source)
+            const musicSource = {
+                uri: 'https://res.cloudinary.com/dldhfjo5v/video/upload/v1769352085/The_Weeknd_Playboi_Carti_-_Timeless_Official_Audio_nzylcx.mp4'
+            };
+
+            await MusicService.playMusic(musicSource, false); // Load but don't play
+            setIsPlaying(false);
         }
     };
 

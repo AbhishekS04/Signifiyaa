@@ -4,7 +4,7 @@ class MusicService {
     private sound: Audio.Sound | null = null;
     private isCurrentlyPlaying: boolean = false;
 
-    async playMusic(musicSource: any) {
+    async playMusic(musicSource: any, shouldPlay: boolean = true) {
         try {
             // Unload previous sound if exists
             if (this.sound) {
@@ -14,13 +14,21 @@ class MusicService {
             // Create and load new sound
             const { sound } = await Audio.Sound.createAsync(
                 musicSource,
-                { shouldPlay: true, isLooping: true, volume: 0.5 }
+                { shouldPlay: shouldPlay, isLooping: true, volume: 0.5 }
             );
 
             this.sound = sound;
-            await sound.playAsync();
-            this.isCurrentlyPlaying = true;
-            console.log('Music started playing');
+
+            if (shouldPlay) {
+                // Ensure it plays if requested, though createAsync handle it if shouldPlay is true
+                // keeping it consistent with state tracking
+                this.isCurrentlyPlaying = true;
+                console.log('Music started playing');
+            } else {
+                this.isCurrentlyPlaying = false;
+                console.log('Music loaded (paused)');
+            }
+
         } catch (error) {
             console.error('Error playing music:', error);
         }

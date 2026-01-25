@@ -4,8 +4,13 @@ import { Play, Pause } from 'lucide-react-native';
 import SmoothButton from './ui/SmoothButton';
 import MusicService from '../services/MusicService';
 import { useMusicContext } from '../context/MusicContext';
+import Animated from 'react-native-reanimated';
 
-export default function GlobalMusicButton() {
+interface GlobalMusicButtonProps {
+    style?: any;
+}
+
+export default function GlobalMusicButton({ style }: GlobalMusicButtonProps) {
     const { isPlaying, setIsPlaying } = useMusicContext();
 
     const toggleMusic = async () => {
@@ -19,12 +24,12 @@ export default function GlobalMusicButton() {
     };
 
     return (
-        <View style={{
+        <Animated.View style={[{
             position: 'absolute',
-            top: 110, // Moved down for better positioning
-            right: 16,
+            top: 75, // Moved down for better positioning
+            right: 28,
             zIndex: 9999,
-        }}>
+        }, style]}>
             <SmoothButton
                 onPress={toggleMusic}
                 buttonStyle="bg-black/80 rounded-full"
@@ -38,6 +43,6 @@ export default function GlobalMusicButton() {
                     <Play color="white" size={20} fill="white" />
                 )}
             </SmoothButton>
-        </View>
+        </Animated.View>
     );
 }
