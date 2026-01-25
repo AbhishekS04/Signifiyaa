@@ -107,7 +107,7 @@ export default function MusicPromptModal({ onSelectMusic }: MusicPromptModalProp
                         // Fixed Colors: No purple shift on press
                         buttonStyle="bg-black rounded-full"
                         shadowStyle="bg-[#2a0a0a] rounded-full" // Dark bloody shadow
-                        depth={10} // Increased depth for more "Kick"
+                        depth={8} // Increased depth for more "Kick"
                         innerButtonStyle={styles.primaryButtonInner}
                     >
                         <Text style={styles.buttonTextWhite}>ENTER WITH MUSIC</Text>
@@ -120,7 +120,7 @@ export default function MusicPromptModal({ onSelectMusic }: MusicPromptModalProp
                         onPress={() => onSelectMusic(false)}
                         buttonStyle="bg-white rounded-full"
                         shadowStyle="bg-black rounded-full"
-                        depth={10} // Increased depth for more "Kick"
+                        depth={8} // Increased depth for more "Kick"
                         innerButtonStyle={styles.secondaryButtonInner}
                     >
                         <Text style={styles.buttonTextBlack}>ENTER WITHOUT MUSIC</Text>
