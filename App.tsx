@@ -1,17 +1,15 @@
 import "./global.css";
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts, ArchivoBlack_400Regular } from '@expo-google-fonts/archivo-black';
 import { Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
-import HomeScreen from './src/screens/HomeScreen';
-import AppNavigator from './src/navigation/AppNavigator';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+import { MusicProvider } from './src/context/MusicContext';
+import AppContent from './src/components/AppContent';
 
-// Disable strict mode to suppress "Reading from value during component render" warning
-// likely caused by library interactions (e.g. carousel) rather than application code
 configureReanimatedLogger({
   strict: false,
   level: ReanimatedLogLevel.warn,
@@ -31,7 +29,7 @@ export default function App() {
     'Softura': require('./fonts/Softura-Demo.otf'),
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
@@ -42,11 +40,13 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <AppNavigator />
-      </NavigationContainer>
-      <StatusBar style="light" />
-    </SafeAreaProvider>
+    <MusicProvider>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <AppContent />
+        </NavigationContainer>
+        <StatusBar style="light" />
+      </SafeAreaProvider>
+    </MusicProvider>
   );
 }

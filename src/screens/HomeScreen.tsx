@@ -19,6 +19,7 @@ import SocialConnect from '../components/SocialConnect';
 import FooterSection from '../components/FooterSection';
 import { PageTransition } from '../components/navigation/PageTransition';
 import { StaggerEntrance } from '../components/animations/StaggerEntrance';
+import GlobalMusicButton from '../components/GlobalMusicButton';
 
 export default function HomeScreen() {
     // 🔑 Use Reanimated Ref for Animated Components
@@ -110,6 +111,9 @@ export default function HomeScreen() {
                     </StaggerEntrance>
                 </Animated.ScrollView>
             </PageTransition>
+
+            {/* Global Music Button - Fixed Top Right */}
+            <GlobalMusicButton />
         </SafeAreaView >
     );
 }
