@@ -13,13 +13,16 @@ interface GlobalMusicButtonProps {
 export default function GlobalMusicButton({ style }: GlobalMusicButtonProps) {
     const { isPlaying, setIsPlaying } = useMusicContext();
 
-    const toggleMusic = async () => {
-        if (isPlaying) {
-            await MusicService.pauseMusic();
-            setIsPlaying(false);
+    const toggleMusic = () => {
+        // OPTIMISTIC UPDATE: Update UI immediately ⚡
+        const nextState = !isPlaying;
+        setIsPlaying(nextState);
+
+        // Fire and forget audio logic
+        if (nextState) {
+            MusicService.resumeMusic();
         } else {
-            await MusicService.resumeMusic();
-            setIsPlaying(true);
+            MusicService.pauseMusic();
         }
     };
 

@@ -3,50 +3,76 @@ import { Audio } from 'expo-av';
 class MusicService {
     private sound: Audio.Sound | null = null;
     private isCurrentlyPlaying: boolean = false;
+    private isLoaded: boolean = false;
 
-    async playMusic(musicSource: any, shouldPlay: boolean = true) {
+    constructor() {
+        this.initAudioMode();
+    }
+
+    private async initAudioMode() {
+        try {
+            await Audio.setAudioModeAsync({
+                allowsRecordingIOS: false,
+                staysActiveInBackground: true,
+                playsInSilentModeIOS: true,
+                shouldDuckAndroid: true,
+                playThroughEarpieceAndroid: false,
+            });
+        } catch (e) {
+            console.error('Error setting audio mode', e);
+        }
+    }
+
+    async loadMusic(musicSource: any) {
+        if (this.isLoaded) return; // Already loaded
+
         try {
             // Unload previous sound if exists
             if (this.sound) {
                 await this.sound.unloadAsync();
             }
 
-            // Create and load new sound
+            // Create and load new sound with shouldPlay: FALSE
             const { sound } = await Audio.Sound.createAsync(
                 musicSource,
-                { shouldPlay: shouldPlay, isLooping: true, volume: 0.5 }
+                { shouldPlay: false, isLooping: true, volume: 0.5 }
             );
 
             this.sound = sound;
-
-            if (shouldPlay) {
-                // Ensure it plays if requested, though createAsync handle it if shouldPlay is true
-                // keeping it consistent with state tracking
-                this.isCurrentlyPlaying = true;
-                console.log('Music started playing');
-            } else {
-                this.isCurrentlyPlaying = false;
-                console.log('Music loaded (paused)');
-            }
+            this.isLoaded = true;
+            console.log('Music PRELOADED successfully');
 
         } catch (error) {
-            console.error('Error playing music:', error);
+            console.error('Error loading music:', error);
+        }
+    }
+
+    async playMusic(musicSource: any, shouldPlay: boolean = true) {
+        if (!this.sound) {
+            // If not preloaded, load it now
+            await this.loadMusic(musicSource);
+        }
+
+        if (this.sound) {
+            if (shouldPlay) {
+                await this.sound.playAsync();
+                this.isCurrentlyPlaying = true;
+            }
         }
     }
 
     async pauseMusic() {
+        // Fire and forget usually better for UI responsiveness, but we abide by async
         if (this.sound && this.isCurrentlyPlaying) {
-            await this.sound.pauseAsync();
+            this.sound.pauseAsync(); // Don't await for UI speed?
             this.isCurrentlyPlaying = false;
-            console.log('Music paused');
         }
     }
 
     async resumeMusic() {
         if (this.sound && !this.isCurrentlyPlaying) {
-            await this.sound.playAsync();
+            this.sound.playAsync();
             this.isCurrentlyPlaying = true;
-            console.log('Music resumed');
         }
     }
 
@@ -56,6 +82,7 @@ class MusicService {
             await this.sound.unloadAsync();
             this.sound = null;
             this.isCurrentlyPlaying = false;
+            this.isLoaded = false;
         }
     }
 
