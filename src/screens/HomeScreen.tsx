@@ -1,5 +1,5 @@
-import React, { useEffect, useCallback } from 'react';
-import { View, Text } from 'react-native';
+import React, { useEffect, useCallback, useState } from 'react';
+import { View, Text, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Animated, {
@@ -25,11 +25,22 @@ export default function HomeScreen() {
     const scrollRef = useAnimatedRef<Animated.ScrollView>();
     const navigation = useNavigation();
     const route = useRoute();
+    const [refreshing, setRefreshing] = useState(false);
 
     // ⬆️ Scroll Logic (2 Taps)
     const handleScrollToTop = useCallback(() => {
         // Use optional chaining for safety - standard way to scroll from JS
         scrollRef.current?.scrollTo({ y: 0, animated: true });
+    }, []);
+
+    // 🔄 Pull to Refresh Logic
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+
+        // Simulate a network request or data reload
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 2000);
     }, []);
 
     // 🚀 Listen for Double-Click (params passed from TabNavigator)
@@ -66,6 +77,17 @@ export default function HomeScreen() {
                     decelerationRate="normal"
                     keyboardShouldPersistTaps="handled"
                     nestedScrollEnabled={true}
+
+                    // 🔄 Native Refresh Control
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor="#ffffff" // iOS
+                            colors={['#ffffff']} // Android
+                            progressBackgroundColor="#171717" // Android
+                        />
+                    }
                 >
                     <StaggerEntrance>
                         <View className="mb-4">
