@@ -1,7 +1,10 @@
-import React, { useRef, useEffect } from 'react';
-import { ScrollView, View } from 'react-native';
+import React, { useEffect, useCallback } from 'react';
+import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useIsFocused, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import Animated, {
+    useAnimatedRef,
+} from 'react-native-reanimated';
 import HeroSection from '../components/HeroSection';
 import AboutSection from '../components/AboutSection';
 import GallerySection from '../components/GallerySection';
@@ -18,58 +21,56 @@ import { PageTransition } from '../components/navigation/PageTransition';
 import { StaggerEntrance } from '../components/animations/StaggerEntrance';
 
 export default function HomeScreen() {
-    const scrollRef = useRef<ScrollView>(null);
+    // 🔑 Use Reanimated Ref for Animated Components
+    const scrollRef = useAnimatedRef<Animated.ScrollView>();
     const navigation = useNavigation();
     const route = useRoute();
-    const isFocused = useIsFocused();
 
-    // 🚀 Listen for scroll-to-top trigger from navigation params
+    // ⬆️ Scroll Logic (2 Taps)
+    const handleScrollToTop = useCallback(() => {
+        // Use optional chaining for safety - standard way to scroll from JS
+        scrollRef.current?.scrollTo({ y: 0, animated: true });
+    }, []);
+
+    // 🚀 Listen for Double-Click (params passed from TabNavigator)
     useEffect(() => {
         const params = route.params as any;
         if (params?.scrollToTop) {
-            // Native smooth scroll - already optimized by React Native
-            scrollRef.current?.scrollTo({
-                y: 0,
-                animated: true
-            });
+            handleScrollToTop();
+            // Reset param
+            navigation.setParams({ scrollToTop: undefined } as any);
         }
     }, [(route.params as any)?.scrollToTop]);
 
     return (
         <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
             <PageTransition style={{ flex: 1 }}>
-                <ScrollView
+
+                {/* Main Scroll Content */}
+                <Animated.ScrollView
                     ref={scrollRef}
                     className="flex-1"
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 0 }}
+                    contentContainerStyle={{
+                        paddingBottom: 0,
+                        minHeight: '100%'
+                    }}
                     scrollEventThrottle={16}
 
-                    // 🚀 Premium Scroll Performance
+                    // Native elastic bounce
+                    bounces={true}
+                    overScrollMode="always"
+
+                    // Performance Props
                     removeClippedSubviews={true}
                     decelerationRate="normal"
-
-                    // 🎨 Visual Smoothness
-                    overScrollMode="never"
-                    bounces={true}
-                    alwaysBounceVertical={false}
                     keyboardShouldPersistTaps="handled"
-
-                    // ⚡ Performance Optimizations
                     nestedScrollEnabled={true}
-                    persistentScrollbar={false}
-                    snapToAlignment="start"
-
-                    // 🧈 Anti-Jitter Specifics
-                    directionalLockEnabled={true}
-                    scrollToOverflowEnabled={false}
-                    pagingEnabled={false}
                 >
                     <StaggerEntrance>
                         <View className="mb-4">
                             <HeroSection />
                         </View>
-
                         <View className="px-4 gap-4">
                             <AboutSection />
                             <GallerySection />
@@ -80,14 +81,11 @@ export default function HomeScreen() {
                             <FAQSection />
                             <NewsletterSupport />
                         </View>
-
-                        {/* Social Connect at the very bottom */}
                         <SocialConnect />
                         <FooterSection />
                     </StaggerEntrance>
-
-                </ScrollView>
+                </Animated.ScrollView>
             </PageTransition>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }

@@ -13,6 +13,7 @@ import Animated, {
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
     const lastTapTime = useRef(0);
+    const tapCount = useRef(0);
     const tapTimeout = useRef<NodeJS.Timeout | null>(null);
 
     return (
@@ -38,44 +39,37 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
                         // 🚀 Smart Home Button Behavior
                         if (route.name === 'Home') {
                             if (isFocused) {
-                                // Already on Home → Set param to trigger scroll
-                                navigation.navigate('Home', { scrollToTop: Date.now() });
-                                return;
-                            } else {
-                                // Coming from another tab → Detect double-click
                                 const now = Date.now();
-                                const DOUBLE_TAP_DELAY = 300; // ms
+                                const TAP_DELAY = 400; // ms to qualify as a consecutive tap
 
-                                if (now - lastTapTime.current < DOUBLE_TAP_DELAY) {
-                                    // Double-click detected → Navigate and trigger scroll
-                                    if (tapTimeout.current) {
-                                        clearTimeout(tapTimeout.current);
-                                        tapTimeout.current = null;
-                                    }
-
-                                    // Navigate immediately with scroll param
-                                    if (!event.defaultPrevented) {
-                                        navigation.navigate(route.name, { ...route.params, scrollToTop: Date.now() });
-                                    }
-
-                                    lastTapTime.current = 0;
-                                    return;
+                                if (now - lastTapTime.current < TAP_DELAY) {
+                                    tapCount.current += 1;
                                 } else {
-                                    // First click → Set timeout for single-click navigation
-                                    if (tapTimeout.current) {
-                                        clearTimeout(tapTimeout.current);
-                                    }
+                                    tapCount.current = 1;
+                                }
+                                lastTapTime.current = now;
 
-                                    tapTimeout.current = setTimeout(() => {
-                                        if (!event.defaultPrevented) {
-                                            navigation.navigate(route.name, route.params);
-                                        }
-                                        tapTimeout.current = null;
-                                    }, DOUBLE_TAP_DELAY);
-
-                                    lastTapTime.current = now;
+                                if (tapCount.current === 2) {
+                                    // 🚀 2 Taps: Trigger Scroll immediately (No waiting)
+                                    navigation.navigate({ name: 'Home', params: { scrollToTop: Date.now() }, merge: true });
+                                    tapCount.current = 0; // Reset
                                     return;
                                 }
+
+                                // Reset count if it goes beyond 2 (optional, but good for cleanliness)
+                                if (tapCount.current > 2) {
+                                    tapCount.current = 1;
+                                }
+
+                                return;
+                            } else {
+                                // First visit to Home tab
+                                tapCount.current = 1;
+                                lastTapTime.current = Date.now();
+                                if (!event.defaultPrevented) {
+                                    navigation.navigate(route.name, route.params);
+                                }
+                                return;
                             }
                         }
 
