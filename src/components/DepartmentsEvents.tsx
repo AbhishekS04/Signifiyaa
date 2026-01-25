@@ -1,36 +1,38 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions, LayoutAnimation, Platform, UIManager } from 'react-native';
-import { Star, Plus, X, Volume2, VolumeX, ArrowLeft, ArrowRight } from 'lucide-react-native';
+import { View, Text, Platform, UIManager, Dimensions, TouchableOpacity } from 'react-native';
+import { Star, Volume2, VolumeX, ArrowLeft, ArrowRight } from 'lucide-react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
     withRepeat,
     withTiming,
     withSpring,
+    withDelay,
     Easing,
     interpolate,
     runOnJS,
-    useAnimatedScrollHandler,
     SharedValue,
-    Extrapolation
+    Extrapolation,
+    useDerivedValue
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import Carousel from 'react-native-reanimated-carousel';
 import { EVENTS_DATA } from '../data/EventsData';
 import SmoothButton from './ui/SmoothButton';
+import MusicService from '../services/MusicService';
+import { useMusicContext } from '../context/MusicContext';
+import { Image } from 'expo-image';
+import { useIsFocused } from '@react-navigation/native';
 
-// Enable LayoutAnimation on Android
+// Enable LayoutAnimation
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const { width } = Dimensions.get('window');
+const { width, height: screenHeight } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
-// ============================================
-// DESIGN SYSTEM: FONTS (EASY TO CHANGE)
-// ============================================
 const SECTION_FONTS = {
     SECTION_HEADER: 'Gilton',
     EVENT_TITLE: 'Gilton',
@@ -44,628 +46,382 @@ const SECTION_FONTS = {
 };
 
 
-const DepartmentsEvents = () => {
-    // ============================================
-    // STATE MANAGEMENT
-    // ============================================
-    const [selectedCategory, setSelectedCategory] = useState('ESPORTS');
+const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
+    // 🎵 Global Context & Focus
+    const { isPlaying: isGlobalMusicPlaying, setIsPlaying: setGlobalMusicPlaying } = useMusicContext();
+    const isFocused = useIsFocused(); // Track Tab Focus
+
+    // State
+    const [activeFilter, setActiveFilter] = useState('ALL'); // Default to ALL
+    const [selectedCategory, setSelectedCategory] = useState('ALL');
     const [containerWidth, setContainerWidth] = useState(width);
     const [textWidth, setTextWidth] = useState(0);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const translateX = useSharedValue(0);
 
-    // Shared value for real-time scroll sync (smoother dots)
+    // Visibility Tracking
+    const [sectionY, setSectionY] = useState(0);
+    const [sectionHeight, setSectionHeight] = useState(0);
+    const [isSectionVisible, setIsSectionVisible] = useState(true);
+
+    const translateX = useSharedValue(0);
     const scrollProgress = useSharedValue(0);
+
+    // 🎬 Animation Shared Values
+    const containerOpacity = useSharedValue(1);
+    const containerScale = useSharedValue(1);
+    const containerTranslateY = useSharedValue(0); // Vertical Motion
+
     const carouselRef = useRef<any>(null);
 
-    const filters = ['ESPORTS', 'CSE', 'CIVIL', 'MECHANICAL', 'EEE', 'ROBOTICS', 'NON-TECH'];
+    // ➕ Added 'ALL' to filters
+    const filters = ['ALL', 'ESPORTS', 'CSE', 'CIVIL', 'MECHANICAL', 'EEE', 'ROBOTICS', 'NON-TECH'];
     const MARQUEE_TEXT = "EVENTS ★ ★ SOET ★ ★ ";
-
-    // Carousel configuration - Center + Previews
-    // We use a smaller card width so side items (previews) are visible
-    const PEAK_WIDTH = 40; // Amount of next/prev card visible
-    const CARD_WIDTH = width * 0.78; // 78% of screen width
+    const CARD_WIDTH = width * 0.78;
     const CARD_HEIGHT = isSmallDevice ? 580 : 640;
 
-    // ============================================
-    // MARQUEE ANIMATION
-    // ============================================
+    // 🕵️‍♂️ VISIBILITY LOGIC
+    useDerivedValue(() => {
+        if (!scrollY) return;
+        const y = scrollY.value;
+        const isVisible = (y + screenHeight > sectionY + 100) && (y < sectionY + sectionHeight - 100);
+        runOnJS(setIsSectionVisible)(isVisible);
+    }, [scrollY, sectionY, sectionHeight]);
+
+
+    // Marquee
     useEffect(() => {
         if (textWidth > 0) {
             translateX.value = withRepeat(
-                withTiming(-textWidth, {
-                    duration: 4000,
-                    easing: Easing.linear,
-                }),
-                -1,
-                false
+                withTiming(-textWidth, { duration: 4000, easing: Easing.linear }),
+                -1, false
             );
         }
     }, [textWidth]);
 
-    const marqueeStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{ translateX: translateX.value }],
-        };
-    });
+    const marqueeStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: translateX.value }],
+    }));
 
-    // ============================================
-    // FILTER EVENTS BY CATEGORY
-    // ============================================
-    const filteredEvents = EVENTS_DATA.filter(event => event.category === selectedCategory);
+    // 📂 Filter Logic: Handle 'ALL' case
+    const filteredEvents = selectedCategory === 'ALL'
+        ? EVENTS_DATA
+        : EVENTS_DATA.filter(event => event.category === selectedCategory);
 
-    // ============================================
-    // SMOOTH FILTER TRANSITION
-    // ============================================
+    // 🌟 POLISHED ANIMATION (Scale + Fade + Slide)
     const handleFilterChange = (filter: string) => {
-        // Smooth layout animation for category change
-        LayoutAnimation.configureNext(
-            LayoutAnimation.create(
-                350,
-                LayoutAnimation.Types.easeInEaseOut,
-                LayoutAnimation.Properties.opacity
-            )
-        );
+        if (filter === activeFilter) return;
 
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        setActiveFilter(filter);
+
+        // 1. EXIT: Shrink, Fade Out, Slide Down
+        containerOpacity.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.quad) });
+        containerScale.value = withTiming(0.95, { duration: 200, easing: Easing.out(Easing.quad) });
+        containerTranslateY.value = withTiming(10, { duration: 200, easing: Easing.out(Easing.quad) }, () => {
+            runOnJS(updateCategoryData)(filter);
+        });
+    };
+
+    const updateCategoryData = (filter: string) => {
         setSelectedCategory(filter);
         setCurrentIndex(0);
-        scrollProgress.value = 0; // Reset scroll
+        scrollProgress.value = 0;
 
-        // Reset ScrollView to first item
+        // Reset Position for Entry (Start slightly above)
+        containerTranslateY.value = -10;
+
+        if (carouselRef.current) carouselRef.current.scrollTo({ index: 0, animated: false });
+
+        // 2. ENTRY: Expand, Fade In, Slide Up (Spring)
         setTimeout(() => {
-            if (carouselRef.current) {
-                carouselRef.current.scrollTo({ index: 0, animated: false });
-            }
+            containerOpacity.value = withTiming(1, { duration: 300 });
+            containerScale.value = withSpring(1, { damping: 15, stiffness: 120 });
+            containerTranslateY.value = withSpring(0, { damping: 15, stiffness: 120 });
         }, 50);
+    };
+
+    const containerAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: containerOpacity.value,
+        transform: [
+            { scale: containerScale.value },
+            { translateY: containerTranslateY.value }
+        ]
+    }));
+
+    // Audio Handlers
+    const handleVideoPlay = async () => {
+        if (MusicService.isPlaying()) {
+            await MusicService.pauseMusic();
+            setGlobalMusicPlaying(false);
+        }
+    };
+
+    const handleVideoStop = async () => {
+        // Only resume if implied
+        if (!MusicService.isPlaying()) {
+            await MusicService.resumeMusic();
+            setGlobalMusicPlaying(true);
+        }
     };
 
     return (
         <View className="w-full">
-            {/* ============================================ */}
-            {/* SECTION A: ABOUT SOET CARD                  */}
-            {/* ============================================ */}
+            {/* ABOUT SOET */}
             <View className="bg-[#E3F2FD] rounded-[30px] border-[3px] border-black pb-6 relative mb-4" style={{ padding: 24 }}>
-                {/* Star Icon */}
-                <View className="absolute top-6 left-6 bg-red-400 p-2 rounded-full border-2 border-black">
-                    <Star color="black" fill="black" size={20} />
-                </View>
-
-                {/* Header - Restructured to fix italic "SOET" text clipping */}
+                <View className="absolute top-6 left-6 bg-red-400 p-2 rounded-full border-2 border-black"><Star color="black" fill="black" size={20} /></View>
                 <View className="mb-4 mt-2">
                     <View className="flex-row" style={{ alignSelf: 'flex-end', marginRight: 8 }}>
-                        <Text className="text-4xl text-black"
-                            style={{ fontFamily: 'Gilton' }}>ABOUT </Text>
-                        <Text className="text-4xl text-black"
-                            style={{ fontFamily: 'Gilton' }}>SOET</Text>
+                        <Text className="text-4xl text-black" style={{ fontFamily: 'Gilton' }}>ABOUT </Text>
+                        <Text className="text-4xl text-black" style={{ fontFamily: 'Gilton' }}>SOET</Text>
                     </View>
                 </View>
-
-                {/* Body Text */}
-                <Text className=" text-black text-center leading-7 text-base p-4 pl-4 text-lg"
-                    style={{ fontFamily: 'Softura' }}>
+                <Text className="text-black text-center leading-7 text-base p-4 pl-4 text-lg" style={{ fontFamily: 'Softura' }}>
                     The School of Engineering and Technology stands as a beacon of technical excellence, fostering innovation and shaping the future engineers who will build tomorrow's world.
                 </Text>
             </View>
 
-            {/* ============================================ */}
-            {/* SECTION B: MARQUEE LABEL (SQUARE CORNERS)   */}
-            {/* ============================================ */}
-            <View
-                className="bg-[#FFEB3B] border-[3px] border-black py-3 overflow-hidden mb-4"
-                style={{
-                    transform: [{ rotate: '-1deg' }] // Subtle tilt for dynamic Neo-Brutalism effect
-                }}
-            >
+            {/* MARQUEE */}
+            <View className="bg-[#FFEB3B] border-[3px] border-black py-3 overflow-hidden mb-4" style={{ transform: [{ rotate: '-1deg' }] }}>
                 <Animated.View style={[marqueeStyle, { flexDirection: 'row', width: 2000 }]}>
-                    {/* Measure text width */}
-                    <Text
-                        onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
-                        className="absolute opacity-0 font-[Gilton] text-black text-lg tracking-widest"
-                    >
-                        {MARQUEE_TEXT}
-                    </Text>
-
-                    {/* Render multiple copies for infinite loop */}
-                    {[...Array(12)].map((_, i) => (
-                        <Text key={i} className="font-[Gilton] text-black text-lg tracking-widest">
-                            {MARQUEE_TEXT}
-                        </Text>
-                    ))}
+                    <Text onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)} className="absolute opacity-0 font-[Gilton] text-black text-lg tracking-widest">{MARQUEE_TEXT}</Text>
+                    {[...Array(12)].map((_, i) => <Text key={i} className="font-[Gilton] text-black text-lg tracking-widest">{MARQUEE_TEXT}</Text>)}
                 </Animated.View>
             </View>
 
-            {/* ============================================ */}
-            {/* SECTION C: SIGNIFIYA EVENTS CARD             */}
-            {/* ============================================ */}
-            <View className="bg-[#FFF8E1] border-[3px] border-black rounded-[30px] p-4 pb-10 min-h-[500px]" style={{ overflow: 'hidden' }}>
-
-                {/* Header */}
+            {/* EVENTS SECTION - Track Layout for Visibility */}
+            <View
+                className="bg-[#FFF8E1] border-[3px] border-black rounded-[30px] p-4 pb-10 min-h-[500px]"
+                style={{ overflow: 'hidden' }}
+                onLayout={(e) => {
+                    // Capture layout header offset
+                    setSectionY(e.nativeEvent.layout.y);
+                    setSectionHeight(e.nativeEvent.layout.height);
+                }}
+            >
                 <View className="items-center my-6">
-                    <Text className="text-4xl text-black  mb-2"
-                        style={{ fontFamily: SECTION_FONTS.SECTION_HEADER, paddingRight: 10 }}>SIGNIFIYA</Text>
-                    <Text className="text-4xl text-black "
-                        style={{ fontFamily: SECTION_FONTS.SECTION_HEADER, paddingRight: 10 }}>EVENTS</Text>
-                    <Text className="text-gray-500 text-center mt-2 px-8"
-                        style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}>
-                        Discover the diverse range of events happening at Signifiya'26.
-                    </Text>
+                    <Text className="text-4xl text-black mb-2" style={{ fontFamily: SECTION_FONTS.SECTION_HEADER, paddingRight: 10 }}>SIGNIFIYA</Text>
+                    <Text className="text-4xl text-black" style={{ fontFamily: SECTION_FONTS.SECTION_HEADER, paddingRight: 10 }}>EVENTS</Text>
+                    <Text className="text-gray-500 text-center mt-2 px-8" style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}>Discover the diverse range of events happening at Signifiya'26.</Text>
                 </View>
 
-                {/* ============================================ */}
-                {/* FILTER PILLS (Interactive)                  */}
-                {/* ============================================ */}
-                <View className="flex-row flex-wrap justify-center gap-2 mb-8" >
-                    {filters.map((filter, index) => (
-                        <View key={index}>
-                            <SmoothButton
-                                onPress={() => handleFilterChange(filter)}
-                                buttonStyle={`px-4 py-2 rounded-full border-2 border-black ${selectedCategory === filter ? 'bg-[#9d4edd]' : 'bg-white'}`}
-                                shadowStyle="bg-black rounded-full"
-                                depth={4}
-                            >
-                                <Text
-                                    className={`text-[12px] uppercase tracking-wider ${selectedCategory === filter ? 'text-white' : 'text-black'}`}
-                                    style={{ fontFamily: SECTION_FONTS.FILTER_LABEL }}
-                                >
-                                    {filter}
-                                </Text>
-                            </SmoothButton>
-                        </View>
+                {/* FILTERS */}
+                <View className="flex-row flex-wrap justify-center gap-2 mb-8">
+                    {filters.map((filter) => (
+                        <SmoothButton
+                            key={filter}
+                            onPress={() => handleFilterChange(filter)}
+                            buttonStyle={`px-4 py-2 rounded-full border-2 border-black ${activeFilter === filter ? 'bg-[#9d4edd]' : 'bg-white'}`}
+                            shadowStyle="bg-black rounded-full"
+                            depth={4}
+                        >
+                            <Text className={`text-[12px] uppercase tracking-wider ${activeFilter === filter ? 'text-white' : 'text-black'}`} style={{ fontFamily: SECTION_FONTS.FILTER_LABEL }}>{filter}</Text>
+                        </SmoothButton>
                     ))}
                 </View>
 
-                {/* CAROUSEL: Swipeable Event Cards             */}
-                {/* ============================================ */}
-                {filteredEvents.length > 0 ? (
-                    <View
-                        onLayout={(e) => {
-                            const { width: layoutWidth } = e.nativeEvent.layout;
-                            setContainerWidth(layoutWidth);
-                        }}
-                        style={{ height: isSmallDevice ? 620 : 720, alignItems: 'center' }}
-                    >
-                        <View className="relative w-full items-center justify-center">
-                            <Carousel
-                                key={selectedCategory} // Force re-render on category change
-                                loop={true} // Infinite loop for smoother feel
-                                ref={carouselRef}
-                                width={containerWidth} // Full container width for parallax calculation
-                                height={CARD_HEIGHT}
-                                autoPlay={false}
-                                data={filteredEvents}
-                                scrollAnimationDuration={600} // Snappier but smooth
-                                onSnapToItem={(index) => {
-                                    runOnJS(setCurrentIndex)(index);
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                }}
-                                onProgressChange={(progress, absoluteProgress) => {
-                                    scrollProgress.value = absoluteProgress;
-                                }}
-                                // Parallax mode removed to prevent video clipping artifacts
-                                windowSize={3} // Rendering optimization
-                                renderItem={({ item, index, animationValue }) => {
-                                    return (
+                {/* CAROUSEL */}
+                <Animated.View style={[{ minHeight: isSmallDevice ? 620 : 720 }, containerAnimatedStyle]}>
+                    {filteredEvents.length > 0 ? (
+                        <View onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)} style={{ alignItems: 'center' }}>
+                            <View className="relative w-full items-center justify-center">
+                                <Carousel
+                                    key={selectedCategory} // Key forces wipe clean if needed, but smooth update is better
+                                    loop={true}
+                                    ref={carouselRef}
+                                    width={containerWidth}
+                                    height={CARD_HEIGHT}
+                                    autoPlay={false}
+                                    data={filteredEvents}
+                                    scrollAnimationDuration={600}
+                                    onSnapToItem={(index) => {
+                                        runOnJS(setCurrentIndex)(index);
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    }}
+                                    onProgressChange={(_, absoluteProgress) => scrollProgress.value = absoluteProgress}
+                                    windowSize={3}
+                                    renderItem={({ item, index, animationValue }) => (
                                         <CustomItem
                                             item={item}
                                             animationValue={animationValue}
-                                            isActive={index === currentIndex}
+                                            // 🎯 PLAY LOGIC: Active Index + Section Visible + Screen Focused
+                                            isActive={index === currentIndex && isSectionVisible && isFocused}
                                             width={CARD_WIDTH}
+                                            onVideoPlay={handleVideoPlay}
+                                            onVideoStop={handleVideoStop}
                                         />
-                                    );
-                                }}
-                            />
+                                    )}
+                                />
 
-                            {/* Navigation Buttons - With Press Animation */}
-                            <NavButton
-                                direction="left"
-                                onPress={() => {
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                    carouselRef.current?.scrollTo({ count: -1, animated: true });
-                                }}
-                            />
-
-                            <NavButton
-                                direction="right"
-                                onPress={() => {
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                    carouselRef.current?.scrollTo({ count: 1, animated: true });
-                                }}
-                            />
-                        </View>
-
-                        {/* ============================================ */}
-                        {/* PAGINATION DOTS (Real-time Sync)             */}
-                        {/* ============================================ */}
-                        {filteredEvents.length > 1 && (
-                            <View className="flex-row justify-center items-center mt-8 gap-2">
-                                {filteredEvents.map((_, index) => (
-                                    <PaginationDot
-                                        key={index}
-                                        index={index}
-                                        scrollProgress={scrollProgress}
-                                        length={filteredEvents.length}
-                                        onPress={() => {
-                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                            carouselRef.current?.scrollTo({ index, animated: true });
-                                        }}
-                                    />
-                                ))}
+                                {/* ⏪ 3D ARROWS RESTORED & CENTERED */}
+                                <NavButton direction="left" onPress={() => carouselRef.current?.scrollTo({ count: -1, animated: true })} />
+                                <NavButton direction="right" onPress={() => carouselRef.current?.scrollTo({ count: 1, animated: true })} />
                             </View>
-                        )}
-                    </View>
-                ) : ( // No events found message
-                    <View className="items-center py-12">
-                        <Text className="font-[Inter_700Bold] text-gray-400 text-lg">
-                            No events in this category yet!
-                        </Text>
-                        <Text className="font-[Inter_400Regular] text-gray-400 text-sm mt-2">
-                            Check back soon for updates.
-                        </Text>
-                    </View>
-                )
-                }
+
+                            {/* DOTS (Simple) */}
+                            {filteredEvents.length > 1 && (
+                                <View className="flex-row justify-center items-center mt-8 gap-2">
+                                    {filteredEvents.map((_, index) => (
+                                        <PaginationDot
+                                            key={index}
+                                            index={index}
+                                            scrollProgress={scrollProgress}
+                                            length={filteredEvents.length}
+                                            onPress={() => carouselRef.current?.scrollTo({ index, animated: true })}
+                                        />
+                                    ))}
+                                </View>
+                            )}
+                        </View>
+                    ) : (
+                        <View className="items-center py-12">
+                            <Text className="text-gray-400 text-lg">No events in this category yet!</Text>
+                        </View>
+                    )}
+                </Animated.View>
             </View>
         </View>
     );
 };
 
-// ============================================
-// CUSTOM ANIMATED ITEM (Simpler 3D Effect)
-// ============================================
-// ============================================
-// CUSTOM ANIMATED ITEM (Simpler 3D Effect)
-// ============================================
-const CustomItem = React.memo(({ item, animationValue, isActive, width }: { item: any, animationValue: SharedValue<number>, isActive: boolean, width: number }) => {
+// CustomItem wrapper
+const CustomItem = React.memo(({ item, animationValue, isActive, width, onVideoPlay, onVideoStop }: {
+    item: any, animationValue: SharedValue<number>, isActive: boolean, width: number,
+    onVideoPlay: () => void, onVideoStop: () => void
+}) => {
     const animatedStyle = useAnimatedStyle(() => {
-        // Simple Scale - Middle is 1, Sides are 0.9
-        const scale = interpolate(
-            animationValue.value,
-            [-1, 0, 1],
-            [0.9, 1, 0.9],
-            Extrapolation.CLAMP
-        );
-
-        // Simple Opacity - Middle is 1, Sides are 0.7
-        const opacity = interpolate(
-            animationValue.value,
-            [-1, 0, 1],
-            [0.7, 1, 0.7],
-            Extrapolation.CLAMP
-        );
-
-        return {
-            transform: [
-                { scale },
-                // removed heavy 3D rotation for a cleaner "preview" look
-            ],
-            opacity,
-            zIndex: isActive ? 10 : 1, // Ensure active card is on top
-        };
+        const scale = interpolate(animationValue.value, [-1, 0, 1], [0.9, 1, 0.9], Extrapolation.CLAMP);
+        const opacity = interpolate(animationValue.value, [-1, 0, 1], [0.7, 1, 0.7], Extrapolation.CLAMP);
+        return { transform: [{ scale }], opacity, zIndex: isActive ? 10 : 1 };
     });
 
     return (
         <Animated.View style={[{ flex: 1, justifyContent: 'center', alignItems: 'center' }, animatedStyle]}>
             <View style={{ width: width, height: '100%', alignItems: 'center', paddingBottom: 12 }}>
-                <EventCard
-                    title={item.title}
-                    date={item.date}
-                    category={item.category}
-                    description={item.description}
-                    prizePool={item.prizePool}
-                    imageColor={item.imageColor}
-                    buttonColor={item.buttonColor}
-                    imageUrl={item.imageUrl}
-                    videoUrl={item.videoUrl}
-                    isActive={isActive}
-                />
+                <EventCard {...item} isActive={isActive} onVideoPlay={onVideoPlay} onVideoStop={onVideoStop} />
             </View>
         </Animated.View>
     );
 });
 
-// ============================================
-// PAGINATION DOT COMPONENT (Reanimated)
-// ============================================
-// ============================================
-// PAGINATION DOT COMPONENT (Reanimated)
-// ============================================
-const PaginationDot = React.memo(({ index, scrollProgress, length, onPress }: { index: number, scrollProgress: SharedValue<number>, length: number, onPress: () => void }) => {
-
-    // Animate width based on scroll progress (0 to length-1)
-    const animatedStyle = useAnimatedStyle(() => {
-        // We use absolute progress which naturally handles loops in some carousel configs,
-        // but for basic length, we might need modulo if loop is purely index based.
-        // However, standard absolute progress usually maps directly to index.
-        // Let's use a "distance" approach for highlighting.
-
-        // Handle varying loop indices if necessary, but direct diff is usually fine for these props
-        // We'll create a range around the current index.
-
-        // Clamp scrollProgress for safer interpolation if mostly linear
-        // Note: infinite loop scrollProgress keeps increasing. 
-        // We need modulo logic for infinite loop dots:
-        const currentScrollIndex = Math.abs(scrollProgress.value) % length;
-
-        // Check "distance" from this dot's index
-        // Circular distance for infinite loop
-        let dist = Math.abs(currentScrollIndex - index);
-        if (dist > length / 2) {
-            dist = length - dist;
-        }
-
-        // Active if distance is close to 0
-        const isActive = dist < 0.5;
-
-        // Smooth Interpolation
-        const width = interpolate(dist, [0, 1], [32, 8], Extrapolation.CLAMP);
-        const opacity = interpolate(dist, [0, 1], [1, 0.3], Extrapolation.CLAMP);
-        const color = isActive ? 'black' : '#D1D5DB'; // black vs gray-300
-
-        return {
-            width,
-            opacity,
-            backgroundColor: color
-        };
-    });
-
-    return (
-        <TouchableOpacity onPress={onPress} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 5, right: 5 }}>
-            <Animated.View
-                className="h-2 rounded-full"
-                style={animatedStyle}
-            />
-        </TouchableOpacity>
-    );
-});
-
-// ============================================
-// NAV BUTTON (With Press Animation)
-// ============================================
-// ============================================
-// NAV BUTTON (With Press Animation)
-// ============================================
-const NavButton = React.memo(({ direction, onPress }: { direction: 'left' | 'right', onPress: () => void }) => {
-    const scale = useSharedValue(1);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: scale.value }]
-    }));
-
-    const onPressIn = () => {
-        scale.value = withSpring(0.9);
-    };
-
-    const onPressOut = () => {
-        scale.value = withSpring(1);
-    };
-
-    return (
-        <TouchableOpacity
-            onPress={onPress}
-            onPressIn={onPressIn}
-            onPressOut={onPressOut}
-            className={`absolute ${direction === 'left' ? 'left-0' : 'right-0'} w-12 h-12 bg-white rounded-full border-[3px] border-black items-center justify-center z-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`}
-            style={{
-                top: '105%', // To move UP/DOWN change this percentage (e.g. 50% is center, 60% is lower)
-                transform: [{ translateY: -24 }] // Centers the button itself
-            }}
-            activeOpacity={0.9}
-        >
-            <Animated.View style={animatedStyle}>
-                {direction === 'left' ? (
-                    <ArrowLeft size={24} color="black" strokeWidth={3} />
-                ) : (
-                    <ArrowRight size={24} color="black" strokeWidth={3} />
-                )}
-            </Animated.View>
-        </TouchableOpacity>
-    );
-});
-
-// ============================================
-// REUSABLE EVENT CARD COMPONENT
-// ============================================
-interface EventCardProps {
-    title: string;
-    date: string;
-    category: string;
-    description: string;
-    prizePool: string;
-    imageColor: string;
-    buttonColor: string;
-    imageUrl?: string;
-    videoUrl?: string; // New field for video support
-    isActive: boolean; // Controls video playback visibility
-}
-
-const EventCard = React.memo(({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl, isActive }: EventCardProps) => {
-    // Track muted state for UI updates
+// EventCard with Instant Image & Video Logic
+const EventCard = React.memo(({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl, isActive, onVideoPlay, onVideoStop }: any) => {
     const [isMuted, setIsMuted] = useState(true);
 
-    // Initialize video player for expo-video
     const player = useVideoPlayer(videoUrl || '', (player) => {
         player.loop = true;
-        // Only play if active to save resources and prevent bleeding
-        if (isActive) {
-            player.play();
-        } else {
-            player.pause();
-        }
         player.muted = true;
     });
 
-    // Effect to control playback based on active state
+    // ⚡ CONTROL PLAYBACK
     useEffect(() => {
         if (isActive) {
             player.play();
         } else {
+            // STOP immediately if scrolled away or hidden
             player.pause();
-            player.currentTime = 0; // Reset video when scrolling away
-
-            // Reset mute state so it's fresh (muted) next time
-            if (!player.muted) {
+            player.currentTime = 0;
+            if (!isMuted) {
+                // Determine if we need to release audio focus
+                // If it was playing (unmuted), we stop it and tell parent to resume global
                 player.muted = true;
                 setIsMuted(true);
+                onVideoStop();
             }
         }
-    }, [isActive, player]);
+    }, [isActive]);
 
     const toggleMute = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         const newMutedState = !isMuted;
         setIsMuted(newMutedState);
         player.muted = newMutedState;
+        if (!newMutedState) onVideoPlay();
+        else onVideoStop();
     };
 
     return (
         <View className="relative w-full h-full">
-            {/* Main 3D Shadow for Card */}
             <View className="absolute top-2 left-2 w-full h-full bg-black rounded-[32px]" />
-
-            <View
-                className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden w-full h-full"
-                style={{ backfaceVisibility: 'hidden' }} // Strict overflow and backface visibility
-            >
-                {/* Poster Header - Fixed Height */}
-                <View
-                    className="relative w-full bg-black overflow-hidden"
-                    style={{
-                        height: isSmallDevice ? 220 : 280,
-                        marginBottom: -5, // Ensure seamless connection with content
-                        overflow: 'hidden',
-                        borderTopLeftRadius: 29,
-                        borderTopRightRadius: 29
-                    }}
-                >
-                    {/* Media Container with absolute positioning fixes */}
-                    <View className="absolute inset-0 w-full h-full overflow-hidden bg-black">
+            <View className="bg-black border-[3px] border-black rounded-[32px] overflow-hidden w-full h-full" style={{ backfaceVisibility: 'hidden' }}>
+                <View className="relative w-full bg-black overflow-hidden" style={{ height: isSmallDevice ? 220 : 280, marginBottom: -5, borderTopLeftRadius: 29, borderTopRightRadius: 29 }}>
+                    <View className="absolute inset-0 w-full h-full bg-black">
                         {videoUrl ? (
-                            <View className="w-full h-full" pointerEvents="box-none">
-                                <VideoView
-                                    player={player}
-                                    style={{
-                                        width: '100%',
-                                        height: '100%',
-                                    }}
-                                    contentFit="cover"
-                                    nativeControls={false}
-                                    pointerEvents="none"
-                                />
-                                <TouchableOpacity
+                            <View className="w-full h-full">
+                                <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit="cover" nativeControls={false} />
+                                <SmoothButton
                                     onPress={toggleMute}
-                                    className="absolute bottom-4 right-4 bg-black/60 p-2 rounded-full border border-white/20 z-10"
+                                    containerStyle={{ position: 'absolute', bottom: 16, right: 16, zIndex: 20 }}
+                                    buttonStyle="bg-black/60 rounded-full w-10 h-10 items-center justify-center border border-white/20"
+                                    depth={0}
                                 >
-                                    {isMuted ? (
-                                        <VolumeX size={18} color="white" />
-                                    ) : (
-                                        <Volume2 size={18} color="white" />
-                                    )}
-                                </TouchableOpacity>
+                                    {isMuted ? <VolumeX size={18} color="white" /> : <Volume2 size={18} color="white" />}
+                                </SmoothButton>
                             </View>
                         ) : imageUrl ? (
-                            <Image
-                                source={{ uri: imageUrl }}
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                }}
-                                resizeMode="cover"
-                            />
-                        ) : (
-                            <View className="w-full h-full items-center justify-center" style={{ backgroundColor: imageColor }}>
-                                <Text className="text-black font-bold opacity-20">POSTER GOES HERE</Text>
+                            <View className="w-full h-full">
+                                <Image source={{ uri: imageUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={200} cachePolicy="memory-disk" />
                             </View>
+                        ) : (
+                            <View className="w-full h-full items-center justify-center" style={{ backgroundColor: imageColor }}><Text className="text-black font-bold opacity-20">POSTER GOES HERE</Text></View>
                         )}
                     </View>
-
-                    {/* Perfect Border Bottom Overlay */}
-                    <View
-                        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: 'black' }}
-                        pointerEvents="none"
-                    />
-
-                    {/* Category Badge */}
-                    <View className="absolute top-4 right-4 bg-black px-4 py-2 rounded-full border-2 border-white/20">
-                        <Text
-                            className="text-white text-[10px] tracking-widest uppercase"
-                            style={{ fontFamily: SECTION_FONTS.BADGE }}
-                            numberOfLines={1}
-                        >
-                            {category}
-                        </Text>
-                    </View>
+                    <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: 'black' }} pointerEvents="none" />
+                    <View className="absolute top-4 right-4 bg-black px-4 py-2 rounded-full border-2 border-white/20"><Text className="text-white text-[10px] tracking-widest uppercase" style={{ fontFamily: SECTION_FONTS.BADGE }}>{category}</Text></View>
                 </View>
 
-                {/* Content Area - Fixed Layout */}
                 <View className={`bg-white ${isSmallDevice ? 'p-3' : 'p-5'}`} style={{ flex: 1, justifyContent: 'space-between', alignItems: 'center' }}>
                     <View style={{ alignItems: 'center', width: '100%' }}>
-                        {/* Event Title - Max 2 Lines */}
-                        <Text
-                            className="text-black uppercase leading-8 mb-1 text-center"
-                            style={{ fontFamily: SECTION_FONTS.EVENT_TITLE, fontSize: isSmallDevice ? 24 : 30, lineHeight: isSmallDevice ? 28 : 32 }}
-                            numberOfLines={2}
-                            ellipsizeMode="tail"
-                        >
-                            {title}
-                        </Text>
-
-                        {/* Event Date - Max 1 Line */}
-                        <Text
-                            className="text-[#8e99af] mb-3 text-center"
-                            style={{ fontFamily: SECTION_FONTS.DATE, fontSize: isSmallDevice ? 14 : 18 }}
-                            numberOfLines={1}
-                        >
-                            {date}
-                        </Text>
-
-                        {/* Prize Pool Tag */}
-                        <View className={`bg-[#B9F6CA] rounded-full border-black mb-4 ${isSmallDevice ? 'px-3 py-1' : 'px-4 py-1.5'}`}>
-                            <Text className="text-black text-xs text-center" style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_LABEL }} numberOfLines={1}>
-                                Prize pool: <Text style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_VALUE }}>{prizePool}</Text>
-                            </Text>
-                        </View>
-
-                        {/* Short Description - Max 2 Lines */}
-                        <Text
-                            className="text-black/80 text-sm leading-5 mb-4 text-center px-2"
-                            style={{ fontFamily: SECTION_FONTS.DESCRIPTION, fontSize: isSmallDevice ? 12 : 14 }}
-                            numberOfLines={3}
-                            ellipsizeMode="tail"
-                        >
-                            {description || "Join this exciting event and showcase your skills! More details coming soon."}
-                        </Text>
+                        <Text className="text-black uppercase leading-8 mb-1 text-center" style={{ fontFamily: SECTION_FONTS.EVENT_TITLE, fontSize: isSmallDevice ? 24 : 30 }} numberOfLines={2}>{title}</Text>
+                        <Text className="text-[#8e99af] mb-3 text-center" style={{ fontFamily: SECTION_FONTS.DATE, fontSize: isSmallDevice ? 14 : 18 }}>{date}</Text>
+                        <View className={`bg-[#B9F6CA] rounded-full border-black mb-4 ${isSmallDevice ? 'px-3 py-1' : 'px-4 py-1.5'}`}><Text className="text-black text-xs text-center" style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_LABEL }}>Prize pool: <Text style={{ fontFamily: SECTION_FONTS.PRIZE_POOL_VALUE }}>{prizePool}</Text></Text></View>
+                        <Text className="text-black/80 text-sm leading-5 mb-4 text-center px-2" style={{ fontFamily: SECTION_FONTS.DESCRIPTION, fontSize: isSmallDevice ? 12 : 14 }} numberOfLines={3}>{description}</Text>
                     </View>
-
-                    {/* Action Buttons - Fixed At Bottom */}
                     <View className={`gap-4 w-full ${isSmallDevice ? 'mt-1' : 'mt-4'}`}>
-                        <SmoothButton
-                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                            buttonStyle={`border-[3px] border-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`}
-                            innerButtonStyle={{ backgroundColor: buttonColor }}
-                            shadowStyle="bg-black rounded-2xl"
-                            depth={6}
-                        >
-                            <Text className="text-black uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
-                                VIEW DETAILS
-                            </Text>
-                        </SmoothButton>
-
-                        {/* Register Button */}
-                        <SmoothButton
-                            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)}
-                            buttonStyle={`bg-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`}
-                            shadowStyle="bg-black rounded-2xl"
-                            depth={6}
-                        >
-                            <Text className="text-white uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>
-                                REGISTER
-                            </Text>
-                        </SmoothButton>
+                        <SmoothButton onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)} buttonStyle={`border-[3px] border-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`} innerButtonStyle={{ backgroundColor: buttonColor }} shadowStyle="bg-black rounded-2xl" depth={6}><Text className="text-black uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>VIEW DETAILS</Text></SmoothButton>
+                        <SmoothButton onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)} buttonStyle={`bg-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`} shadowStyle="bg-black rounded-2xl" depth={6}><Text className="text-white uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>REGISTER</Text></SmoothButton>
                     </View>
                 </View>
             </View>
         </View>
+    );
+});
+
+const PaginationDot = React.memo(({ index, scrollProgress, length, onPress }: any) => {
+    const animatedStyle = useAnimatedStyle(() => {
+        const currentScrollIndex = Math.abs(scrollProgress.value) % length;
+        let dist = Math.abs(currentScrollIndex - index);
+        if (dist > length / 2) dist = length - dist;
+        const isActive = dist < 0.5;
+        const width = interpolate(dist, [0, 1], [32, 8], Extrapolation.CLAMP);
+        const opacity = interpolate(dist, [0, 1], [1, 0.3], Extrapolation.CLAMP);
+        return { width, opacity, backgroundColor: isActive ? 'black' : '#D1D5DB' };
+    });
+    return (
+        <TouchableOpacity onPress={onPress} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 5, right: 5 }}>
+            <Animated.View className="h-2 rounded-full" style={animatedStyle} />
+        </TouchableOpacity>
+    );
+});
+
+// 🔄 RESTORED: 3D NAV BUTTONS, CENTERED
+const NavButton = React.memo(({ direction, onPress }: { direction: 'left' | 'right', onPress: () => void }) => {
+    return (
+        <SmoothButton
+            onPress={onPress}
+            containerStyle={{
+                position: 'absolute',
+                [direction === 'left' ? 'left' : 'right']: 0,
+                // Centered Alignment
+                top: '50%',
+                transform: [{ translateY: -24 }],
+                zIndex: 50
+            }}
+            buttonStyle="w-12 h-12 bg-white rounded-full border-[3px] border-black items-center justify-center"
+            shadowStyle="bg-black rounded-full"
+            depth={4}
+        >
+            {direction === 'left' ? <ArrowLeft size={24} color="black" strokeWidth={3} /> : <ArrowRight size={24} color="black" strokeWidth={3} />}
+        </SmoothButton>
     );
 });
 

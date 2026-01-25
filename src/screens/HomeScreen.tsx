@@ -130,7 +130,7 @@ export default function HomeScreen() {
                         </View>
 
                         <View className="px-4 gap-4">
-                            <DepartmentsEvents />
+                            <DepartmentsEvents scrollY={scrollY} />
                             <PrizesSponsors />
                             <PastGlimpses />
                             <TeamSection />

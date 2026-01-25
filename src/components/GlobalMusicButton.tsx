@@ -35,8 +35,8 @@ export default function GlobalMusicButton({ style }: GlobalMusicButtonProps) {
         }, style]}>
             <SmoothButton
                 onPress={toggleMusic}
-                buttonStyle="bg-black/80 rounded-full"
-                shadowStyle="bg-black/40 rounded-full"
+                buttonStyle="bg-black/85 rounded-full"
+                shadowStyle="bg-black/90 rounded-full"
                 depth={4}
                 innerButtonStyle={{ padding: 12 }}
             >
