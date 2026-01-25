@@ -1,5 +1,6 @@
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, Dimensions } from 'react-native';
 import { Smile } from 'lucide-react-native';
+import SmoothButton from './ui/SmoothButton';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
@@ -35,12 +36,18 @@ const AboutSection = () => {
             </View>
 
             {/* Button */}
-            <TouchableOpacity className="bg-black rounded-full px-8 py-4 self-start active:translate-y-1">
+            <SmoothButton
+                containerStyle={{ alignSelf: 'flex-start' }}
+                buttonStyle="bg-black rounded-full"
+                shadowStyle="bg-gray-800 rounded-full"
+                depth={3}
+                innerButtonStyle={{ paddingHorizontal: 32, paddingVertical: 16 }}
+            >
                 <Text className="text-white text-sm uppercase tracking-widest"
                     style={{ fontFamily: 'Softura' }}>
                     GET VISITOR'S PASS
                 </Text>
-            </TouchableOpacity>
+            </SmoothButton>
 
             {/* Footer Note */}
             <Text className="text-gray-600 text-[10px] leading-3 mt-6 ml-1"

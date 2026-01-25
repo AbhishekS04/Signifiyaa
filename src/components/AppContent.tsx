@@ -7,7 +7,7 @@ import AppNavigator from '../navigation/AppNavigator';
 
 // CONSTANT SOURCE
 const MUSIC_SOURCE = {
-    uri: 'https://res.cloudinary.com/dldhfjo5v/video/upload/v1769352085/The_Weeknd_Playboi_Carti_-_Timeless_Official_Audio_nzylcx.mp4'
+    uri: 'https://res.cloudinary.com/dldhfjo5v/video/upload/v1769373781/public_song_kden7k.mp3'
 };
 
 export default function AppContent() {
