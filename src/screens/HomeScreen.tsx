@@ -26,6 +26,7 @@ export default function HomeScreen() {
     const navigation = useNavigation();
     const route = useRoute();
     const [refreshing, setRefreshing] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // ⬆️ Scroll Logic (2 Taps)
     const handleScrollToTop = useCallback(() => {
@@ -40,6 +41,7 @@ export default function HomeScreen() {
         // Simulate a network request or data reload
         setTimeout(() => {
             setRefreshing(false);
+            setRefreshKey(prev => prev + 1); // 🔄 Trigger Re-mount to replay animations
         }, 2000);
     }, []);
 
@@ -89,7 +91,7 @@ export default function HomeScreen() {
                         />
                     }
                 >
-                    <StaggerEntrance>
+                    <StaggerEntrance key={refreshKey}>
                         <View className="mb-4">
                             <HeroSection />
                         </View>
