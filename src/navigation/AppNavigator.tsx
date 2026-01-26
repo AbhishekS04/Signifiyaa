@@ -7,6 +7,7 @@ import GalleryScreen from '../screens/GalleryScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import PaymentsScreen from '../screens/PaymentsScreen';
 import { EventsScreen } from '../screens/PlaceholderScreens';
+import AuthScreen from '../screens/AuthScreen';
 import { CustomTabBar } from '../components/navigation/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
@@ -62,6 +63,15 @@ export default function AppNavigator() {
         <View style={{ flex: 1, backgroundColor: '#000' }}>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="Main" component={MainTabs} />
+                <Stack.Screen
+                    name="Auth"
+                    component={AuthScreen}
+                    options={{
+                        presentation: 'modal',
+                        cardStyle: { backgroundColor: '#F5E6FA' }, // Ensure background is painted immediately
+                        gestureEnabled: true,
+                    }}
+                />
             </Stack.Navigator>
         </View>
     );

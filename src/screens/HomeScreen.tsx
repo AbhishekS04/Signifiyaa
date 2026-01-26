@@ -34,7 +34,6 @@ export default function HomeScreen() {
     const route = useRoute();
     const [refreshing, setRefreshing] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
-    const [isSignInModalVisible, setSignInModalVisible] = useState(false);
 
     // ⬆️ Scroll Logic (2 Taps)
     const handleScrollToTop = useCallback(() => {
@@ -75,8 +74,8 @@ export default function HomeScreen() {
     const musicButtonOpacity = useSharedValue(1);
 
     useEffect(() => {
-        musicButtonOpacity.value = withTiming(isSignInModalVisible ? 0 : 1, { duration: 300 });
-    }, [isSignInModalVisible]);
+        musicButtonOpacity.value = withTiming(1, { duration: 300 });
+    }, []);
 
     const musicButtonStyle = useAnimatedStyle(() => {
         return {
@@ -93,7 +92,7 @@ export default function HomeScreen() {
         <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
             <PageTransition style={{ flex: 1 }}>
                 {/* 🎵 Global Music Button - Fixed but moves with Refresh */}
-                <Animated.View style={[musicButtonStyle, { position: 'absolute', zIndex: 50, right: 20, top: 20 }]} pointerEvents={isSignInModalVisible ? 'none' : 'auto'}>
+                <Animated.View style={[musicButtonStyle, { position: 'absolute', zIndex: 50, right: 20, top: 20 }]}>
                     <GlobalMusicButton />
                 </Animated.View>
 
@@ -134,7 +133,7 @@ export default function HomeScreen() {
 
                     <StaggerEntrance key={refreshKey}>
                         <View className="mb-4">
-                            <HeroSection onSignInPress={() => setSignInModalVisible(true)} />
+                            <HeroSection onSignInPress={() => (navigation as any).navigate('Auth')} />
                         </View>
                         <View className="px-4 gap-4 pb-4">
                             <AboutSection />
@@ -159,7 +158,7 @@ export default function HomeScreen() {
                     {/* Fixed: Removed duplicate Music Button from here */}
                 </Animated.ScrollView>
 
-                <SignInModal isVisible={isSignInModalVisible} onClose={() => setSignInModalVisible(false)} />
+
             </PageTransition>
         </SafeAreaView >
     );

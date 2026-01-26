@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Image, Platform, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Image, Platform, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { Copy, ChevronDown, Calendar, Ticket, Lock, User } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
 import Animated, { FadeIn, Easing } from 'react-native-reanimated';
 import { PageTransition } from '../components/navigation/PageTransition';
+import { useAuth } from '../context/AuthContext';
 
 // Font Constants
 const FONT_MAIN = 'Gilton';
@@ -60,6 +62,8 @@ const ShadowAvatar = ({ children }: { children: React.ReactNode }) => (
 );
 
 const ProfileScreen = () => {
+    const navigation = useNavigation<any>();
+    const { isLoggedIn, login, logout } = useAuth();
     // Mock State
     const [name, setName] = useState('Abhishek Singh');
     const [email, setEmail] = useState('abhishek23main@gmail.com');
@@ -107,175 +111,156 @@ const ProfileScreen = () => {
                     showsVerticalScrollIndicator={false}
                     style={{ backgroundColor: '#F5E6FA' }}
                 >
-                    {/* Screen Header */}
-                    <View className="mb-6">
-                        <Text className="text-5xl uppercase tracking-tighter" style={{ fontFamily: FONT_BOLD, color: 'black' }}>
-                            YOUR{'\n'}PROFILE
-                        </Text>
-                        <Text className="text-sm mt-2" style={{ fontFamily: FONT_MAIN, color: '#4b5563' }}>
-                            Manage your account settings{'\n'}and preferences.
-                        </Text>
-                    </View>
-
-                    {/* Main Profile Card */}
-                    <Animated.View entering={FadeIn.duration(400)} className="mb-6">
-                        <ShadowCard>
-                            {/* Avatar */}
-                            <View className="items-center mb-6">
-                                <ShadowAvatar>
-                                    <Image
-                                        source={{ uri: PROFILE_IMAGE }}
-                                        className="w-full h-full"
-                                        resizeMode="cover"
-                                    />
-                                </ShadowAvatar>
-                                <TouchableOpacity className="mt-2">
-                                    <Text className="text-xs underline tracking-tight" style={{ fontFamily: FONT_BOLD, color: 'black' }}>Change Avatar</Text>
-                                </TouchableOpacity>
+                    {!isLoggedIn ? (
+                        <Animated.View entering={FadeIn.duration(400)} className="pt-10">
+                            {/* Header */}
+                            <View className="mb-8 px-2">
+                                <Text className="text-5xl uppercase tracking-tighter" style={{ fontFamily: FONT_BOLD, color: 'black' }}>
+                                    PROFILE
+                                </Text>
                             </View>
 
-                            {/* Fields */}
-                            <View className="gap-5">
-                                {/* Full Name */}
-                                <View>
-                                    <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>FULL NAME</Text>
-                                    <TextInput
-                                        value={name}
-                                        onChangeText={setName}
-                                        className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-white"
-                                        style={{ fontFamily: FONT_MAIN, color: 'black' }}
-                                    />
-                                </View>
+                            {/* Login Card */}
+                            <ShadowCard shadowOffset={12}>
+                                <View className="items-center py-6">
+                                    <View className="bg-[#D580FF]/10 p-6 rounded-full border-[2.5px] border-black mb-6">
+                                        <User color="#D580FF" size={48} strokeWidth={2.5} />
+                                    </View>
+                                    <Text className="text-3xl text-center mb-2" style={{ fontFamily: FONT_BOLD, color: 'black' }}>
+                                        JOIN SIGNIFIYA
+                                    </Text>
+                                    <Text className="text-sm text-center px-4 leading-5 mb-10" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>
+                                        Sign in to access your profile, track registrations, and generate your event passes.
+                                    </Text>
 
-                                {/* Email */}
-                                <View>
-                                    <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>EMAIL ADDRESS</Text>
-                                    <TextInput
-                                        value={email}
-                                        onChangeText={setEmail}
-                                        className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-gray-50"
-                                        style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}
-                                        editable={false}
-                                    />
-                                </View>
-
-                                {/* Booking ID */}
-                                <View>
-                                    <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>BOOKING ID</Text>
-                                    <View className="relative">
-                                        <TextInput
-                                            value={bookingId}
-                                            className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-gray-100"
-                                            style={{ fontFamily: FONT_MAIN, color: '#4b5563' }}
-                                            editable={false}
-                                        />
-                                        <TouchableOpacity className="absolute right-3 top-[10px]">
-                                            <Copy color="black" size={18} />
-                                        </TouchableOpacity>
+                                    <View className="w-full">
+                                        <SmoothButton
+                                            onPress={() => navigation.navigate('Auth')}
+                                            buttonStyle="bg-black border-[2.5px] border-black rounded-[20px] py-5 items-center justify-center"
+                                            shadowStyle="bg-black rounded-[20px]"
+                                            depth={6}
+                                        >
+                                            <Text className="text-white text-[16px] uppercase tracking-[0.2em]" style={{ fontFamily: FONT_BOLD }}>
+                                                SIGN IN / SIGN UP
+                                            </Text>
+                                        </SmoothButton>
                                     </View>
                                 </View>
-
-                                {/* Gender */}
-                                <View>
-                                    <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>GENDER</Text>
-                                    <TouchableOpacity className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 flex-row justify-between items-center bg-white">
-                                        <Text className="text-sm" style={{ fontFamily: FONT_MAIN, color: 'black' }}>{gender}</Text>
-                                        <ChevronDown color="black" size={18} />
-                                    </TouchableOpacity>
-                                </View>
-
-                                {/* Mobile No */}
-                                <View>
-                                    <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>MOBILE NO.</Text>
-                                    <TextInput
-                                        value={mobile}
-                                        onChangeText={setMobile}
-                                        className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-white"
-                                        style={{ fontFamily: FONT_MAIN, color: 'black' }}
-                                        keyboardType="phone-pad"
-                                    />
-                                </View>
-
-                                {/* College Name */}
-                                <View>
-                                    <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>COLLEGE NAME</Text>
-                                    <TextInput
-                                        value={college}
-                                        onChangeText={setCollege}
-                                        className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-white"
-                                        style={{ fontFamily: FONT_MAIN, color: 'black' }}
-                                    />
-                                </View>
-                            </View>
-
-                            {/* Save Button */}
-                            <View className="mt-8 mb-2">
-                                <SmoothButton
-                                    buttonStyle="bg-black rounded-full py-4 items-center justify-center border-[2px] border-black"
-                                    shadowStyle="bg-black rounded-full"
-                                    depth={2}
-                                    onPress={() => console.log('Save Changes')}
-                                >
-                                    <Text className="text-sm uppercase tracking-widest" style={{ fontFamily: FONT_BOLD, color: 'white' }}>SAVE CHANGES</Text>
-                                </SmoothButton>
-                                <Text className="text-[10px] text-center mt-3 px-4 leading-3" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>
-                                    Note: Please complete your profile before registering for events or purchasing visitor passes.
+                            </ShadowCard>
+                        </Animated.View>
+                    ) : (
+                        <>
+                            {/* Screen Header */}
+                            <View className="mb-6">
+                                <Text className="text-5xl uppercase tracking-tighter" style={{ fontFamily: FONT_BOLD, color: 'black' }}>
+                                    YOUR{'\n'}PROFILE
                                 </Text>
                             </View>
-                        </ShadowCard>
-                    </Animated.View>
 
-                    {/* Registered Events Card */}
-                    <Animated.View entering={FadeIn.duration(400)} className="mb-6">
-                        <ShadowCard>
-                            <View className="flex-row items-center gap-3 mb-2">
-                                <View className="bg-[#E0B0FF] p-2 rounded-full border-[2px] border-black">
-                                    <Calendar color="black" size={20} />
-                                </View>
-                                <Text className="text-xl uppercase flex-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>REGISTERED{'\n'}EVENTS</Text>
-                            </View>
-                            <View className="h-[2px] bg-black w-full mb-8 rounded-full" />
+                            {/* Main Profile Card */}
+                            <Animated.View entering={FadeIn.duration(400)} className="mb-6">
+                                <ShadowCard>
+                                    {/* Avatar */}
+                                    <View className="items-center mb-6">
+                                        <ShadowAvatar>
+                                            <Image
+                                                source={{ uri: PROFILE_IMAGE }}
+                                                className="w-full h-full"
+                                                resizeMode="cover"
+                                            />
+                                        </ShadowAvatar>
+                                        <TouchableOpacity className="mt-2">
+                                            <Text className="text-xs underline tracking-tight" style={{ fontFamily: FONT_BOLD, color: 'black' }}>Change Avatar</Text>
+                                        </TouchableOpacity>
+                                    </View>
 
-                            {/* Empty State */}
-                            <View className="items-center justify-center py-4">
-                                <View className="w-12 h-12 rounded-full border-[2px] border-gray-300 items-center justify-center mb-3">
-                                    <Text className="font-bold text-xl" style={{ color: '#d1d5db' }}>!</Text>
-                                </View>
-                                <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Events Found</Text>
-                                <Text className="text-xs text-center px-8 mb-4" style={{ fontFamily: FONT_MAIN, color: '#9ca3af' }}>
-                                    You've not registered for any event yet.
-                                </Text>
-                                <TouchableOpacity>
-                                    <Text className="text-xs underline decoration-[#E0B0FF]" style={{ fontFamily: FONT_BOLD, color: '#D580FF' }}>
-                                        Register for events →
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                        </ShadowCard>
-                    </Animated.View>
+                                    {/* Fields */}
+                                    <View className="gap-5">
+                                        <View>
+                                            <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>FULL NAME</Text>
+                                            <TextInput value={name} onChangeText={setName} className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-white" style={{ fontFamily: FONT_MAIN, color: 'black' }} />
+                                        </View>
+                                        <View>
+                                            <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>EMAIL ADDRESS</Text>
+                                            <TextInput value={email} editable={false} className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-gray-50" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }} />
+                                        </View>
+                                        <View>
+                                            <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>BOOKING ID</Text>
+                                            <View className="relative">
+                                                <TextInput value={bookingId} editable={false} className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-gray-100" style={{ fontFamily: FONT_MAIN, color: '#4b5563' }} />
+                                                <TouchableOpacity
+                                                    className="absolute right-3 top-[10px]"
+                                                    onPress={() => {
+                                                        Alert.alert("Success", "Booking ID copied to clipboard!");
+                                                    }}
+                                                >
+                                                    <Copy color="black" size={18} />
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                        <View>
+                                            <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>GENDER</Text>
+                                            <TouchableOpacity
+                                                onPress={() => {
+                                                    setGender(prev => prev === 'Male' ? 'Female' : 'Male');
+                                                }}
+                                                className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 flex-row justify-between items-center bg-white"
+                                            >
+                                                <Text className="text-sm" style={{ fontFamily: FONT_MAIN, color: 'black' }}>{gender}</Text>
+                                                <ChevronDown color="black" size={18} />
+                                            </TouchableOpacity>
+                                        </View>
+                                        <View>
+                                            <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>MOBILE NO.</Text>
+                                            <TextInput value={mobile} onChangeText={setMobile} className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-white" style={{ fontFamily: FONT_MAIN, color: 'black' }} keyboardType="phone-pad" />
+                                        </View>
+                                        <View>
+                                            <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>COLLEGE NAME</Text>
+                                            <TextInput value={college} onChangeText={setCollege} className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-white" style={{ fontFamily: FONT_MAIN, color: 'black' }} />
+                                        </View>
+                                    </View>
 
-                    {/* My Passes Card */}
-                    <Animated.View entering={FadeIn.duration(400)} className="mb-10">
-                        <ShadowCard>
-                            <View className="flex-row items-center gap-3 mb-2">
-                                <View className="bg-[#E0B0FF] p-2 rounded-full border-[2px] border-black">
-                                    <Ticket color="black" size={20} />
-                                </View>
-                                <Text className="text-xl uppercase flex-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>MY PASSES</Text>
-                            </View>
-                            <View className="h-[2px] bg-black w-full mb-8 rounded-full" />
+                                    <View className="mt-8 mb-2">
+                                        <SmoothButton buttonStyle="bg-black rounded-full py-4 items-center justify-center border-[2px] border-black" shadowStyle="bg-black rounded-full" depth={2} onPress={() => console.log('Save Changes')}>
+                                            <Text className="text-sm uppercase tracking-widest" style={{ fontFamily: FONT_BOLD, color: 'white' }}>SAVE CHANGES</Text>
+                                        </SmoothButton>
+                                    </View>
+                                </ShadowCard>
+                            </Animated.View>
 
-                            {/* Empty State */}
-                            <View className="items-center justify-center py-4">
-                                <Lock color="#d1d5db" size={48} strokeWidth={1.5} className="mb-3" />
-                                <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Passes Found</Text>
-                                <Text className="text-xs text-center px-8" style={{ fontFamily: FONT_MAIN, color: '#9ca3af' }}>
-                                    You've not generated any passes yet.
-                                </Text>
-                            </View>
-                        </ShadowCard>
-                    </Animated.View>
+                            <Animated.View entering={FadeIn.duration(400)} className="mb-6">
+                                <ShadowCard>
+                                    <View className="flex-row items-center gap-3 mb-2">
+                                        <View className="bg-[#E0B0FF] p-2 rounded-full border-[2px] border-black"><Calendar color="black" size={20} /></View>
+                                        <Text className="text-xl uppercase flex-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>REGISTERED{'\n'}EVENTS</Text>
+                                    </View>
+                                    <View className="h-[2px] bg-black w-full mb-8 rounded-full" />
+                                    <View className="items-center justify-center py-4">
+                                        <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Events Found</Text>
+                                    </View>
+                                </ShadowCard>
+                            </Animated.View>
 
+                            {/* My Passes Card */}
+                            <Animated.View entering={FadeIn.duration(400)} className="mb-6">
+                                <ShadowCard>
+                                    <View className="flex-row items-center gap-3 mb-2">
+                                        <View className="bg-[#E0B0FF] p-2 rounded-full border-[2px] border-black"><Ticket color="black" size={20} /></View>
+                                        <Text className="text-xl uppercase flex-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>MY PASSES</Text>
+                                    </View>
+                                    <View className="h-[2px] bg-black w-full mb-8 rounded-full" />
+                                    <View className="items-center justify-center py-4">
+                                        <Lock color="#d1d5db" size={48} strokeWidth={1.5} className="mb-3" />
+                                        <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Passes Found</Text>
+                                    </View>
+                                </ShadowCard>
+                            </Animated.View>
+
+                            <TouchableOpacity onPress={logout} className="mt-4 mb-10 border-[3px] border-red-500 rounded-3xl py-4 items-center bg-red-50">
+                                <Text className="text-red-500 font-bold uppercase tracking-widest text-[10px]">Logout from account</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
                 </ScrollView>
             </PageTransition>
         </SafeAreaView>
