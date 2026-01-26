@@ -9,7 +9,11 @@ import SmoothButton from './ui/SmoothButton';
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
-const HeroSection = () => {
+interface HeroSectionProps {
+    onSignInPress?: () => void;
+}
+
+const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
     // Marquee Animation
     const [textWidth, setTextWidth] = React.useState(0);
     const translateX = useSharedValue(0);
@@ -170,6 +174,7 @@ const HeroSection = () => {
 
                         {/* Button with Tactile 3D Effect */}
                         <SmoothButton
+                            onPress={onSignInPress}
                             containerStyle={{ alignSelf: 'center', marginBottom: 64 }}
                             buttonStyle="bg-[#E1BEE7] border-2 border-black rounded-full px-14 py-4"
                             depth={6}
