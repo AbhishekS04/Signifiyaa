@@ -60,7 +60,7 @@ export default function PreloaderScreen({ onFinish }: PreloaderScreenProps) {
     }));
 
     return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <View style={StyleSheet.absoluteFill} pointerEvents="auto">
             <StatusBar style="light" />
 
             {/* Shutter Panel */}

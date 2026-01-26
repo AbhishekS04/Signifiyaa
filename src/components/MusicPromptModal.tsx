@@ -36,36 +36,26 @@ export default function MusicPromptModal({ onSelectMusic }: MusicPromptModalProp
     const contentTranslateY = useSharedValue(20);
 
     useEffect(() => {
-        // SEQUENCE:
-        // 1. Background (Blur + Blood) fades in FIRST (0ms -> 500ms)
-        // 2. Card Springs in AFTER background is set (500ms+)
+        // FAST SEQUENCE: Instant blocking
 
-        // 1. Background Entrance
+        // 1. Background Entrance (Fast)
         backdropOpacity.value = withTiming(1, {
-            duration: 600,
+            duration: 300,
             easing: Easing.out(Easing.cubic)
         });
 
-        // 2. Card Entrance (Spring) - Starts after background is mostly visible
-        cardScale.value = withDelay(500, withSpring(1, {
-            damping: 12,
-            stiffness: 90,
-            mass: 1
-        }));
+        // 2. Card Entrance (Zoom In) - Immediate
+        cardScale.value = withSpring(1, {
+            damping: 15,
+            stiffness: 150, // Snappy
+            mass: 0.8
+        });
 
-        cardOpacity.value = withDelay(500, withTiming(1, {
-            duration: 400
-        }));
+        cardOpacity.value = withTiming(1, { duration: 200 });
 
-        // 3. Content Slide Up (Title, Buttons)
-        contentOpacity.value = withDelay(700, withTiming(1, {
-            duration: 600
-        }));
-
-        contentTranslateY.value = withDelay(700, withSpring(0, {
-            damping: 14,
-            stiffness: 100
-        }));
+        // 3. Content - Immediate (No stagger)
+        contentOpacity.value = withTiming(1, { duration: 300 });
+        contentTranslateY.value = withSpring(0);
 
     }, []);
 
@@ -92,45 +82,53 @@ export default function MusicPromptModal({ onSelectMusic }: MusicPromptModalProp
                 <View style={styles.gradientOverlay} />
             </Animated.View>
 
-            <Animated.View style={[styles.card, cardStyle]}>
-                {/* Title */}
-                <Animated.View style={contentStyle}>
-                    <Text style={styles.title}>Welcome to Signifiya</Text>
-                </Animated.View>
+            <Animated.View style={[styles.cardContainer, cardStyle]}>
+                {/* 3D HARD SHADOW - Part of the same animated unit */}
+                <View style={styles.cardShadow} />
 
-                {/* Button 1: Enter With Music */}
-                <Animated.View style={[styles.buttonContainer, contentStyle]}>
-                    <SmoothButton
-                        onPress={() => {
-                            setTimeout(() => onSelectMusic(true), 50);
-                        }}
-                        // Fixed Colors: No purple shift on press
-                        buttonStyle="bg-black rounded-full"
-                        shadowStyle="bg-[#2a0a0a] rounded-full" // Dark bloody shadow
-                        depth={8} // Increased depth for more "Kick"
-                        innerButtonStyle={styles.primaryButtonInner}
-                    >
-                        <Text style={styles.buttonTextWhite}>ENTER WITH MUSIC</Text>
-                    </SmoothButton>
-                </Animated.View>
+                {/* MAIN CONTENT CARD */}
+                <View style={styles.cardInner}>
+                    {/* Title - Single Line */}
+                    <Animated.View style={contentStyle}>
+                        <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit>
+                            Welcome to Signifiya
+                        </Text>
+                    </Animated.View>
 
-                {/* Button 2: Enter Without Music */}
-                <Animated.View style={[styles.buttonContainer, contentStyle]}>
-                    <SmoothButton
-                        onPress={() => onSelectMusic(false)}
-                        buttonStyle="bg-white rounded-full"
-                        shadowStyle="bg-black rounded-full"
-                        depth={8} // Increased depth for more "Kick"
-                        innerButtonStyle={styles.secondaryButtonInner}
-                    >
-                        <Text style={styles.buttonTextBlack}>ENTER WITHOUT MUSIC</Text>
-                    </SmoothButton>
-                </Animated.View>
+                    {/* Button 1: Enter With Music */}
+                    <Animated.View style={[styles.buttonContainer, contentStyle]}>
+                        <SmoothButton
+                            onPress={() => {
+                                setTimeout(() => onSelectMusic(true), 50);
+                            }}
+                            // Fixed Colors: No purple shift on press
+                            buttonStyle="bg-black rounded-full"
+                            shadowStyle="bg-[#2a0a0a] rounded-full" // Dark bloody shadow
+                            depth={8} // Increased depth for more "Kick"
+                            innerButtonStyle={styles.primaryButtonInner}
+                        >
+                            <Text style={styles.buttonTextWhite}>ENTER WITH MUSIC</Text>
+                        </SmoothButton>
+                    </Animated.View>
 
-                {/* Footer Text */}
-                <Animated.View style={contentStyle}>
-                    <Text style={styles.sarcasticText}>dabake, dekhlee lala!</Text>
-                </Animated.View>
+                    {/* Button 2: Enter Without Music */}
+                    <Animated.View style={[styles.buttonContainer, contentStyle]}>
+                        <SmoothButton
+                            onPress={() => onSelectMusic(false)}
+                            buttonStyle="bg-white rounded-full"
+                            shadowStyle="bg-black rounded-full"
+                            depth={8} // Increased depth for more "Kick"
+                            innerButtonStyle={styles.secondaryButtonInner}
+                        >
+                            <Text style={styles.buttonTextBlack}>ENTER WITHOUT MUSIC</Text>
+                        </SmoothButton>
+                    </Animated.View>
+
+                    {/* Footer Text */}
+                    <Animated.View style={contentStyle}>
+                        <Text style={styles.sarcasticText}>dabake, dekhlee lala!</Text>
+                    </Animated.View>
+                </View>
             </Animated.View>
         </View>
     );
@@ -151,19 +149,26 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0, 0, 0, 0.2)', // Subtle dark tint for depth
     },
-    card: {
+    cardContainer: {
+        width: width * 0.85,
+        maxWidth: 380,
+    },
+    cardShadow: {
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        right: -10,
+        bottom: -10,
+        backgroundColor: '#000',
+        borderRadius: 32,
+    },
+    cardInner: {
         backgroundColor: '#FFFFFF',
         borderRadius: 32,
         padding: 36,
-        width: width * 0.85,
-        maxWidth: 380,
         alignItems: 'center',
-        // Premium shadow
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 20 },
-        shadowOpacity: 0.4,
-        shadowRadius: 40,
-        elevation: 30,
+        borderWidth: 3,
+        borderColor: '#000',
     },
     title: {
         fontSize: 26,
