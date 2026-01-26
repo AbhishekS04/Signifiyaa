@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import "./global.css";
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -9,6 +10,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import { MusicProvider } from './src/context/MusicContext';
 import { AuthProvider } from './src/context/AuthContext';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AppContent from './src/components/AppContent';
 
 configureReanimatedLogger({
@@ -41,15 +43,17 @@ export default function App() {
   }
 
   return (
-    <MusicProvider>
-      <AuthProvider>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <AppContent />
-          </NavigationContainer>
-          <StatusBar style="light" />
-        </SafeAreaProvider>
-      </AuthProvider>
-    </MusicProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <MusicProvider>
+        <AuthProvider>
+          <SafeAreaProvider>
+            <NavigationContainer>
+              <AppContent />
+            </NavigationContainer>
+            <StatusBar style="light" />
+          </SafeAreaProvider>
+        </AuthProvider>
+      </MusicProvider>
+    </GestureHandlerRootView>
   );
 }

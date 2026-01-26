@@ -1,35 +1,68 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Animated } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator, StackCardStyleInterpolator } from '@react-navigation/stack';
 import HomeScreen from '../screens/HomeScreen';
 import GalleryScreen from '../screens/GalleryScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import { EventsScreen, TicketScreen } from '../screens/PlaceholderScreens';
+import PaymentsScreen from '../screens/PaymentsScreen';
+import { EventsScreen } from '../screens/PlaceholderScreens';
 import { CustomTabBar } from '../components/navigation/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+
+function MainTabs() {
+    return (
+        <Tab.Navigator
+            tabBar={(props) => <CustomTabBar {...props} />}
+            screenOptions={{
+                headerShown: false,
+                lazy: false, // Prevent lazy loading to avoid flashing
+                tabBarStyle: {
+                    backgroundColor: 'transparent',
+                    borderTopWidth: 0,
+                    elevation: 0,
+                },
+            }}
+            detachInactiveScreens={false}
+        >
+            <Tab.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{ lazy: false }}
+            />
+            <Tab.Screen
+                name="Events"
+                component={EventsScreen}
+                options={{ lazy: false }}
+            />
+            <Tab.Screen
+                name="Payments"
+                component={PaymentsScreen}
+                options={{ lazy: false }}
+            />
+            <Tab.Screen
+                name="Gallery"
+                component={GalleryScreen}
+                options={{ lazy: false }}
+            />
+            <Tab.Screen
+                name="Profile"
+                component={ProfileScreen}
+                options={{ lazy: false }}
+            />
+        </Tab.Navigator>
+    );
+}
 
 export default function AppNavigator() {
     return (
-        // 🚀 FIX FLASH: Solid black wrapper ensures no white shows during transitions
         <View style={{ flex: 1, backgroundColor: '#000' }}>
-            <Tab.Navigator
-                tabBar={(props) => <CustomTabBar {...props} />}
-                screenOptions={{
-                    headerShown: false,
-                    tabBarStyle: {
-                        backgroundColor: 'transparent',
-                        borderTopWidth: 0,
-                        elevation: 0,
-                    },
-                }}
-            >
-                <Tab.Screen name="Home" component={HomeScreen} />
-                <Tab.Screen name="Events" component={EventsScreen} />
-                <Tab.Screen name="Gallery" component={GalleryScreen} />
-                <Tab.Screen name="Ticket" component={TicketScreen} />
-                <Tab.Screen name="Profile" component={ProfileScreen} />
-            </Tab.Navigator>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="Main" component={MainTabs} />
+            </Stack.Navigator>
         </View>
     );
 }

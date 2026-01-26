@@ -208,7 +208,7 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
 
                                     {/* VISITOR'S PASS Button */}
                                     <SmoothButton
-                                        onPress={() => navigation.navigate('Ticket')}
+                                        onPress={() => navigation.navigate('Main', { screen: 'Payments' })}
                                         containerStyle={{ alignSelf: 'center' }}
                                         buttonStyle="bg-white border-[2px] border-black rounded-full px-10 py-3"
                                         depth={4}

@@ -37,11 +37,11 @@ export const PageTransition: React.FC<PageTransitionProps> = ({ children, style 
 
             // Smooth "drift up + fade in" animation
             const config = {
-                duration: 500,
-                easing: Easing.bezier(0.25, 1, 0.5, 1), // Apple curve
+                duration: 600,
+                easing: Easing.out(Easing.cubic), // Smooth drift
             };
 
-            opacity.value = withTiming(1, { duration: 350 });
+            opacity.value = withTiming(1, { duration: 600 });
             translateY.value = withTiming(0, config);
 
             return () => {
@@ -55,11 +55,15 @@ export const PageTransition: React.FC<PageTransitionProps> = ({ children, style 
         opacity: opacity.value,
         transform: [{ translateY: translateY.value }],
         flex: 1,
-        backgroundColor: '#000', // Solid black prevents any flash through
+        // backgroundColor: '#000', // Removed: Let screen background decide (prevents dark fade on light screens)
     }));
 
     return (
-        <Animated.View style={[animatedStyle, style]}>
+        <Animated.View
+            style={[animatedStyle, style]}
+            renderToHardwareTextureAndroid={true} // Composite as bitmap before fading (prevents X-ray artifacts)
+            shouldRasterizeIOS={true}
+        >
             {children}
         </Animated.View>
     );

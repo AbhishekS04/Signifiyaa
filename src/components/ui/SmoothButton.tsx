@@ -6,8 +6,7 @@ import Animated, {
     withSpring,
     WithSpringConfig,
     interpolate,
-    Extrapolation,
-    Layout
+    Extrapolation
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
@@ -84,7 +83,6 @@ const SmoothButton: React.FC<SmoothButtonProps> = ({
         <Animated.View
             style={containerStyle}
             className={shadowStyle}
-            layout={Layout.springify().damping(15).stiffness(150).mass(1)} // Sync shadow expansion
         >
             <Pressable
                 onPress={onPress}

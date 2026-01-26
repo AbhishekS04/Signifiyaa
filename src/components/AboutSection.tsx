@@ -1,4 +1,5 @@
 import { View, Text, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Smile } from 'lucide-react-native';
 import SmoothButton from './ui/SmoothButton';
 
@@ -6,6 +7,8 @@ const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
 const AboutSection = () => {
+    const navigation = useNavigation<any>();
+
     return (
         <View className={`bg-[#F3E5F5] rounded-[30px] mb-4 mt-6 ${isSmallDevice ? 'p-6' : 'p-8'}`}>
             {/* Pale Pink Background, No Border, Larger Radius */}
@@ -37,6 +40,7 @@ const AboutSection = () => {
 
             {/* Button */}
             <SmoothButton
+                onPress={() => navigation.navigate('Main', { screen: 'Payments' })}
                 containerStyle={{ alignSelf: 'flex-start' }}
                 buttonStyle="bg-black rounded-full"
                 shadowStyle="bg-gray-800 rounded-full"

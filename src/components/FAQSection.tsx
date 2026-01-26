@@ -9,7 +9,6 @@ import Animated, {
     interpolate,
     Extrapolation,
     FadeIn,
-    Layout,
     measure,
     runOnUI,
     useAnimatedRef,
@@ -38,7 +37,6 @@ const FAQSection = () => {
     return (
         <Animated.View
             className="bg-[#F3E5F5] rounded-[30px] px-6 py-10 mb-10 mx-2 border-2 border-black"
-            layout={Layout.springify().damping(30).stiffness(100).mass(1)} // PARENT: Overdamped (No bounce)
         >
             <View className="mb-8">
                 <Text className={`text-black text-center leading-tight ${isSmallDevice ? 'text-2xl' : 'text-3xl'}`}
@@ -64,12 +62,10 @@ const FAQSection = () => {
             {/* Intermediate List Container - Matches Parent physics for smooth propagation */}
             <Animated.View
                 className="gap-4"
-                layout={Layout.springify().damping(30).stiffness(100).mass(1)}
             >
                 {FAQS.map((faq, index) => (
                     <Animated.View
                         key={faq.id}
-                        layout={Layout.springify().damping(16).stiffness(120).mass(1)} // Wrapper: Medium speed
                     >
                         <AccordionItem question={faq.question} answer={faq.answer} />
                     </Animated.View>
@@ -121,19 +117,16 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
 
     // CHILD PHYSICS: Fast and Crisp (Stiffness 250, Damping 30)
     // Ensures child shrinks BEFORE parent collapses to prevent clipping, but with minimal bounce.
-    const childLayoutRef = Layout.springify().damping(30).stiffness(250).mass(1);
 
     return (
         // OUTER CONTAINER (Shadow)
         <Animated.View
             className="relative mb-3 bg-black rounded-xl"
-            layout={childLayoutRef}
         >
             {/* INNER CONTAINER (White Card) */}
             <Animated.View
                 className="bg-white border-[3px] border-black rounded-xl overflow-hidden"
                 style={cardStyle}
-                layout={childLayoutRef}
             >
                 <TouchableOpacity
                     onPress={toggleOpen}

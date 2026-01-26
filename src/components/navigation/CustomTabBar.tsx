@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, TouchableOpacity, Platform, Image as RNImage } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Home, Calendar, Image, Ticket } from 'lucide-react-native';
+import { Home, Calendar, Image, Ticket, IndianRupee } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
     useSharedValue,
@@ -120,8 +120,8 @@ const TabItem = ({ route, isFocused, onPress }: { route: any, isFocused: boolean
 
         if (route.name === 'Home') return <Home {...IconProps} />;
         if (route.name === 'Events') return <Calendar {...IconProps} />;
+        if (route.name === 'Payments') return <IndianRupee {...IconProps} />;
         if (route.name === 'Gallery') return <Image {...IconProps} />;
-        if (route.name === 'Ticket') return <Ticket {...IconProps} />;
         if (route.name === 'Profile') {
             return (
                 <View className={`relative items-center justify-center`}>
