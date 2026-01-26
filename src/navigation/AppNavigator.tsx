@@ -3,7 +3,8 @@ import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import GalleryScreen from '../screens/GalleryScreen';
-import { EventsScreen, TicketScreen, ProfileScreen } from '../screens/PlaceholderScreens';
+import ProfileScreen from '../screens/ProfileScreen';
+import { EventsScreen, TicketScreen } from '../screens/PlaceholderScreens';
 import { CustomTabBar } from '../components/navigation/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
