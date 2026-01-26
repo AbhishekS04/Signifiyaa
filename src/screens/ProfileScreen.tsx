@@ -51,7 +51,8 @@ const ShadowAvatar = ({ children }: { children: React.ReactNode }) => (
                 zIndex: -1,
             }}
         />
-        <View className="w-24 h-24 rounded-full border-[3px] border-black overflow-hidden bg-gray-200">
+        {/* Added strict dimensions and overflow handling */}
+        <View className="w-24 h-24 rounded-full border-[3px] border-black overflow-hidden bg-gray-200 justify-center items-center">
             {children}
         </View>
     </View>

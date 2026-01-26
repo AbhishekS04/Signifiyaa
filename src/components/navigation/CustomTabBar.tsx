@@ -124,15 +124,20 @@ const TabItem = ({ route, isFocused, onPress }: { route: any, isFocused: boolean
         if (route.name === 'Ticket') return <Ticket {...IconProps} />;
         if (route.name === 'Profile') {
             return (
-                <View className={`relative`}>
-                    <View className={`w-7 h-7 rounded-full overflow-hidden border-2 ${isFocused ? 'border-white' : 'border-zinc-600'}`}>
+                <View className={`relative items-center justify-center`}>
+                    {/* Profile Image - No Border, Maximized Size */}
+                    <View className={`w-8 h-8 rounded-full overflow-hidden`}>
                         <RNImage
                             source={{ uri: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/68e0efce-84a4-42ae-9bd7-a2be6aca73d8.jpg' }}
                             className="w-full h-full"
                             resizeMode="cover"
                         />
                     </View>
-                    <View className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-black/50" />
+
+                    {/* Red Dot - ONLY visible when Active (acting as the selection indicator) */}
+                    {isFocused && (
+                        <View className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border border-black" />
+                    )}
                 </View>
             );
         }
