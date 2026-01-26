@@ -127,7 +127,7 @@ const TabItem = ({ route, isFocused, onPress }: { route: any, isFocused: boolean
                 <View className={`relative`}>
                     <View className={`w-7 h-7 rounded-full overflow-hidden border-2 ${isFocused ? 'border-white' : 'border-zinc-600'}`}>
                         <RNImage
-                            source={{ uri: 'https://i.pravatar.cc/150?img=3' }}
+                            source={{ uri: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/68e0efce-84a4-42ae-9bd7-a2be6aca73d8.jpg' }}
                             className="w-full h-full"
                             resizeMode="cover"
                         />

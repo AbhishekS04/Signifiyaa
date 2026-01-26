@@ -13,7 +13,7 @@ class MusicService {
         try {
             await Audio.setAudioModeAsync({
                 allowsRecordingIOS: false,
-                staysActiveInBackground: true,
+                staysActiveInBackground: false, // User requested music to stop on minimize
                 playsInSilentModeIOS: true,
                 shouldDuckAndroid: true,
                 playThroughEarpieceAndroid: false,

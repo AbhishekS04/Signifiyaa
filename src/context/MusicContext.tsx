@@ -1,4 +1,6 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { AppState } from 'react-native';
+import MusicService from '../services/MusicService';
 
 interface MusicContextType {
     isPlaying: boolean;
@@ -9,6 +11,20 @@ const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
 export const MusicProvider = ({ children }: { children: ReactNode }) => {
     const [isPlaying, setIsPlaying] = useState(false);
+
+    // pause music when app goes to background
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (nextAppState.match(/inactive|background/) && isPlaying) {
+                MusicService.pauseMusic();
+                setIsPlaying(false);
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [isPlaying]);
 
     return (
         <MusicContext.Provider value={{ isPlaying, setIsPlaying }}>
