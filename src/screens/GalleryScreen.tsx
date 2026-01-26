@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
     useSharedValue,
@@ -24,6 +23,7 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 
 // Mock Data matching the reference image
 import { GALLERY_ITEMS, GALLERY_FILTERS } from '../data/GalleryData';
+import GalleryCard from '../components/GalleryCard';
 
 const GalleryScreen = () => {
     const [selectedFilter, setSelectedFilter] = useState('ALL');
@@ -51,6 +51,15 @@ const GalleryScreen = () => {
             transform: [{ translateX: translateX.value }],
         };
     });
+
+    // Single Active Image State
+    const [activeImageId, setActiveImageId] = useState<string | null>(null);
+
+    const handleCardToggle = (id: string) => {
+        // If clicking the already active one, we keep it active (just re-trigger animation in child)
+        // If clicking a new one, we set it as active, which effectively de-activates the previous one
+        setActiveImageId(id);
+    };
 
     const filteredItems = selectedFilter === 'ALL'
         ? GALLERY_ITEMS
@@ -189,55 +198,12 @@ const GalleryScreen = () => {
                             {/* Polaroid Gallery List */}
                             <View className="gap-10">
                                 {filteredItems.map((item) => (
-                                    <View key={item.id} className="relative">
-                                        {/* Main 3D Shadow Layer */}
-                                        <View className="absolute top-1.5 left-1.5 w-full h-full bg-black rounded-[32px]" />
-
-                                        {/* The Polaroid Card */}
-                                        <View className="bg-white border-[3px] border-black rounded-[32px] p-4 overflow-hidden">
-
-                                            {/* Image Container - Fixed stretching/gaps */}
-                                            <View className="w-full h-80 rounded-[20px] border-[3px] border-black overflow-hidden relative bg-black">
-                                                <Image
-                                                    source={{ uri: item.image }}
-                                                    className="w-full h-full"
-                                                    resizeMode="cover"
-                                                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-                                                />
-
-                                                {/* Tag Badge */}
-                                                <View className="absolute top-3 right-3 bg-black px-3 py-1.5 rounded-md border border-white/20">
-                                                    <Text className="text-white text-[10px] font-black tracking-widest uppercase" style={{ fontFamily: 'Gilton' }}>
-                                                        {item.tag}
-                                                    </Text>
-                                                </View>
-                                            </View>
-
-                                            {/* Content Block */}
-                                            <View className="flex-row justify-between items-center mt-6 mb-2 px-1">
-                                                <View className="flex-1">
-                                                    <Text className="text-black text-2xl tracking-tighter uppercase"
-                                                        style={{ fontFamily: item.titleFont || 'Gilton' }}>
-                                                        {item.title}
-                                                    </Text>
-                                                    <Text className="text-black/40 text-[11px] mt-1 tracking-wider" style={{ fontFamily: 'Softura' }}>
-                                                        {item.filename}
-                                                    </Text>
-                                                </View>
-
-                                                {/* Heart Button with Tactile 3D Effect */}
-                                                <SmoothButton
-                                                    onPress={() => { }}
-                                                    containerStyle={{ width: 48, height: 48 }}
-                                                    buttonStyle="w-full h-full bg-red-500 border-[2.5px] border-black rounded-full items-center justify-center"
-                                                    shadowStyle="bg-black rounded-full"
-                                                    depth={6}
-                                                >
-                                                    <Heart fill="white" color="white" size={20} strokeWidth={2.5} />
-                                                </SmoothButton>
-                                            </View>
-                                        </View>
-                                    </View>
+                                    <GalleryCard
+                                        key={item.id}
+                                        item={item}
+                                        isActive={activeImageId === item.id}
+                                        onToggle={() => handleCardToggle(item.id)}
+                                    />
                                 ))}
                             </View>
                         </View>

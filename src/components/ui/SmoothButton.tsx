@@ -24,6 +24,7 @@ interface SmoothButtonProps {
     springConfig?: WithSpringConfig;
     disabled?: boolean;
     active?: boolean; // If true, the button stays in the pressed state
+    hitSlop?: number | { top: number; bottom: number; left: number; right: number };
 }
 
 const SmoothButton: React.FC<SmoothButtonProps> = ({
@@ -42,7 +43,8 @@ const SmoothButton: React.FC<SmoothButtonProps> = ({
         mass: 1,
     },
     disabled = false,
-    active = false
+    active = false,
+    hitSlop = 10
 }) => {
     // If active, start at 0 (pressed), otherwise start at -depth (unpressed)
     const offset = useSharedValue(active ? 0 : -depth);
@@ -89,6 +91,7 @@ const SmoothButton: React.FC<SmoothButtonProps> = ({
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 disabled={disabled}
+                hitSlop={hitSlop}
                 style={{ overflow: 'visible' }} // Ensure button can move out of bounds if needed
             >
                 <Animated.View
