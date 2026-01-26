@@ -8,6 +8,7 @@ import { Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import { MusicProvider } from './src/context/MusicContext';
+import { AuthProvider } from './src/context/AuthContext';
 import AppContent from './src/components/AppContent';
 
 configureReanimatedLogger({
@@ -41,12 +42,14 @@ export default function App() {
 
   return (
     <MusicProvider>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          <AppContent />
-        </NavigationContainer>
-        <StatusBar style="light" />
-      </SafeAreaProvider>
+      <AuthProvider>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <AppContent />
+          </NavigationContainer>
+          <StatusBar style="light" />
+        </SafeAreaProvider>
+      </AuthProvider>
     </MusicProvider>
   );
 }

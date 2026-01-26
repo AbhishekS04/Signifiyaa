@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowDown } from 'lucide-react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import SmoothButton from './ui/SmoothButton';
+import { useAuth } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
@@ -90,6 +92,9 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
         };
     });
 
+    const { isLoggedIn } = useAuth();
+    const navigation = useNavigation<any>();
+
     return (
         <View className="mb-4">
 
@@ -172,18 +177,50 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
                             ))}
                         </View>
 
-                        {/* Button with Tactile 3D Effect */}
-                        <SmoothButton
-                            onPress={onSignInPress}
-                            containerStyle={{ alignSelf: 'center', marginBottom: 64 }}
-                            buttonStyle="bg-[#E1BEE7] border-2 border-black rounded-full px-14 py-4"
-                            depth={6}
-                        >
-                            <Text className="text-black text-[12px] uppercase tracking-[0.15em]"
-                                style={{ fontFamily: 'Gilton' }} >
-                                SIGN IN / SIGN UP
-                            </Text>
-                        </SmoothButton>
+                        {/* Button(s) Container */}
+                        <View className="items-center gap-4 mb-16">
+                            {!isLoggedIn ? (
+                                <SmoothButton
+                                    onPress={onSignInPress}
+                                    containerStyle={{ alignSelf: 'center' }}
+                                    buttonStyle="bg-[#E1BEE7] border-2 border-black rounded-full px-14 py-4"
+                                    depth={6}
+                                >
+                                    <Text className="text-black text-[12px] uppercase tracking-[0.15em]"
+                                        style={{ fontFamily: 'Gilton' }} >
+                                        SIGN IN / SIGN UP
+                                    </Text>
+                                </SmoothButton>
+                            ) : (
+                                <>
+                                    {/* CHECK EVENTS Button */}
+                                    <SmoothButton
+                                        onPress={() => navigation.navigate('Events')}
+                                        containerStyle={{ alignSelf: 'center' }}
+                                        buttonStyle="bg-[#E1BEE7] border-[3px] border-black rounded-full px-10 py-3"
+                                        depth={4}
+                                    >
+                                        <Text className="text-black text-[16px] uppercase tracking-tighter"
+                                            style={{ fontFamily: 'Gilton' }} >
+                                            CHECK EVENTS
+                                        </Text>
+                                    </SmoothButton>
+
+                                    {/* VISITOR'S PASS Button */}
+                                    <SmoothButton
+                                        onPress={() => navigation.navigate('Ticket')}
+                                        containerStyle={{ alignSelf: 'center' }}
+                                        buttonStyle="bg-white border-[2px] border-black rounded-full px-10 py-3"
+                                        depth={4}
+                                    >
+                                        <Text className="text-black text-[16px] uppercase tracking-tighter"
+                                            style={{ fontFamily: 'Gilton' }} >
+                                            VISITOR'S PASS
+                                        </Text>
+                                    </SmoothButton>
+                                </>
+                            )}
+                        </View>
 
                         {/* Description */}
                         <Text className="text-black/50 text-[9px] uppercase text-center mb-8 leading-4 tracking-tighter px-6"

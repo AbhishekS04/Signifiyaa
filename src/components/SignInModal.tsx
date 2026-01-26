@@ -15,6 +15,7 @@ import Animated, {
 import { ArrowLeft, Github, Eye, EyeOff } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
 import SmoothButton from './ui/SmoothButton';
+import { useAuth } from '../context/AuthContext';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -109,12 +110,14 @@ const SignInModal = ({ isVisible, onClose }: SignInModalProps) => {
         transform: [{ translateY: translateY.value }],
     }));
 
+    const { login } = useAuth();
     const handleSubmit = () => {
         if (isSignUp) {
             Alert.alert("Success", "Account Created Successfully (Mock)");
         } else {
             Alert.alert("Success", "Signed In Successfully (Mock)");
         }
+        login();
         onClose();
     };
 
