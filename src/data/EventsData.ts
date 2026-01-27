@@ -16,196 +16,133 @@ export interface EventData {
     buttonColor: string;
     imageUrl?: string;
     videoUrl?: string;
+    venue: string;
+    time?: string; // [NEW]
+    studentCoordinators?: string[]; // [NEW] 
+    facultyCoordinators?: string[]; // [NEW]
 }
 
+// =====================================================================
+// ⚡ HOW TO ADD A NEW EVENT:
+// 1. Copy one of the objects inside [] below.
+// 2. Paste it at the end of the list (before the last `]`).
+// 3. Change the details (title, date, venue, etc.).
+// 4. This event will AUTOMATICALLY appear in:
+//    - Home Screen Carousel
+//    - Events Schedule Screen (Day 1 / Day 2 based on date)
+// =====================================================================
+
 export const EVENTS_DATA: EventData[] = [
-    // --- ESPORTS EVENTS ---
+    // --- DAY 1 (25th March) ---
     {
-        title: 'VALORANT',
-        date: 'MARCH 13TH - 14TH',
-        category: 'ESPORTS',
-        description: 'Join the ultimate tactical FPS showdown. Form your squad and compete for glory!',
-        prizePool: 'TBA',
-        imageColor: '#ccff00',
-        buttonColor: '#D194FF',
-        imageUrl: '',
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/44fe63af-47e0-4df6-8fc3-0a984c7337da.mp4' // Valorant Agent Gekko
-    },
-    {
-        title: 'BGMI',
-        date: 'MARCH 13TH - 14TH',
-        category: 'ESPORTS',
-        description: 'Battle it out in the most popular mobile battle royale championship.',
-        prizePool: '10K',
-        imageColor: '#ff9966',
-        buttonColor: '#D194FF',
-        imageUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/5628f912-994d-4054-9ec7-bbb1310fe6c9.png',
-        // videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4'
-    },
-    {
-        title: 'RDR2',
-        date: 'MARCH 13TH - 14TH',
-        category: 'ESPORTS',
-        description: 'Battle it out in the most popular mobile battle royale championship.',
-        prizePool: '10K',
-        imageColor: '#ff9966',
-        buttonColor: '#D194FF',
-        // imageUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/5628f912-994d-4054-9ec7-bbb1310fe6c9.png',
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/465c6e8d-1d24-4084-b576-5f613dd1829b.mp4'
-    },
-
-    // --- CSE EVENTS ---
-    {
-        title: 'HACKATHON',
-        date: 'MARCH 15TH - 16TH',
+        title: 'Coding Premier League',
+        date: '25th March',
         category: 'CSE',
-        description: 'Build innovative solutions in 24 hours. Code, create, and conquer!',
-        prizePool: '50K',
-        imageColor: '#66ccff',
-        buttonColor: '#FFD700',
-        // imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Coding/Tech
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/1359c8e8-57aa-482e-8af0-31d92af491e5.mp4'
-    },
-    {
-        title: 'CODE RELAY',
-        date: 'MARCH 15TH',
-        category: 'CSE',
-        description: 'Team-based coding challenge. Pass the code, solve the problem!',
-        prizePool: 'TBA',
-        imageColor: '#9933ff',
-        buttonColor: '#FFD700',
-        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-    {
-        title: 'CODE RELAY',
-        date: 'MARCH 15TH',
-        category: 'CSE',
-        description: 'Team-based coding challenge. Pass the code, solve the problem!',
-        prizePool: 'TBA',
-        imageColor: '#9933ff',
-        buttonColor: '#FFD700',
-        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-
-    // --- CIVIL EVENTS ---
-    {
-        title: 'BRIDGE BUILDING',
-        date: 'MARCH 16TH',
-        category: 'CIVIL',
-        description: 'Design and build the strongest bridge using limited materials.',
+        description: 'An exhilarating coding competition where participants showcase their programming skills, problem-solving abilities, and creativity.',
         prizePool: '15K',
-        imageColor: '#ff6666',
-        buttonColor: '#90EE90',
-        imageUrl: 'https://images.unsplash.com/photo-1545139224-7eb9c2acc995?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Bridge
-        videoUrl: ''
-    },
-    {
-        title: 'CAD MASTER',
-        date: 'MARCH 17TH',
-        category: 'CIVIL',
-        description: 'Showcase your AutoCAD and design skills in this technical challenge.',
-        prizePool: 'TBA',
-        imageColor: '#ffaa66',
-        buttonColor: '#90EE90',
-        imageUrl: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Engineering
-        videoUrl: ''
-    },
+        imageColor: '#FFEB3B', // Retro Yellow
+        buttonColor: '#FFFFFF',
+        imageUrl: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Computer/Retro
+        videoUrl: '',
 
-    // --- MECHANICAL EVENTS ---
-    {
-        title: 'ROBO RACE',
-        date: 'MARCH 16TH - 17TH',
-        category: 'MECHANICAL',
-        description: 'Build autonomous robots and race them through challenging obstacle courses.',
-        prizePool: '25K',
-        imageColor: '#66ff66',
-        buttonColor: '#FFB6C1',
-        imageUrl: 'https://images.unsplash.com/photo-1531746790731-6c087fecd05a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Robotics
-        videoUrl: ''
+        venue: 'Computer Lab A',
+        time: '10:00 AM - 1:00 PM',
+        studentCoordinators: ['Aviroop Pal', 'Sourish Samanta'],
+        facultyCoordinators: ['TBA']
     },
     {
-        title: 'MECHANISM DESIGN',
-        date: 'MARCH 17TH',
-        category: 'MECHANICAL',
-        description: 'Create innovative mechanical solutions for real-world problems.',
-        prizePool: 'TBA',
-        imageColor: '#66ffcc',
-        buttonColor: '#FFB6C1',
-        imageUrl: 'https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Gears/Mech
-        videoUrl: ''
-    },
-
-    // --- EEE EVENTS ---
-    {
-        title: 'CIRCUIT DEBUG',
-        date: 'MARCH 18TH',
+        title: 'Electrifying Circuit',
+        date: '25th March',
         category: 'EEE',
-        description: 'Find and fix errors in complex electrical circuits under time pressure.',
-        prizePool: '20K',
-        imageColor: '#ff99cc',
-        buttonColor: '#87CEEB',
-        imageUrl: 'https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Electronics
-        videoUrl: ''
-    },
-    {
-        title: 'SMART HOME',
-        date: 'MARCH 18TH',
-        category: 'EEE',
-        description: 'Design an IoT-based smart home automation system.',
-        prizePool: 'TBA',
-        imageColor: '#cc99ff',
-        buttonColor: '#87CEEB',
-        imageUrl: 'https://images.unsplash.com/photo-1558002038-1055907df827?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Smart home
-        videoUrl: ''
-    },
-
-    // --- ROBOTICS EVENTS ---
-    {
-        title: 'LINE FOLLOWER',
-        date: 'MARCH 19TH',
-        category: 'ROBOTICS',
-        description: 'Program robots to follow complex line patterns at maximum speed.',
-        prizePool: '30K',
-        imageColor: '#ffcc66',
-        buttonColor: '#DDA0DD',
-        imageUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-        videoUrl: ''
-    },
-    {
-        title: 'DRONE RACING',
-        date: 'MARCH 19TH - 20TH',
-        category: 'ROBOTICS',
-        description: 'Pilot your drone through challenging aerial obstacles and courses.',
-        prizePool: '35K',
-        imageColor: '#66cccc',
-        buttonColor: '#DDA0DD',
-        imageUrl: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Drones
-        videoUrl: ''
-    },
-
-    // --- NON-TECH EVENTS ---
-    {
-        title: 'TREASURE HUNT',
-        date: 'MARCH 20TH',
-        category: 'NON-TECH',
-        description: 'Solve clues and puzzles to find hidden treasures across the campus.',
+        description: 'Analysis and handling of circuits and electronics in this electrifying showdown designed for the brightest minds in EEE.',
         prizePool: '10K',
-        imageColor: '#ffff99',
-        buttonColor: '#98FB98',
-        // imageUrl: 'https://images.unsplash.com/photo-1519074063912-ad2fe3f5113c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Map/Adventure
-        videoUrl: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/videos/original/4ebcf404-4545-45bd-817e-5e6cc8b6c361.mp4'
+        imageColor: '#80DEEA', // Cyan
+        buttonColor: '#FFFFFF',
+        imageUrl: 'https://plus.unsplash.com/premium_photo-1679917152960-b9e645638575?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZWxlY3RyaWMlMjBjaXJjdWl0fGVufDB8fDB8fHww', // Sparks
+        videoUrl: '',
+
+        venue: 'Lab 204',
+        time: '11:00 AM - 2:00 PM',
+        studentCoordinators: ['Rahul K.', 'Sneha M.'],
+        facultyCoordinators: ['Prof. X']
     },
     {
-        title: 'TALENT SHOW',
-        date: 'MARCH 21ST',
-        category: 'NON-TECH',
-        description: 'Showcase your unique talents - singing, dancing, comedy, and more!',
-        prizePool: 'TBA',
-        imageColor: '#ffccff',
-        buttonColor: '#98FB98',
-        imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Stage/Performance
-        videoUrl: ''
+        title: 'Tower Making',
+        date: '25th March',
+        category: 'CIVIL',
+        description: 'Construct the tallest and most stable tower using limited resources. A test of structural engineering and patience.',
+        prizePool: '8K',
+        imageColor: '#FFCCBC', // Light Orange
+        buttonColor: '#FFFFFF',
+        imageUrl: 'https://images.unsplash.com/photo-1590579491624-f98f36d4c763?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Construction
+        videoUrl: '',
+
+        venue: 'Civil Block A',
+        time: '09:00 AM - 12:00 PM',
+        studentCoordinators: ['Amit S.', 'Riya D.'],
+        facultyCoordinators: ['Dr. Civil']
     },
+    {
+        title: 'Waste to Wealth',
+        date: '25th March',
+        category: 'NON-TECH',
+        description: 'Innovate and create useful products from waste materials. Show how master engineering can drive sustainability.',
+        prizePool: '5K',
+        imageColor: '#C8E6C9', // Green
+        buttonColor: '#FFFFFF',
+        imageUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Recycle creative
+        videoUrl: '',
+
+        venue: 'Open Ground',
+        time: '02:00 PM - 5:00 PM',
+        studentCoordinators: ['Eco Club'],
+        facultyCoordinators: ['Green Admin']
+    },
+    {
+        title: 'Path Follower',
+        date: '25th March',
+        category: 'ROBOTICS',
+        description: 'Design an autonomous bot capable of following a complex black line path in the shortest time possible.',
+        prizePool: '20K',
+        imageColor: '#D1C4E9', // Purple
+        buttonColor: '#FFFFFF',
+        imageUrl: 'https://images.unsplash.com/photo-1589254065878-42c9da997008?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80', // Robot
+        venue: 'Robotics Hall',
+        time: '12:00 PM - 4:00 PM',
+        studentCoordinators: ['Robo Team'],
+        facultyCoordinators: ['Tech Head']
+    },
+    // --- DAY 2 (26th March) ---
+    {
+        title: 'Robo Wars',
+        date: 'Day 2',
+        category: 'ROBOTICS',
+        description: 'The ultimate clash of metal and code. Witness bots battle it out for supremacy in the arena.',
+        prizePool: '25K',
+        imageColor: '#FF5722',
+        buttonColor: '#FFFFFF',
+        imageUrl: 'https://images.unsplash.com/photo-1561569762-b9b596287c80?q=80&w=2670&auto=format&fit=crop',
+        videoUrl: '',
+
+        venue: 'Arena Stage',
+        time: '10:00 AM - 4:00 PM',
+        studentCoordinators: ['War Lords'],
+        facultyCoordinators: ['Battle Master']
+    },
+    {
+        title: 'Bridge Builder',
+        date: 'Day 2',
+        category: 'CIVIL',
+        description: 'Design and construct a bridge that can withstand heavy loads using limited materials.',
+        prizePool: '12K',
+        imageColor: '#795548',
+        buttonColor: '#FFFFFF',
+        imageUrl: 'https://images.unsplash.com/photo-1513475303621-c8bf20660388?q=80&w=2672&auto=format&fit=crop',
+        videoUrl: '',
+
+        venue: 'Civil Block B',
+        time: '09:30 AM - 1:30 PM',
+        studentCoordinators: ['Builder Bob'],
+        facultyCoordinators: ['Site Eng.']
+    }
 ];

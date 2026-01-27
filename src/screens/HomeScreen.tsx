@@ -14,6 +14,7 @@ import AboutSection from '../components/AboutSection';
 import GallerySection from '../components/GallerySection';
 
 import DepartmentsEvents from '../components/DepartmentsEvents';
+
 import PrizesSponsors from '../components/PrizesSponsors';
 import PastGlimpses from '../components/PastGlimpses';
 import TeamSection from '../components/TeamSection';
@@ -24,7 +25,7 @@ import FooterSection from '../components/FooterSection';
 import { PageTransition } from '../components/navigation/PageTransition';
 import { StaggerEntrance } from '../components/animations/StaggerEntrance';
 import GlobalMusicButton from '../components/GlobalMusicButton';
-import SignInModal from '../components/SignInModal';
+
 
 export default function HomeScreen() {
     // 🔑 Use Reanimated Ref for Animated Components

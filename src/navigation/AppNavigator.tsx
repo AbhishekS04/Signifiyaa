@@ -6,7 +6,7 @@ import HomeScreen from '../screens/HomeScreen';
 import GalleryScreen from '../screens/GalleryScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import PaymentsScreen from '../screens/PaymentsScreen';
-import { EventsScreen } from '../screens/PlaceholderScreens';
+import EventsScreen from '../screens/EventsScreen';
 import AuthScreen from '../screens/AuthScreen';
 import { CustomTabBar } from '../components/navigation/CustomTabBar';
 
