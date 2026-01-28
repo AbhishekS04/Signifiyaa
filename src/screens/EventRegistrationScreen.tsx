@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+// @ts-ignore
+import RazorpayCheckout from 'react-native-razorpay';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Dimensions, KeyboardAvoidingView, Platform, Pressable, BackHandler, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -128,8 +130,65 @@ const EventRegistrationScreen = () => {
         return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     };
 
-    const handlePay = () => {
-        (navigation as any).navigate('Main', { screen: 'Events' });
+    const handlePay = async () => {
+        // --- RAZORPAY INTEGRATION ---
+
+        // 1. configuration
+        // IMPORTANT: Replace this with your actual Razorpay Key ID
+        const RAZORPAY_KEY_ID = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_S8rSjrgYttq3i7';
+
+        // 2. Amount must be in currency subunits (e.g., paise for INR)
+        const amountInPaise = totalPrice * 100;
+
+        // 3. (Optional but Recommended) Create Order on Backend
+        // You should fetch an order_id from your backend here to ensure security.
+        // const orderData = await fetch('YOUR_BACKEND_URL/create-order', ...);
+        // const order_id = orderData.id;
+
+        const options = {
+            description: 'Event Registration Fees',
+            image: 'https://i.imgur.com/3g7nmJC.png', // Optional: Your App Logo
+            currency: 'INR',
+            key: RAZORPAY_KEY_ID,
+            amount: amountInPaise,
+            name: 'Signifiya 2026',
+            // order_id: 'order_DslnoIgkIDL8Zt', // Replace with actual order_id from backend
+            prefill: {
+                email: email,
+                contact: phone,
+                name: leaderName
+            },
+            theme: { color: '#000000' }
+        };
+
+        try {
+            const data = await RazorpayCheckout.open(options);
+
+            // Handle Success
+            console.log(`Payment Success: ${data.razorpay_payment_id}`);
+            showAlert(
+                "REGISTRATION SUCCESSFUL!",
+                `Payment ID: ${data.razorpay_payment_id}\n\nYour team has been registered successfully.`,
+                'success'
+            );
+
+            // Navigate after a delay or let user close alert
+            setTimeout(() => {
+                (navigation as any).navigate('Main', { screen: 'Events' });
+            }, 2000);
+
+        } catch (error: any) {
+            // Handle Failure
+            console.log(`Payment Error: ${error.code} | ${error.description}`);
+
+            // Don't show error if user cancelled
+            if (error.code !== 0) { // 0 is often used for cancellation or check description
+                showAlert("PAYMENT FAILED", error.description || "The payment transaction failed.", 'error');
+            } else {
+                // User cancelled, maybe just log or show info
+                console.log("User cancelled payment");
+            }
+        }
     };
 
     // Fonts
