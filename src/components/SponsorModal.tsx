@@ -1,11 +1,10 @@
 import React from 'react';
 import { View, Text, Modal, TouchableOpacity, ScrollView, Alert, Dimensions } from 'react-native';
-import { Download, X } from 'lucide-react-native';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
-import { BlurView } from 'expo-blur';
+import { Download, X, FileText } from 'lucide-react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import SmoothButton from './ui/SmoothButton';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface SponsorModalProps {
     visible: boolean;
@@ -14,12 +13,13 @@ interface SponsorModalProps {
 
 const SponsorModal = ({ visible, onClose }: SponsorModalProps) => {
     // Fonts
-    const FONT_HEADING = 'BBHBartle';
-    const FONT_BODY = 'Gilton';
+    const FONT_HEADING = 'BBHBartle'; // Bubbly font
+    const FONT_BODY = 'Gilton'; // Clean sans-serif
+    const FONT_SUB = 'Softura'; // Wide/Modern font
 
     const handleDownload = (type: 'Tech' | 'Non-Tech') => {
         Alert.alert('Download Started', `Downloading ${type} Brochure...`);
-        // Actual download logic would go here (Linking.openURL)
+        // Actual download logic would go here
     };
 
     return (
@@ -29,93 +29,100 @@ const SponsorModal = ({ visible, onClose }: SponsorModalProps) => {
             transparent={true}
             onRequestClose={onClose}
         >
-            <View className="flex-1">
-                {/* Blur Background if needed, or just standard modal behavior */}
-                {/* Using a solid container for the design provided */}
+            <View className="flex-1 bg-[#FFF8E7]">
+                {/* Close Button - Top Right */}
+                <TouchableOpacity
+                    onPress={onClose}
+                    className="absolute top-12 right-6 z-50 bg-black/5 p-2 rounded-full"
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <X color="black" size={28} />
+                </TouchableOpacity>
 
-                <View className="flex-1 bg-[#FFF8E7] pt-12 pb-8 px-6 relative">
-                    {/* Close Button */}
-                    <TouchableOpacity
-                        onPress={onClose}
-                        className="absolute top-12 right-6 z-50 bg-black/5 p-2 rounded-full"
-                    >
-                        <X color="black" size={24} />
-                    </TouchableOpacity>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60, paddingTop: 80 }}>
+                    <Animated.View entering={FadeInDown.delay(100).springify()} className="px-6">
 
-                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-                        <Animated.View entering={FadeInDown.delay(100).springify()}>
-                            {/* Main Title */}
-                            <View className="items-center mt-8 mb-4">
-                                <Text className="text-4xl text-center leading-tight" style={{ fontFamily: FONT_HEADING }}>
-                                    BECOME A
-                                </Text>
-                                <Text className="text-4xl text-center leading-tight italic" style={{ fontFamily: FONT_HEADING }}>
-                                    SPONSOR
-                                </Text>
-                            </View>
-
-                            {/* Subtitle */}
-                            <Text className="text-center text-[#4B5563] text-lg mb-12 px-4 leading-6" style={{ fontFamily: FONT_BODY }}>
-                                Partner with Signifiya'26 and{'\n'}be part of something{'\n'}extraordinary.
+                        {/* 1. MAIN TITLE */}
+                        <View className="items-center mb-6">
+                            <Text className="text-4xl text-center text-black mb-2" style={{ fontFamily: FONT_HEADING }}>
+                                BECOME A SPONSOR
                             </Text>
+                        </View>
 
-                            {/* Section Header */}
-                            <Text className="text-3xl text-center mb-8" style={{ fontFamily: FONT_HEADING }}>
-                                Download Our{'\n'}Brochures
+                        {/* 2. SUBTITLE */}
+                        <Text className="text-center text-[#4B5563] text-lg mb-12 leading-6 px-4" style={{ fontFamily: FONT_BODY }}>
+                            Partner with Signifiya'26 and{'\n'}be part of something{'\n'}extraordinary.
+                        </Text>
+
+                        {/* 3. SECTION HEADER */}
+                        <View className="items-center mb-8">
+                            <Text className="text-3xl text-center text-black leading-9" style={{ fontFamily: FONT_HEADING }}>
+                                Download Our
                             </Text>
+                            <Text className="text-3xl text-center text-black leading-9" style={{ fontFamily: FONT_HEADING }}>
+                                Brochures
+                            </Text>
+                        </View>
 
-                            {/* Brochure Cards */}
-                            <View className="gap-8 items-center">
-                                {/* Tech Brochure */}
-                                <BrochureCard
-                                    title="TECH BROCHURE"
-                                    onPress={() => handleDownload('Tech')}
-                                />
+                        {/* 4. BROCHURE CARDS */}
+                        <View className="gap-8 items-center">
+                            {/* Tech Brochure */}
+                            <BrochureCard
+                                title="TECH BROCHURE"
+                                onPress={() => handleDownload('Tech')}
+                                font={FONT_SUB}
+                                bodyFont={FONT_BODY}
+                            />
 
-                                {/* Non-Tech Brochure */}
-                                <BrochureCard
-                                    title="NON-TECH"
-                                    subtitle="BROCHURE"
-                                    onPress={() => handleDownload('Non-Tech')}
-                                />
-                            </View>
-                        </Animated.View>
-                    </ScrollView>
-                </View>
+                            {/* Non-Tech Brochure */}
+                            <BrochureCard
+                                title="NON-TECH"
+                                subtitle="BROCHURE"
+                                onPress={() => handleDownload('Non-Tech')}
+                                font={FONT_SUB}
+                                bodyFont={FONT_BODY}
+                            />
+                        </View>
+
+                    </Animated.View>
+                </ScrollView>
             </View>
         </Modal>
     );
 };
 
-const BrochureCard = ({ title, subtitle, onPress }: { title: string, subtitle?: string, onPress: () => void }) => {
-    const FONT_HEADING = 'BBHBartle'; // Using the bubbly font for card titles as seen in image
-    const FONT_BODY = 'Gilton';
-
+// Custom Card Component to match the Exact Reference Image
+const BrochureCard = ({ title, subtitle, onPress, font, bodyFont }: { title: string, subtitle?: string, onPress: () => void, font: string, bodyFont: string }) => {
     return (
         <SmoothButton
             onPress={onPress}
-            containerStyle={{ width: width * 0.7 }}
-            buttonStyle="bg-white border-[3px] border-black rounded-[30px] p-8 items-center justify-center h-[200px]"
+            containerStyle={{ width: width * 0.75 }} // Slightly wider
+            // White bg, Thick Border, Rounded Heavy
+            buttonStyle="bg-white border-[3px] border-black rounded-[30px] py-10 items-center justify-center"
+            // Deep Shadow to match reference
             shadowStyle="bg-black rounded-[30px]"
-            depth={8}
+            depth={10}
         >
-            {/* Circle Icon */}
-            <View className="bg-black w-14 h-14 rounded-full items-center justify-center mb-4">
-                <Download color="white" size={24} strokeWidth={2.5} />
+            {/* Circle Icon Black */}
+            <View className="bg-black w-20 h-20 rounded-full items-center justify-center mb-5">
+                {/* File Icon with Arrow */}
+                <View className="items-center justify-center translate-y-1">
+                    <Download color="white" size={32} strokeWidth={2.5} />
+                </View>
             </View>
 
             {/* Title */}
-            <Text className="text-xl text-center uppercase tracking-wide mb-1" style={{ fontFamily: 'Softura' }}>
+            <Text className="text-xl text-center uppercase tracking-wide mb-1 text-black" style={{ fontFamily: font }}>
                 {title}
             </Text>
             {subtitle && (
-                <Text className="text-xl text-center uppercase tracking-wide mb-1" style={{ fontFamily: 'Softura' }}>
+                <Text className="text-xl text-center uppercase tracking-wide mb-1 text-black" style={{ fontFamily: font }}>
                     {subtitle}
                 </Text>
             )}
 
-            {/* CTA */}
-            <Text className="text-xs text-[#6B7280] mt-2" style={{ fontFamily: FONT_BODY }}>
+            {/* Subtext */}
+            <Text className="text-sm text-[#6B7280] mt-3" style={{ fontFamily: bodyFont }}>
                 Click to download
             </Text>
         </SmoothButton>

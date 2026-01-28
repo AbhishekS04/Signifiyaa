@@ -8,6 +8,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import PaymentsScreen from '../screens/PaymentsScreen';
 import EventsScreen from '../screens/EventsScreen';
 import AuthScreen from '../screens/AuthScreen';
+import EventRegistrationScreen from '../screens/EventRegistrationScreen';
 import { CustomTabBar } from '../components/navigation/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
@@ -71,6 +72,11 @@ export default function AppNavigator() {
                         cardStyle: { backgroundColor: '#F5E6FA' }, // Ensure background is painted immediately
                         gestureEnabled: true,
                     }}
+                />
+                <Stack.Screen
+                    name="EventRegistration"
+                    component={EventRegistrationScreen}
+                    options={{ animation: 'slide_from_bottom', headerShown: false }}
                 />
             </Stack.Navigator>
         </View>

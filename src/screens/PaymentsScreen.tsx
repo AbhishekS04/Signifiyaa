@@ -144,7 +144,7 @@ export default function PaymentsScreen() {
                                             {/* Register Events Button */}
                                             <View>
                                                 <SmoothButton
-                                                    onPress={() => setActiveView('events')}
+                                                    onPress={() => navigation.navigate('EventRegistration')}
                                                     buttonStyle="bg-[#FFEB3B] border-[2.5px] border-black rounded-[20px] py-6 px-6"
                                                     shadowStyle="bg-black rounded-[20px]"
                                                     depth={6}

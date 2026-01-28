@@ -23,7 +23,7 @@ import SmoothButton from './ui/SmoothButton';
 import MusicService from '../services/MusicService';
 import { useMusicContext } from '../context/MusicContext';
 import { Image } from 'expo-image';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 // Enable LayoutAnimation
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -50,6 +50,7 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
     // 🎵 Global Context & Focus
     const { isPlaying: isGlobalMusicPlaying, setIsPlaying: setGlobalMusicPlaying } = useMusicContext();
     const isFocused = useIsFocused(); // Track Tab Focus
+    const navigation = useNavigation();
 
     // State
     const [activeFilter, setActiveFilter] = useState('ALL'); // Default to ALL
@@ -164,6 +165,12 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
         }
     };
 
+    // Handler
+    const handleRegister = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        (navigation as any).navigate('EventRegistration');
+    };
+
     return (
         <View className="w-full">
             {/* ABOUT SOET */}
@@ -248,6 +255,7 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
                                             width={CARD_WIDTH}
                                             onVideoPlay={handleVideoPlay}
                                             onVideoStop={handleVideoStop}
+                                            onRegisterPress={handleRegister} // [NEW] Pass handler
                                         />
                                     )}
                                 />
@@ -284,9 +292,9 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
 };
 
 // CustomItem wrapper
-const CustomItem = React.memo(({ item, animationValue, isActive, width, onVideoPlay, onVideoStop }: {
+const CustomItem = React.memo(({ item, animationValue, isActive, width, onVideoPlay, onVideoStop, onRegisterPress }: {
     item: any, animationValue: SharedValue<number>, isActive: boolean, width: number,
-    onVideoPlay: () => void, onVideoStop: () => void
+    onVideoPlay: () => void, onVideoStop: () => void, onRegisterPress: () => void
 }) => {
     const animatedStyle = useAnimatedStyle(() => {
         const scale = interpolate(animationValue.value, [-1, 0, 1], [0.9, 1, 0.9], Extrapolation.CLAMP);
@@ -297,14 +305,14 @@ const CustomItem = React.memo(({ item, animationValue, isActive, width, onVideoP
     return (
         <Animated.View style={[{ flex: 1, justifyContent: 'center', alignItems: 'center' }, animatedStyle]}>
             <View style={{ width: width, height: '100%', alignItems: 'center', paddingBottom: 12 }}>
-                <EventCard {...item} isActive={isActive} onVideoPlay={onVideoPlay} onVideoStop={onVideoStop} />
+                <EventCard {...item} isActive={isActive} onVideoPlay={onVideoPlay} onVideoStop={onVideoStop} onRegisterPress={onRegisterPress} />
             </View>
         </Animated.View>
     );
 });
 
 // EventCard with Instant Image & Video Logic
-const EventCard = React.memo(({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl, isActive, onVideoPlay, onVideoStop }: any) => {
+const EventCard = React.memo(({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl, isActive, onVideoPlay, onVideoStop, onRegisterPress }: any) => {
     const [isMuted, setIsMuted] = useState(true);
 
     const player = useVideoPlayer(videoUrl || '', (player) => {
@@ -378,7 +386,7 @@ const EventCard = React.memo(({ title, date, category, description, prizePool, i
                     </View>
                     <View className={`gap-4 w-full ${isSmallDevice ? 'mt-1' : 'mt-4'}`}>
                         <SmoothButton onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)} buttonStyle={`border-[3px] border-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`} innerButtonStyle={{ backgroundColor: buttonColor }} shadowStyle="bg-black rounded-2xl" depth={6}><Text className="text-black uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>VIEW DETAILS</Text></SmoothButton>
-                        <SmoothButton onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)} buttonStyle={`bg-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`} shadowStyle="bg-black rounded-2xl" depth={6}><Text className="text-white uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>REGISTER</Text></SmoothButton>
+                        <SmoothButton onPress={() => onRegisterPress()} buttonStyle={`bg-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`} shadowStyle="bg-black rounded-2xl" depth={6}><Text className="text-white uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>REGISTER</Text></SmoothButton>
                     </View>
                 </View>
             </View>

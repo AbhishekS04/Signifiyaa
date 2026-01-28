@@ -26,6 +26,7 @@ const SECTION_FONTS = {
 const EventsScreen = () => {
 
     // State
+    const navigation = useNavigation();
     const [activeFilter, setActiveFilter] = useState('ALL');
     const { events } = useEvents(); // [NEW] Use hook
 
@@ -53,6 +54,7 @@ const EventsScreen = () => {
 
     const handleRegisterPress = (event: any) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        (navigation as any).navigate('EventRegistration');
     };
 
     return (
