@@ -1,6 +1,6 @@
-npx expo-doctor   --for check errors
+<!-- npx expo-doctor   --for check errors
 npm outdated   --for check outdated packages
-npm update   --for update packages
+**npm update **  --for update packages
 
 
 then run this command
@@ -8,4 +8,4 @@ then run this command
 
 
 
-npx expo install --check
+<!-- npx expo install --check --> -->

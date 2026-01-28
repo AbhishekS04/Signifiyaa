@@ -4,6 +4,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { ArrowUpRight, MapPin, Clock, Star } from 'lucide-react-native';
+import Svg, { Line, G } from 'react-native-svg';
 import SmoothButton from './SmoothButton';
 
 const { width } = Dimensions.get('window');
@@ -55,13 +56,13 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                     <View className="flex-row gap-2 mb-4 flex-wrap justify-start">
                         {/* Category Tag */}
                         <View className="border-[2px] border-black px-3 py-1 rounded-[12px] bg-white shadow-[2px_2px_0px_#000]">
-                            <Text className="text-[10px] font-black uppercase tracking-wider" style={{ fontFamily: SECTION_FONTS.BADGE }}>
+                            <Text className="text-[10px] font-bold uppercase tracking-wider" style={{ fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' }}>
                                 {item.category}
                             </Text>
                         </View>
                         {/* Number Tag (Fake #01 for style) */}
                         <View className="border-[2px] border-black px-3 py-1 rounded-[12px] bg-[#E0E0E0] shadow-[2px_2px_0px_#000]">
-                            <Text className="text-[10px] font-black uppercase tracking-wider" style={{ fontFamily: SECTION_FONTS.BADGE }}>
+                            <Text className="text-[10px] font-bold uppercase tracking-wider" style={{ fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' }}>
                                 #{index + 1 < 10 ? `0${index + 1}` : index + 1}
                             </Text>
                         </View>
@@ -88,55 +89,28 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                     <View className="gap-3 w-full items-start mb-6">
 
                         {/* Time Pill (Light Purple) */}
-                        <View className="bg-[#E0C3FC] border-[2px] border-black rounded-[14px] px-4 py-2 flex-row items-center shadow-[3px_3px_0px_#000] w-full">
+                        {/* Time Pill (Light Purple) */}
+                        <View
+                            className="bg-[#E0C3FC] border-[2px] border-black rounded-[14px] px-4 py-2 flex-row items-center shadow-[3px_3px_0px_#000] w-full mb-3"
+                            style={{ elevation: 4 }}
+                        >
                             <Clock size={14} color="black" strokeWidth={2.5} style={{ marginRight: 8 }} />
-                            <Text className="text-[11px] uppercase tracking-widest text-black" style={{ fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', fontWeight: 'bold' }}>
+                            <Text className="text-[11px] uppercase tracking-widest text-black flex-1" style={{ fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', fontWeight: 'bold' }}>
                                 TIME: {item.time || 'TBA'}
                             </Text>
                         </View>
 
                         {/* Venue Pill (White) */}
-                        <View className="bg-white border-[2px] border-black rounded-[14px] px-4 py-2 flex-row items-center shadow-[3px_3px_0px_#000] w-full">
-                            <MapPin size={14} color="#E91E63" strokeWidth={2.5} style={{ marginRight: 8 }} />
-                            <Text className="text-[10px] font-bold uppercase tracking-widest text-black" style={{ fontFamily: 'monospace' }}>
-                                VENUE: {item.venue || 'TBA'}
+                        <View
+                            className="bg-white border-[2px] border-black rounded-[14px] px-4 py-2 flex-row items-center shadow-[3px_3px_0px_#000] w-full"
+                            style={{ elevation: 4 }}
+                        >
+                            <MapPin size={14} color="#ff0000ff" strokeWidth={2.5} style={{ marginRight: 8 }} />
+                            <Text className="text-[10px] font-bold uppercase tracking-widest text-black flex-1" style={{ fontFamily: 'monospace' }}>
+                                VENUE: {item.venue || '10k'}
                             </Text>
                         </View>
 
-                    </View>
-
-                    {/* SEPARATOR: Dashed Line */}
-                    <View className="w-full border-b-[1.5px] border-dashed border-black/30 mb-5" />
-
-                    {/* COORDINATORS */}
-                    <View className="flex-row gap-6 w-full">
-                        {/* Student Coords */}
-                        <View className="flex-1">
-                            <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
-                                Student Coordinators
-                            </Text>
-                            <View>
-                                {item.studentCoordinators?.map((name: string, i: number) => (
-                                    <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
-                                        {name}
-                                    </Text>
-                                )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
-                            </View>
-                        </View>
-
-                        {/* Faculty Coords */}
-                        <View className="flex-1">
-                            <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
-                                Faculty Coordinators
-                            </Text>
-                            <View>
-                                {item.facultyCoordinators?.map((name: string, i: number) => (
-                                    <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
-                                        {name}
-                                    </Text>
-                                )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
-                            </View>
-                        </View>
                     </View>
 
                 </View>
@@ -171,12 +145,57 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                             <Star size={14} color="white" fill="white" />
                         </View>
 
-                        {/* Bottom Left Decoration (Optional from ref, maybe small shapes?) */}
-                        {/* Ignoring for cleanliness unless requested */}
                     </Animated.View>
                 </View>
 
             </View>
+
+            {/* SEPARATOR: Dashed Line (Full Width) */}
+            <View className="w-full h-[2px] mb-5 mt-2 overflow-hidden">
+                <Svg height="100%" width="100%">
+                    <Line
+                        x1="0"
+                        y1="1"
+                        x2="100%"
+                        y2="1"
+                        stroke="#B0B0B0"
+                        strokeWidth="2"
+                        strokeDasharray="12, 12"
+                    />
+                </Svg>
+            </View>
+
+            {/* COORDINATORS (Full Width) */}
+            <View className="flex-row gap-6 w-full px-1">
+                {/* Student Coords */}
+                <View className="flex-1">
+                    <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
+                        Student Coordinators
+                    </Text>
+                    <View>
+                        {item.studentCoordinators?.map((name: string, i: number) => (
+                            <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
+                                {name}
+                            </Text>
+                        )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
+                    </View>
+                </View>
+
+                {/* Faculty Coords */}
+                <View className="flex-1">
+                    <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
+                        Faculty Coordinators
+                    </Text>
+                    <View>
+                        {item.facultyCoordinators?.map((name: string, i: number) => (
+                            <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
+                                {name}
+                            </Text>
+                        )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
+                    </View>
+                </View>
+            </View>
+
         </Animated.View>
     );
 };

@@ -10,6 +10,7 @@ import SmoothButton from '../components/ui/SmoothButton';
 import EventsHeader from '../components/ui/EventsHeader';
 import SketchyEventCard from '../components/ui/SketchyEventCard';
 import { PageTransition } from '../components/navigation/PageTransition';
+import Svg, { Text as SvgText } from 'react-native-svg';
 
 // Enable LayoutAnimation
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -80,45 +81,67 @@ const EventsScreen = () => {
                             <View className="items-end px-6 pt-8 mb-4">
 
                                 {/* Date Pill (Yellow, Rotated) */}
-                                <View className="bg-[#FFEB3B] border-[2.5px] border-black px-5 py-2 rounded-full transform -rotate-2 shadow-[4px_4px_0px_#000] z-20 mb-[-12px] mr-2">
-                                    <Text className="text-sm text-black tracking-tighter" style={{ fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', fontWeight: 'bold' }}>
-                                        13th March, 2026
-                                    </Text>
+                                {/* Date Pill (Yellow, Rotated) - Double Layer for Hard 3D Shadow */}
+                                <View className="z-20 mb-[-12px] mr-2" style={{ transform: [{ rotate: '2deg' }] }}>
+                                    <View className="relative">
+                                        {/* Hard Shadow Layer */}
+                                        <View className="absolute top-[5px] left-[5px] bg-black rounded-[6px] w-full h-full" />
+
+                                        {/* Main Pill Layer */}
+                                        <View className="bg-[#FFEB3B] border-[2.5px] border-black px-5 py-2 rounded-[6px]">
+                                            <Text className="text-sm text-black tracking-tighter font-bold" style={{ fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' }}>
+                                                13th March, 2026
+                                            </Text>
+                                        </View>
+                                    </View>
                                 </View>
 
-                                {/* Day 1 Text (Layered for 3D Effect) */}
-                                <View className="z-10 relative">
-                                    {/* Shadow Layer (Black Background Block) */}
-                                    <Text
-                                        className="text-[85px] text-white tracking-tighter absolute top-[6px] left-[6px]"
-                                        style={{
-                                            fontFamily: 'ArchivoBlack_400Regular',
-                                            includeFontPadding: false,
-                                            lineHeight: 90
-                                        }}
-                                    >
-                                        Day 1
-                                    </Text>
+                                {/* Day 1 Text (SVG for Outline + 3D) */}
+                                <View className="z-10 relative h-[100px] w-[260px] mt-[-10px]">
+                                    <Svg height="100%" width="100%">
+                                        {/* 1. Shadow Layer (Deep Black Block) */}
+                                        <SvgText
+                                            fill="black"
+                                            fontSize="85"
+                                            fontFamily="ArchivoBlack_400Regular"
+                                            x="6"
+                                            y="86"
+                                            letterSpacing="-4"
+                                        >
+                                            Day 1
+                                        </SvgText>
 
-                                    {/* Main Layer (White Foreground) */}
-                                    <Text
-                                        className="text-[85px] text-black tracking-tighter"
-                                        style={{
-                                            fontFamily: 'ArchivoBlack_400Regular',
-                                            includeFontPadding: false,
-                                            lineHeight: 90,
-                                            textShadowColor: '#000',
-                                            textShadowOffset: { width: 1, height: 1 },
-                                            textShadowRadius: 1
-                                        }}
-                                    >
-                                        Day 1
-                                    </Text>
+                                        {/* 2. Outline Layer (Thick Stroke Background) */}
+                                        <SvgText
+                                            stroke="black"
+                                            strokeWidth="5"
+                                            fill="black"
+                                            fontSize="85"
+                                            fontFamily="ArchivoBlack_400Regular"
+                                            x="0"
+                                            y="80"
+                                            letterSpacing="-4"
+                                        >
+                                            Day 1
+                                        </SvgText>
+
+                                        {/* 3. Face Layer (Clean White Fill) */}
+                                        <SvgText
+                                            fill="white"
+                                            fontSize="85"
+                                            fontFamily="ArchivoBlack_400Regular"
+                                            x="0"
+                                            y="80"
+                                            letterSpacing="-4"
+                                        >
+                                            Day 1
+                                        </SvgText>
+                                    </Svg>
                                 </View>
 
                                 {/* Guidelines Badge (Tucked Under) */}
-                                <View className="bg-white border-[1.5px] border-black px-3 py-1 rounded-[6px] mt-[-8px] shadow-[2px_2px_0px_rgba(0,0,0,1)] z-20 mr-2 transform rotate-1">
-                                    <Text className="text-[10px] uppercase tracking-wide" style={{ fontFamily: SECTION_FONTS.FILTER_LABEL }}>
+                                <View className="bg-white border-[1.5px]  px-3 py-1 rounded-[6px] mt-[-8px] shadow-[2px_2px_0px_rgba(0,0,0,1)] z-20 mr-2 transform rotate-1">
+                                    <Text className="text-[10px] uppercase tracking-wide" style={{ fontFamily: 'Gilton' }}>
                                         Events & Guidelines
                                     </Text>
                                 </View>
@@ -152,45 +175,67 @@ const EventsScreen = () => {
                             {/* Sticker Header - REF MATCH (Day 2) */}
                             <View className="items-end px-6 pt-8 mb-4">
                                 {/* Date Pill (Cyan/White, Rotated) */}
-                                <View className="bg-[#4DD0E1] border-[2.5px] border-black px-5 py-2 rounded-full transform rotate-1 shadow-[4px_4px_0px_#000] z-20 mb-[-12px] mr-2">
-                                    <Text className="text-sm text-black tracking-tighter" style={{ fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace', fontWeight: 'bold' }}>
-                                        14th March, 2026
-                                    </Text>
+                                {/* Date Pill (Cyan/White, Rotated) - Double Layer for Hard 3D Shadow */}
+                                <View className="z-20 mb-[-12px] mr-2" style={{ transform: [{ rotate: '2deg' }] }}>
+                                    <View className="relative">
+                                        {/* Hard Shadow Layer */}
+                                        <View className="absolute top-[5px] left-[5px] bg-black rounded-[6px] w-full h-full" />
+
+                                        {/* Main Pill Layer */}
+                                        <View className="bg-[#4DD0E1] border-[2.5px] border-black px-5 py-2 rounded-[6px]">
+                                            <Text className="text-sm text-black tracking-tighter font-bold" style={{ fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' }}>
+                                                14th March, 2026
+                                            </Text>
+                                        </View>
+                                    </View>
                                 </View>
 
-                                {/* Day 2 Text (Layered) */}
-                                <View className="z-10 relative">
-                                    {/* Shadow Layer */}
-                                    <Text
-                                        className="text-[85px] text-black tracking-tighter absolute top-[6px] left-[6px]"
-                                        style={{
-                                            fontFamily: 'ArchivoBlack_400Regular',
-                                            includeFontPadding: false,
-                                            lineHeight: 90
-                                        }}
-                                    >
-                                        Day 2
-                                    </Text>
+                                {/* Day 2 Text (SVG for Outline + 3D) */}
+                                <View className="z-10 relative h-[100px] w-[260px] mt-[-10px]">
+                                    <Svg height="100%" width="100%">
+                                        {/* 1. Shadow Layer */}
+                                        <SvgText
+                                            fill="black"
+                                            fontSize="85"
+                                            fontFamily="ArchivoBlack_400Regular"
+                                            x="6"
+                                            y="86"
+                                            letterSpacing="-4"
+                                        >
+                                            Day 2
+                                        </SvgText>
 
-                                    {/* Main Layer */}
-                                    <Text
-                                        className="text-[85px] text-white tracking-tighter"
-                                        style={{
-                                            fontFamily: 'ArchivoBlack_400Regular',
-                                            includeFontPadding: false,
-                                            lineHeight: 90,
-                                            textShadowColor: '#000',
-                                            textShadowOffset: { width: 1, height: 1 },
-                                            textShadowRadius: 1
-                                        }}
-                                    >
-                                        Day 2
-                                    </Text>
+                                        {/* 2. Outline Layer */}
+                                        <SvgText
+                                            stroke="black"
+                                            strokeWidth="5"
+                                            fill="black"
+                                            fontSize="85"
+                                            fontFamily="ArchivoBlack_400Regular"
+                                            x="0"
+                                            y="80"
+                                            letterSpacing="-4"
+                                        >
+                                            Day 2
+                                        </SvgText>
+
+                                        {/* 3. Face Layer */}
+                                        <SvgText
+                                            fill="white"
+                                            fontSize="85"
+                                            fontFamily="ArchivoBlack_400Regular"
+                                            x="0"
+                                            y="80"
+                                            letterSpacing="-4"
+                                        >
+                                            Day 2
+                                        </SvgText>
+                                    </Svg>
                                 </View>
 
                                 {/* Guidelines Badge */}
-                                <View className="bg-white border-[1.5px] border-black px-3 py-1 rounded-[6px] mt-[-8px] shadow-[2px_2px_0px_rgba(0,0,0,1)] z-20 mr-2 transform -rotate-1">
-                                    <Text className="text-[10px] font-bold text-black uppercase tracking-wide" style={{ fontFamily: SECTION_FONTS.FILTER_LABEL }}>
+                               <View className="bg-white border-[1.5px]  px-3 py-1 rounded-[6px] mt-[-8px] shadow-[2px_2px_0px_rgba(0,0,0,1)] z-20 mr-2 transform rotate-1">
+                                    <Text className="text-[10px] uppercase tracking-wide" style={{ fontFamily: 'Gilton' }}>
                                         Events & Guidelines
                                     </Text>
                                 </View>
