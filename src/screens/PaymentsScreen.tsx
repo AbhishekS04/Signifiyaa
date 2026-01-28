@@ -208,7 +208,7 @@ export default function PaymentsScreen() {
 
                             {activeView === 'events' && (
                                 <Animated.View entering={ZoomIn.duration(400)} className="bg-white border-[3px] border-black rounded-[30px] p-8">
-                                    <Text className="text-2xl mb-4" style={{ fontFamily: FONT_BOLD }}>
+                                    <Text className="text-xl mb-4" style={{ fontFamily: FONT_BOLD }}>
                                         Event Registration
                                     </Text>
                                     <Text className="text-sm mb-6" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>

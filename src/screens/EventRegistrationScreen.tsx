@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Dimensions, KeyboardAvoidingView, Platform, Pressable, BackHandler } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Dimensions, KeyboardAvoidingView, Platform, Pressable, BackHandler, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Check } from 'lucide-react-native';
+import { ArrowLeft, Check, AlertCircle, X } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
-import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
+import Animated, { FadeInDown, Layout, FadeIn } from 'react-native-reanimated';
+import { useAuth } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -20,15 +21,48 @@ const AVAILABLE_EVENTS = [
 
 const EventRegistrationScreen = () => {
     const navigation = useNavigation();
+    const { user } = useAuth();
     const [currentStep, setCurrentStep] = useState(1);
 
+    // --- Alert State ---
+    const [alertConfig, setAlertConfig] = useState<{ visible: boolean; title: string; message: string; type?: 'error' | 'success' | 'info' }>({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'info'
+    });
+
+    const showAlert = (title: string, message: string, type: 'error' | 'success' | 'info' = 'error') => {
+        setAlertConfig({ visible: true, title, message, type });
+    };
+
+    const hideAlert = () => {
+        setAlertConfig(prev => ({ ...prev, visible: false }));
+    };
+
     // --- Step 1 State ---
-    const [teamName, setTeamName] = useState('CODE WARRIORS');
-    const [leaderName, setLeaderName] = useState('JANE DOE');
-    const [college, setCollege] = useState('ADAMAS UNIVERSITY');
-    const [email, setEmail] = useState('EMAIL@COLLEGE.EDU');
-    const [phone, setPhone] = useState('9876543210');
-    const [bookingId, setBookingId] = useState('SGF26-XXXXXXXX');
+    const [teamName, setTeamName] = useState('');
+    const [leaderName, setLeaderName] = useState('');
+    const [college, setCollege] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [bookingId, setBookingId] = useState('');
+
+    // Pre-fill user data if available
+    useEffect(() => {
+        if (user) {
+            if (user.name) setLeaderName(user.name);
+            if (user.email) setEmail(user.email);
+            if (user.mobileNo) setPhone(user.mobileNo);
+            if (user.collegeName) setCollege(user.collegeName);
+            // We intentionally DO NOT pre-fill Booking ID to force them to look it up/enter it, 
+            // OR we can pre-fill it but the user requirement implies manual entry/verification.
+            // Let's autofill it for convenience but VALIDATE it on next.
+            // Actually, user said: "verify... if its different... tell them to use own"
+            // So we can leave it empty to force them to type it, or autofill it. 
+            // Let's leave it empty as per "ghost text" request implies manual input.
+        }
+    }, [user]);
 
     // --- Step 2 State ---
     const [selectedEvents, setSelectedEvents] = useState<number[]>([]);
@@ -64,12 +98,9 @@ const EventRegistrationScreen = () => {
         setTeamMembers(teamMembers.map(m => m.id === id ? { ...m, [field]: value } : m));
     };
 
-
-
     // --- Step 4 State ---
     const [timer, setTimer] = useState(872); // 14:32 in seconds
 
-    // Timer Effect
     React.useEffect(() => {
         if (currentStep === 4) {
             const interval = setInterval(() => {
@@ -79,21 +110,15 @@ const EventRegistrationScreen = () => {
         }
     }, [currentStep]);
 
-    // Back Handler
     React.useEffect(() => {
         const backAction = () => {
             if (currentStep > 1) {
                 setCurrentStep(currentStep - 1);
-                return true; // Prevent default behavior (exit)
+                return true;
             }
-            return false; // Let default behavior happen (go back to previous screen)
+            return false;
         };
-
-        const backHandler = BackHandler.addEventListener(
-            'hardwareBackPress',
-            backAction
-        );
-
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
         return () => backHandler.remove();
     }, [currentStep]);
 
@@ -104,8 +129,7 @@ const EventRegistrationScreen = () => {
     };
 
     const handlePay = () => {
-        // Mock Payment Success
-        (navigation as any).navigate('Main', { screen: 'Events' }); // Navigate back to Events tab
+        (navigation as any).navigate('Main', { screen: 'Events' });
     };
 
     // Fonts
@@ -113,31 +137,51 @@ const EventRegistrationScreen = () => {
     const FONT_BODY = 'Gilton';
     const FONT_SUB = 'Softura';
 
+    // Validation
+    const validateStep1 = () => {
+        if (!teamName.trim()) { showAlert("MISSING INPUT", "Please enter your Team Name.", 'error'); return false; }
+        if (!leaderName.trim()) { showAlert("MISSING INPUT", "Please enter the Team Leader's Name.", 'error'); return false; }
+        if (!bookingId.trim()) {
+            showAlert("MISSING BOOKING ID", "You must enter your Booking ID to proceed.", 'error');
+            return false;
+        }
+
+        // --- BOOKING ID VERIFICATION ---
+        // Normalizes string comparison (trim + uppercase)
+        const inputId = bookingId.trim().toUpperCase();
+        const actualId = user?.bookingId?.trim().toUpperCase();
+
+        if (inputId !== actualId) {
+            showAlert(
+                "INVALID BOOKING ID",
+                "The Booking ID you entered does not match your profile.\n\nPlease visit your Profile, copy your unique Booking ID, and use that to register.",
+                'error'
+            );
+            return false;
+        }
+
+        return true;
+    };
+
     const handleNext = () => {
+        if (currentStep === 1) {
+            if (!validateStep1()) return;
+        }
         if (currentStep < 4) setCurrentStep(currentStep + 1);
         else handlePay();
     };
 
-    const handleBack = () => {
-        if (currentStep > 1) setCurrentStep(currentStep - 1);
-        else navigation.goBack();
-    };
-
-    // Progress Bar Component
     const ProgressBar = () => {
         const progressWidth = currentStep === 1 ? '25%' : currentStep === 2 ? '50%' : currentStep === 3 ? '75%' : '100%';
 
         return (
             <View className="mb-2">
                 <View className="h-6 w-full bg-white border-[2px] border-black rounded-full overflow-hidden relative">
-                    {/* Dynamic Progress Fill */}
                     <View className="h-full bg-[#1F2937] relative overflow-hidden" style={{ width: progressWidth }}>
                         <View className="absolute top-0 left-0 right-0 bottom-0 opacity-20 bg-gray-500" />
-                        {/* Striped Pattern Overlay - Removed backgroundImage as it's not supported in RN ViewStyle */}
                         <View className="absolute top-0 left-0 w-full h-full opacity-30 bg-black" />
                     </View>
                 </View>
-                {/* Labels with Dynamic Highlighting */}
                 <View className="flex-row justify-between px-1 mt-2">
                     <Text className={`text-[10px] font-bold uppercase tracking-widest ${currentStep >= 1 ? 'text-black' : 'text-gray-400'}`}>LEADER</Text>
                     <Text className={`text-[10px] font-bold uppercase tracking-widest ${currentStep >= 2 ? 'text-black' : 'text-gray-400'}`}>EVENTS</Text>
@@ -149,309 +193,258 @@ const EventRegistrationScreen = () => {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+        <SafeAreaView className="flex-1 bg-black" edges={['top', 'bottom']}>
+
+            {/* --- CUSTOM ALERT MODAL --- */}
+            <Modal
+                transparent
+                visible={alertConfig.visible}
+                animationType="fade"
+                onRequestClose={hideAlert}
+            >
+                <View className="flex-1 bg-black/80 items-center justify-center px-6">
+                    <Animated.View
+                        entering={FadeIn.duration(200)}
+                        className="w-full relative"
+                    >
+                        {/* 3D Shadow for Alert */}
+                        <View className="absolute top-2 left-2 right-[-8px] bottom-[-8px] bg-white/20 rounded-[24px]" />
+                        <View className="absolute top-1 left-1 right-[-4px] bottom-[-4px] bg-black rounded-[24px]" />
+
+                        {/* Alert Content */}
+                        <View className="bg-white border-[3px] border-black rounded-[24px] p-6 items-center">
+                            <View className="bg-red-100 p-4 rounded-full border-[2px] border-black mb-4">
+                                <AlertCircle color="black" size={32} strokeWidth={2.5} />
+                            </View>
+
+                            <Text className="text-xl font-black uppercase text-center mb-2" style={{ fontFamily: FONT_HEADING }}>
+                                {alertConfig.title}
+                            </Text>
+
+                            <Text className="text-center text-black/70 font-medium mb-6 leading-5" style={{ fontFamily: FONT_BODY }}>
+                                {alertConfig.message}
+                            </Text>
+
+                            <SmoothButton
+                                onPress={hideAlert}
+                                containerStyle={{ width: '100%' }}
+                                buttonStyle="bg-black py-3 rounded-xl items-center justify-center border-[2px] border-black"
+                                shadowStyle="bg-gray-400 rounded-xl top-1 left-1"
+                                depth={0}
+                            >
+                                <Text className="text-white font-bold uppercase tracking-widest">
+                                    UNDERSTOOD
+                                </Text>
+                            </SmoothButton>
+                        </View>
+                    </Animated.View>
+                </View>
+            </Modal>
+
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 className="flex-1"
             >
                 <ScrollView
-                    className="flex-1 px-6 pt-4"
+                    className="flex-1"
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 150 }}
+                    contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
                 >
-                    {/* Header: Return Home Button */}
-                    <View className="self-start mb-6">
-                        <SmoothButton
-                            onPress={() => navigation.goBack()}
-                            buttonStyle="bg-[#FFEB3B] px-4 py-2 rounded-lg border-[2.5px] border-black flex-row items-center gap-2"
-                            shadowStyle="bg-black rounded-lg"
-                            depth={3}
-                        >
-                            <ArrowLeft color="black" size={16} strokeWidth={3} />
-                            <Text className="text-xs font-bold uppercase tracking-widest text-black" style={{ fontFamily: 'Gilton' }}>
-                                RETURN HOME
-                            </Text>
-                        </SmoothButton>
-                    </View>
+                    <View className="bg-white w-full rounded-[30px] p-5 pb-6 overflow-hidden shadow-2xl">
 
-                    {/* Main Title */}
-                    <View className="mb-6">
-                        <Text className="text-5xl uppercase leading-[45px] text-black" style={{ fontFamily: FONT_HEADING }}>
-                            EVENT
-                        </Text>
-                        <Text className="text-5xl uppercase leading-[45px] text-[#A855F7]" style={{ fontFamily: FONT_HEADING }}>
-                            REGISTRATION.
-                        </Text>
-                    </View>
-
-                    {/* Progress Bar */}
-                    <View className="mb-8">
-                        <ProgressBar />
-                    </View>
-
-                    {/* Dynamic Step Header */}
-                    <Animated.View layout={Layout.springify()} className="mb-8">
-                        {currentStep === 1 && (
-                            <View className="bg-[#FAE8FF] border-[3px] border-black rounded-full py-2 px-6 shadow-[4px_4px_0px_#000000]">
-                                <Text className="text-xs font-bold uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                    STEP 1/4: TEAM LEADER DETAILS
-                                </Text>
-                            </View>
-                        )}
-                        {currentStep === 2 && (
-                            <View className="bg-[#FEF08A] border-[3px] border-black rounded-full py-2 px-6 shadow-[4px_4px_0px_#000000] flex-row justify-between items-center">
-                                <Text className="text-xs font-bold uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                    STEP 2/4: CHOOSE YOUR BATTLES
-                                </Text>
-                                <Text className="text-xs font-bold uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                    TOTAL: ₹{totalPrice}
-                                </Text>
-                            </View>
-                        )}
-                        {currentStep === 3 && (
-                            <View className="bg-[#BFDBFE] border-[3px] border-black rounded-full py-2 px-6 shadow-[4px_4px_0px_#000000]">
-                                <Text className="text-xs font-bold uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                    STEP 3/4: ADD TEAM MEMBERS
-                                </Text>
-                            </View>
-                        )}
-                        {currentStep === 4 && (
-                            <View className="bg-[#FECACA] border-[3px] border-black rounded-full py-2 px-6 shadow-[4px_4px_0px_#000000] flex-row justify-between items-center">
-                                <Text className="text-xs font-bold uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                    STEP 4/4: SECURE PAYMENT
-                                </Text>
-                                <Text className="text-xs font-bold uppercase tracking-widest text-[#DC2626]" style={{ fontFamily: FONT_SUB }}>
-                                    EXP: {formatTime(timer)}
-                                </Text>
-                            </View>
-                        )}
-                    </Animated.View>
-
-                    {/* STEP 1 FORM */}
-                    {currentStep === 1 && (
-                        <Animated.View entering={FadeInDown} exiting={FadeInDown} className="gap-5 mb-8">
-                            <InputGroup label="TEAM NAME" value={teamName} onChange={setTeamName} placeholder="Enter Team Name" />
-                            <InputGroup label="LEADER NAME" value={leaderName} onChange={setLeaderName} placeholder="Enter Your Name" />
-                            <InputGroup label="COLLEGE" value={college} onChange={setCollege} placeholder="Enter College Name" />
-                            <InputGroup label="EMAIL" value={email} onChange={setEmail} placeholder="Enter Email Address" keyboardType="email-address" />
-                            <InputGroup label="PHONE" value={phone} onChange={setPhone} placeholder="Enter Phone Number" keyboardType="phone-pad" />
-
-                            <View>
-                                <InputGroup label="BOOKING ID" value={bookingId} onChange={setBookingId} placeholder="Enter Booking ID" />
-                                <Text className="text-[10px] text-gray-500 mt-2 leading-3" style={{ fontFamily: FONT_BODY }}>
-                                    Find it in <Text className="underline font-bold">Profile</Text>. Sign in and visit Profile first if you don't have one.
-                                </Text>
-                            </View>
-                        </Animated.View>
-                    )}
-
-                    {/* STEP 2 EVENTS LIST */}
-                    {currentStep === 2 && (
-                        <Animated.View entering={FadeInDown} className="gap-4 mb-8">
-                            {AVAILABLE_EVENTS.map((event) => (
-                                <EventSelectionCard
-                                    key={event.id}
-                                    event={event}
-                                    selected={selectedEvents.includes(event.id)}
-                                    onToggle={() => toggleEvent(event.id)}
-                                />
-                            ))}
-                        </Animated.View>
-                    )}
-
-                    {/* STEP 3 MEMBER FORMS */}
-                    {currentStep === 3 && (
-                        <Animated.View entering={FadeInDown} className="gap-6 mb-8">
-                            {teamMembers.map((member, index) => (
-                                <View key={member.id} className="relative mt-4">
-                                    {/* Member Badge Overlay */}
-                                    <View className="absolute -top-3 left-6 z-20 bg-black px-3 py-1 rounded-md transform -rotate-2">
-                                        <Text className="text-white text-xs font-bold uppercase tracking-widest">
-                                            MEMBER {index + 1}
-                                        </Text>
-                                    </View>
-
-                                    {/* Remove Button (if > 1) */}
-                                    {teamMembers.length > 1 && (
-                                        <TouchableOpacity
-                                            onPress={() => removeMember(member.id)}
-                                            className="absolute -top-3 right-4 z-20 bg-red-500 border-2 border-black w-8 h-8 rounded-full items-center justify-center transform rotate-2"
-                                        >
-                                            <Text className="text-white font-bold text-xs">X</Text>
-                                        </TouchableOpacity>
-                                    )}
-
-                                    {/* Card Container */}
-                                    <View className="bg-white border-[3px] border-black rounded-[30px] p-6 pt-8 gap-4 shadow-[5px_5px_0px_rgba(0,0,0,1)]">
-                                        <InputGroup
-                                            label="FULL NAME"
-                                            value={member.name}
-                                            onChange={(text: string) => updateMember(member.id, 'name', text)}
-                                            placeholder="Name"
-                                        />
-                                        <InputGroup
-                                            label="COLLEGE NAME"
-                                            value={member.college}
-                                            onChange={(text: string) => updateMember(member.id, 'college', text)}
-                                            placeholder="College"
-                                        />
-                                        <InputGroup
-                                            label="PHONE"
-                                            value={member.phone}
-                                            onChange={(text: string) => updateMember(member.id, 'phone', text)}
-                                            placeholder="9876543210"
-                                            keyboardType="phone-pad"
-                                        />
-                                        <InputGroup
-                                            label="EMAIL"
-                                            value={member.email}
-                                            onChange={(text: string) => updateMember(member.id, 'email', text)}
-                                            placeholder="email@example.com"
-                                            keyboardType="email-address"
-                                        />
-                                    </View>
-                                </View>
-                            ))}
-
-                            {/* Add Member Button - Dashed */}
-                            <TouchableOpacity
-                                onPress={addMember}
-                                className="border-[3px] border-black border-dashed rounded-[30px] py-6 items-center justify-center bg-[#F9FAFB] active:bg-gray-100 mt-2"
-                            >
-                                <Text className="text-gray-500 font-bold uppercase tracking-widest text-sm">
-                                    + ADD ANOTHER MEMBER
-                                </Text>
-                            </TouchableOpacity>
-                        </Animated.View>
-                    )}
-
-                    {/* STEP 4: RECEIPT SUMMARY */}
-                    {currentStep === 4 && (
-                        <Animated.View entering={FadeInDown} className="gap-6 mb-8">
-
-                            {/* Receipt Card */}
-                            <View className="relative">
-                                {/* Hole Punch Visual */}
-                                <View className="absolute -top-3 self-center w-6 h-6 rounded-full bg-black z-20 border-[2px] border-white" />
-
-                                <View className="bg-white border-[3px] border-black rounded-[30px] px-6 py-8 shadow-[5px_5px_0px_rgba(0,0,0,1)]">
-
-                                    <Text className="text-center font-bold text-sm tracking-[0.2em] mb-4 uppercase" style={{ fontFamily: 'Courier New' }}>
-                                        Receipt Summary
-                                    </Text>
-
-                                    {/* Dashed Line */}
-                                    <View className="border-b-[2px] border-black border-dashed mb-6 opacity-30" />
-
-                                    {/* Items List */}
-                                    <View className="gap-3 mb-6">
-                                        {selectedEvents.map((id) => {
-                                            const event = AVAILABLE_EVENTS.find(e => e.id === id);
-                                            return (
-                                                <View key={id} className="flex-row justify-between items-center">
-                                                    <Text className="text-sm font-bold text-black max-w-[70%]" style={{ fontFamily: 'Courier New' }}>
-                                                        {event?.name}
-                                                    </Text>
-                                                    <Text className="text-sm font-bold text-black" style={{ fontFamily: 'Courier New' }}>
-                                                        ₹{event?.price}
-                                                    </Text>
-                                                </View>
-                                            );
-                                        })}
-                                    </View>
-
-                                    {/* Divider */}
-                                    <View className="h-[2px] bg-black mb-4" />
-
-                                    {/* Total */}
-                                    <View className="flex-row justify-between items-center">
-                                        <Text className="text-lg font-extrabold uppercase" style={{ fontFamily: FONT_SUB }}>
-                                            TOTAL
-                                        </Text>
-                                        <Text className="text-xl font-black" style={{ fontFamily: FONT_SUB }}>
-                                            ₹{totalPrice}
-                                        </Text>
-                                    </View>
-                                </View>
-                            </View>
-
-                            {/* Payment Info Card */}
-                            <View className="bg-gray-100 border-[3px] border-black rounded-[20px] p-5">
-                                <Text className="text-lg font-bold text-gray-800 mb-1" style={{ fontFamily: FONT_SUB }}>
-                                    Total Amount: ₹{totalPrice}
-                                </Text>
-                                <Text className="text-xs text-gray-500 leading-4" style={{ fontFamily: FONT_BODY }}>
-                                    Click below to proceed with secure payment via Razorpay.
-                                </Text>
-                            </View>
-
-                        </Animated.View>
-                    )}
-
-                </ScrollView>
-
-                {/* Bottom Navigation Buttons */}
-                <View className="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-100 flex-row gap-4">
-                    {currentStep > 1 && (
-                        <View className="flex-1">
+                        <View className="self-start mb-4">
                             <SmoothButton
-                                onPress={handleBack}
-                                containerStyle={{ width: '100%' }}
-                                buttonStyle="bg-white py-4 rounded-2xl items-center justify-center border-[3px] border-black"
-                                shadowStyle="bg-black rounded-2xl"
-                                depth={4}
+                                onPress={() => navigation.goBack()}
+                                buttonStyle="bg-[#FFEB3B] px-4 py-2 rounded-lg border-[2px] border-black flex-row items-center gap-2"
+                                shadowStyle="bg-black rounded-lg"
+                                depth={2}
                             >
-                                <Text className="text-black text-lg uppercase font-bold tracking-widest" style={{ fontFamily: FONT_SUB }}>
-                                    BACK
+                                <ArrowLeft color="black" size={14} strokeWidth={3} />
+                                <Text className="text-[10px] font-black uppercase tracking-widest text-black" style={{ fontFamily: 'Gilton' }}>
+                                    RETURN HOME
                                 </Text>
                             </SmoothButton>
                         </View>
-                    )}
 
-                    <View className="flex-1">
-                        <SmoothButton
-                            onPress={handleNext}
-                            containerStyle={{ width: '100%' }}
-                            buttonStyle={`${currentStep === 4 ? 'bg-[#10B981]' : 'bg-black'} py-4 rounded-2xl items-center justify-center border-[3px] border-black`}
-                            shadowStyle={
-                                currentStep === 1 ? "bg-[#A855F7] rounded-2xl" :
-                                    currentStep === 2 ? "bg-[#FEF08A] rounded-2xl" :
-                                        currentStep === 3 ? "bg-[#3B82F6] rounded-2xl" : // Blue for Step 3
-                                            "bg-[#10B981] rounded-2xl" // Green for Pay
-                            }
-                            depth={4}
-                        >
-                            <Text className={`${currentStep === 4 ? 'text-black' : 'text-white'} text-lg uppercase font-bold tracking-widest text-center`} style={{ fontFamily: FONT_SUB }}>
-                                {currentStep === 1 ? 'NEXT: SELECT EVENT →' :
-                                    currentStep === 2 ? 'NEXT: TEAM DETAILS →' :
-                                        currentStep === 3 ? 'PROCEED TO PAY →' :
-                                            `PAY ₹${totalPrice} & REGISTER`}
+                        <View className="mb-4">
+                            <Text className="text-[28px] uppercase text-black leading-8" style={{ fontFamily: 'Gilton' }}>
+                                EVENT
                             </Text>
-                        </SmoothButton>
-                    </View>
-                </View>
+                            <Text className="text-[28px] uppercase text-purple-600 leading-8" style={{ fontFamily: 'Gilton' }}>
+                                REGISTRATION
+                            </Text>
+                        </View>
 
+                        <View className="mb-6">
+                            <ProgressBar />
+                        </View>
+
+                        <Animated.View layout={Layout.springify()} className="mb-6">
+                            {currentStep === 1 && (
+                                <View className="bg-[#FAE8FF] border-[2px] border-black rounded-full py-2 px-5 shadow-[3px_3px_0px_#000000]">
+                                    <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
+                                        STEP 1/4: TEAM LEADER DETAILS
+                                    </Text>
+                                </View>
+                            )}
+                            {currentStep === 2 && (
+                                <View className="bg-[#FEF08A] border-[2px] border-black rounded-full py-2 px-5 shadow-[3px_3px_0px_#000000] flex-row justify-between items-center">
+                                    <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
+                                        STEP 2/4: CHOOSE EVENTS
+                                    </Text>
+                                    <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
+                                        ₹{totalPrice}
+                                    </Text>
+                                </View>
+                            )}
+                            {currentStep === 3 && (
+                                <View className="bg-[#BFDBFE] border-[2px] border-black rounded-full py-2 px-5 shadow-[3px_3px_0px_#000000]">
+                                    <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
+                                        STEP 3/4: ADD TEAM
+                                    </Text>
+                                </View>
+                            )}
+                            {currentStep === 4 && (
+                                <View className="bg-[#FECACA] border-[2px] border-black rounded-full py-2 px-5 shadow-[3px_3px_0px_#000000] flex-row justify-between items-center">
+                                    <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
+                                        STEP 4/4: PAYMENT
+                                    </Text>
+                                    <Text className="text-xs font-black uppercase tracking-widest text-[#DC2626]" style={{ fontFamily: FONT_SUB }}>
+                                        {formatTime(timer)}
+                                    </Text>
+                                </View>
+                            )}
+                        </Animated.View>
+
+                        {currentStep === 1 && (
+                            <Animated.View entering={FadeInDown} exiting={FadeInDown} className="gap-5 mb-6">
+                                <InputGroup label="TEAM NAME" value={teamName} onChange={setTeamName} placeholder="CODE WARRIORS" />
+                                <InputGroup label="LEADER NAME" value={leaderName} onChange={setLeaderName} placeholder="JANE DOE" />
+                                <InputGroup label="COLLEGE" value={college} onChange={setCollege} placeholder="ADAMAS UNIVERSITY" />
+                                <InputGroup label="EMAIL" value={email} onChange={setEmail} placeholder="EMAIL@COLLEGE.EDU" keyboardType="email-address" />
+                                <InputGroup label="PHONE" value={phone} onChange={setPhone} placeholder="9876543210" keyboardType="phone-pad" />
+
+                                <View>
+                                    <InputGroup
+                                        label="BOOKING ID"
+                                        value={bookingId}
+                                        onChange={setBookingId}
+                                        placeholder="SGF26-XXXXXXXX"
+                                    />
+                                    <Text className="text-[11px] text-gray-500 mt-2 leading-4 ml-1" style={{ fontFamily: FONT_BODY }}>
+                                        Find it in <Text className="underline font-bold text-black" onPress={() => (navigation as any).navigate('Main', { screen: 'Profile' })}>Profile</Text>. Sign in and visit Profile first if you don't have one.
+                                    </Text>
+                                </View>
+                            </Animated.View>
+                        )}
+
+                        {currentStep === 2 && (
+                            <Animated.View entering={FadeInDown} className="gap-3 mb-4">
+                                {AVAILABLE_EVENTS.map((event) => (
+                                    <EventSelectionCard
+                                        key={event.id}
+                                        event={event}
+                                        selected={selectedEvents.includes(event.id)}
+                                        onToggle={() => toggleEvent(event.id)}
+                                    />
+                                ))}
+                            </Animated.View>
+                        )}
+
+                        {currentStep === 3 && (
+                            <Animated.View entering={FadeInDown} className="gap-5 mb-4">
+                                {teamMembers.map((member, index) => (
+                                    <View key={member.id} className="relative mt-2">
+                                        <View className="absolute -top-3 left-6 z-20 bg-black px-3 py-1 rounded-md transform -rotate-2">
+                                            <Text className="text-white text-[10px] font-bold uppercase tracking-widest">
+                                                MEMBER {index + 1}
+                                            </Text>
+                                        </View>
+                                        {teamMembers.length > 1 && (
+                                            <TouchableOpacity onPress={() => removeMember(member.id)} className="absolute -top-3 right-4 z-20 bg-red-500 border-2 border-black w-7 h-7 rounded-full items-center justify-center">
+                                                <Text className="text-white font-bold text-[10px]">X</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                        <View className="bg-white border-[2px] border-black rounded-[20px] p-4 pt-6 gap-3 shadow-[3px_3px_0px_rgba(0,0,0,1)]">
+                                            <InputGroup label="FULL NAME" value={member.name} onChange={(t: string) => updateMember(member.id, 'name', t)} placeholder="Name" />
+                                            <InputGroup label="COLLEGE" value={member.college} onChange={(t: string) => updateMember(member.id, 'college', t)} placeholder="College" />
+                                            <InputGroup label="PHONE" value={member.phone} onChange={(t: string) => updateMember(member.id, 'phone', t)} placeholder="Phone" keyboardType="phone-pad" />
+                                            <InputGroup label="EMAIL" value={member.email} onChange={(t: string) => updateMember(member.id, 'email', t)} placeholder="Email" keyboardType="email-address" />
+                                        </View>
+                                    </View>
+                                ))}
+                                <TouchableOpacity onPress={addMember} className="border-[2px] border-black border-dashed rounded-[20px] py-4 items-center justify-center bg-gray-50 active:bg-gray-100">
+                                    <Text className="text-black font-bold uppercase tracking-widest text-xs">+ ADD MEMBER</Text>
+                                </TouchableOpacity>
+                            </Animated.View>
+                        )}
+
+                        {currentStep === 4 && (
+                            <Animated.View entering={FadeInDown} className="gap-5 mb-4">
+                                <View className="relative">
+                                    <View className="absolute -top-3 self-center w-6 h-6 rounded-full bg-black z-20 border-[2px] border-white" />
+                                    <View className="bg-white border-[2px] border-black rounded-[30px] px-5 py-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                                        <Text className="text-center font-bold text-sm tracking-[0.2em] mb-4 uppercase" style={{ fontFamily: 'Courier New' }}>Receipt Summary</Text>
+                                        <View className="border-b-[2px] border-black border-dashed mb-6 opacity-30" />
+                                        <View className="gap-3 mb-6">
+                                            {selectedEvents.map((id) => {
+                                                const event = AVAILABLE_EVENTS.find(e => e.id === id);
+                                                return (
+                                                    <View key={id} className="flex-row justify-between items-center">
+                                                        <Text className="text-sm font-bold text-black max-w-[70%]" style={{ fontFamily: 'Courier New' }}>{event?.name}</Text>
+                                                        <Text className="text-sm font-bold text-black" style={{ fontFamily: 'Courier New' }}>₹{event?.price}</Text>
+                                                    </View>
+                                                );
+                                            })}
+                                        </View>
+                                        <View className="h-[2px] bg-black mb-4" />
+                                        <View className="flex-row justify-between items-center">
+                                            <Text className="text-lg font-extrabold uppercase">TOTAL</Text>
+                                            <Text className="text-xl font-black">₹{totalPrice}</Text>
+                                        </View>
+                                    </View>
+                                </View>
+                            </Animated.View>
+                        )}
+
+                        <View className="mt-6">
+                            <SmoothButton
+                                onPress={handleNext}
+                                containerStyle={{ width: '100%' }}
+                                buttonStyle="bg-black py-4 rounded-[16px] items-center justify-center border-[2px] border-black"
+                                shadowStyle="bg-[#A855F7] rounded-[16px] top-1.5 left-1.5"
+                                depth={0}
+                            >
+                                <Text className="text-white text-base uppercase font-black tracking-widest text-center" style={{ fontFamily: FONT_SUB }}>
+                                    {currentStep === 1 ? 'NEXT: SELECT EVENT →' :
+                                        currentStep === 2 ? 'NEXT: TEAM DETAILS →' :
+                                            currentStep === 3 ? 'PROCEED TO PAY →' :
+                                                `PAY ₹${totalPrice}`}
+                                </Text>
+                            </SmoothButton>
+                        </View>
+
+                    </View>
+                </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };
 
-// Reusable 3D Input Component
 const InputGroup = ({ label, value, onChange, placeholder, keyboardType = 'default' }: any) => {
     return (
         <View>
-            <Text className="text-[10px] font-bold text-black uppercase tracking-widest mb-2 ml-1" style={{ fontFamily: 'Softura' }}>
+            <Text className="text-[10px] font-bold text-black uppercase tracking-widest mb-1.5 ml-1" style={{ fontFamily: 'Softura' }}>
                 {label}
             </Text>
             <View className="relative">
-                {/* 3D Shadow - Pure visual */}
-                <View className="absolute top-1 left-1 right-[-4px] bottom-[-4px] bg-black rounded-2xl" />
+                <View className="absolute top-1 left-1 right-[-4px] bottom-[-4px] bg-black rounded-xl" />
                 <TextInput
                     value={value}
                     onChangeText={onChange}
                     placeholder={placeholder}
                     keyboardType={keyboardType}
-                    className="bg-white border-[2.5px] border-black rounded-2xl px-4 py-3 text-base text-gray-700 font-medium"
+                    className="bg-white border-[2px] border-black rounded-xl px-4 py-2.5 text-sm text-gray-900 font-bold"
                     style={{ fontFamily: 'Gilton' }}
                 />
             </View>
@@ -459,39 +452,28 @@ const InputGroup = ({ label, value, onChange, placeholder, keyboardType = 'defau
     );
 };
 
-// Event Selection Card for Step 2
 const EventSelectionCard = ({ event, selected, onToggle }: { event: any, selected: boolean, onToggle: () => void }) => {
     return (
         <Pressable onPress={onToggle} className="mb-2">
             <View className="relative">
-                {/* 3D Shadow */}
-                <View className="absolute top-1 left-1 right-[-4px] bottom-[-4px] bg-black rounded-2xl" />
-
-                {/* Card Body */}
-                <View className={`border-[2.5px] border-black rounded-2xl p-4 flex-row items-center justify-between ${selected ? 'bg-[#F0FDF4]' : 'bg-white'}`}>
-
-                    {/* Checkbox + Info */}
-                    <View className="flex-row items-center flex-1 gap-4">
-                        {/* Custom Animated Checkbox */}
-                        <View className={`w-8 h-8 rounded-md border-[2.5px] border-black items-center justify-center ${selected ? 'bg-black' : 'bg-white'}`}>
-                            {selected && <Check color="white" size={20} strokeWidth={4} />}
+                <View className="absolute top-1 left-1 right-[-4px] bottom-[-4px] bg-black rounded-xl" />
+                <View className={`border-[2px] border-black rounded-xl p-3 flex-row items-center justify-between ${selected ? 'bg-[#F0FDF4]' : 'bg-white'}`}>
+                    <View className="flex-row items-center flex-1 gap-3">
+                        <View className={`w-6 h-6 rounded border-[2px] border-black items-center justify-center ${selected ? 'bg-black' : 'bg-white'}`}>
+                            {selected && <Check color="white" size={14} strokeWidth={4} />}
                         </View>
-
                         <View>
-                            <Text className="text-lg font-bold uppercase text-black leading-5 mb-1" style={{ fontFamily: 'Softura' }}>
+                            <Text className="text-sm font-bold uppercase text-black leading-4 mb-0.5" style={{ fontFamily: 'Softura' }}>
                                 {event.name}
                             </Text>
-                            <Text className="text-xs text-black/60" style={{ fontFamily: 'Gilton' }}>
+                            <Text className="text-[10px] text-black/60" style={{ fontFamily: 'Gilton' }}>
                                 {event.teamSize}
                             </Text>
                         </View>
                     </View>
-
-                    {/* Price Tag */}
-                    <View className="border-[2px] border-black px-2 py-1 rounded bg-white shadow-sm">
-                        <Text className="font-bold text-xs" style={{ fontFamily: 'Softura' }}>₹{event.price}</Text>
+                    <View className="border-[1.5px] border-black px-1.5 py-0.5 rounded bg-white shadow-sm">
+                        <Text className="font-bold text-[10px]" style={{ fontFamily: 'Softura' }}>₹{event.price}</Text>
                     </View>
-
                 </View>
             </View>
         </Pressable>
