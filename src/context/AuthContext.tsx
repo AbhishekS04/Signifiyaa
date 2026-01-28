@@ -1,13 +1,17 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { Alert, Platform } from 'react-native';
-import { betterAuth } from '../lib/betterAuthClient';
+import { Alert } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+import { authClient } from '../lib/betterAuthClient';
 
-// Use loose types for now as BetterAuth types map closely
+// Ensure web browser sessions are completed properly
+WebBrowser.maybeCompleteAuthSession();
+
 interface User {
     id: string;
     email: string;
     name: string;
-    image?: string;
+    image?: string | null;
     emailVerified: boolean;
 }
 
@@ -31,38 +35,82 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [profile, setProfile] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const initAuth = async () => {
-        try {
-            console.log('Initializing BetterAuth...');
-            const data = await betterAuth.getSession();
-            if (data?.session && data?.user) {
-                console.log('Session restored for:', data.user.email);
-                setSession(data.session);
-                setUser(data.user);
-                // BetterAuth user object IS the profile usually
-                setProfile(data.user);
-            } else {
+    // Initialize auth on mount
+    useEffect(() => {
+        const initAuth = async () => {
+            try {
+                console.log('Initializing BetterAuth...');
+                const { data, error } = await authClient.getSession();
+                if (data?.user) {
+                    console.log('Session restored for:', data.user.email);
+                    setSession(data.session);
+                    setUser(data.user);
+                    setProfile(data.user);
+                } else {
+                    setSession(null);
+                    setUser(null);
+                    setProfile(null);
+                }
+            } catch (e) {
+                console.error('Auth Init Error:', e);
                 setSession(null);
                 setUser(null);
                 setProfile(null);
+            } finally {
+                setIsLoading(false);
             }
-        } catch (e) {
-            console.error('Auth Init Error:', e);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
+        };
         initAuth();
+    }, []);
+
+    // Listen for deep link callbacks (OAuth)
+    useEffect(() => {
+        const handleDeepLink = async ({ url }: { url: string }) => {
+            console.log('Deep link received:', url);
+            // Handle OAuth callback - refresh session
+            if (url.includes('callback') || url.includes('signifiya://')) {
+                try {
+                    // Small delay to let the cookies settle
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    const { data } = await authClient.getSession();
+                    if (data?.user) {
+                        console.log('OAuth session established for:', data.user.email);
+                        setSession(data.session);
+                        setUser(data.user);
+                        setProfile(data.user);
+                    }
+                } catch (e) {
+                    console.error('OAuth callback error:', e);
+                }
+            }
+        };
+
+        const subscription = Linking.addEventListener('url', handleDeepLink);
+
+        // Check for initial URL (app opened via deep link)
+        Linking.getInitialURL().then((url) => {
+            if (url) {
+                handleDeepLink({ url });
+            }
+        });
+
+        return () => subscription.remove();
     }, []);
 
     const signInWithEmail = async (email: string, password: string) => {
         setIsLoading(true);
         try {
-            const data = await betterAuth.signIn(email.trim(), password);
-            if (data?.session && data?.user) {
-                setSession(data.session);
+            const { data, error } = await authClient.signIn.email({
+                email: email.trim(),
+                password,
+            });
+
+            if (error) {
+                throw new Error(error.message || 'Sign in failed');
+            }
+
+            if (data?.user) {
+                setSession(data.token || data);
                 setUser(data.user);
                 setProfile(data.user);
             }
@@ -77,19 +125,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const signUpWithEmail = async (email: string, password: string, name: string) => {
         setIsLoading(true);
         try {
-            // Check if user has an image, if not generate one
+            // Generate default avatar
             const image = `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(name)}`;
 
-            const data = await betterAuth.signUp(name, email, password, image);
+            const { data, error } = await authClient.signUp.email({
+                email: email.trim(),
+                password,
+                name,
+                image,
+            });
 
-            if (data?.session && data?.user) {
-                setSession(data.session);
+            if (error) {
+                throw new Error(error.message || 'Sign up failed');
+            }
+
+            if (data?.user) {
+                setSession(data.token || data);
                 setUser(data.user);
                 setProfile(data.user);
-                // Allow auto login
             } else {
-                // If email verification is ON, session might be null depending on config
-                Alert.alert('Success', 'Account created! Please login.');
+                // Email verification might be required
+                Alert.alert('Success', 'Account created! Please check your email to verify.');
             }
         } catch (error: any) {
             Alert.alert('Sign Up Error', error.message);
@@ -99,22 +155,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // Keep strict types for the hook but generic internal impl
     const signInWithOAuth = async (provider: 'google' | 'github') => {
-        // OAuth with BetterAuth usually involves Redirects to the backend
-        // For now, let's notify the user this might need specific backend endpoints
-        // or we use the WebBrowser to hit /api/auth/sign-in/social?provider=google
+        try {
+            setIsLoading(true);
 
-        Alert.alert('Coming Soon', 'Please use Email/Password for now. OAuth setup requires backend redirect config update.');
-        // Implementation TODO: 
-        // 1. Open WebBrowser to BETTER_AUTH_URL/api/auth/sign-in/google
-        // 2. Backend handles flow and redirects back to App Scheme with cookie or token
+            // Use Better Auth social sign in
+            // The expoClient plugin handles:
+            // 1. Converting "/" to full app scheme URL
+            // 2. Opening the browser
+            // 3. Handling the callback and storing cookies
+            const { error } = await authClient.signIn.social({
+                provider,
+                callbackURL: "/",  // expoClient converts this to signifiya:// or exp://
+            });
+
+            if (error) {
+                throw new Error(error.message || 'OAuth failed');
+            }
+
+            // After browser closes, fetch session to update state
+            const { data } = await authClient.getSession();
+            if (data?.user) {
+                setSession(data.session);
+                setUser(data.user);
+                setProfile(data.user);
+            }
+        } catch (error: any) {
+            Alert.alert('OAuth Error', error.message || 'Failed to sign in with ' + provider);
+            console.error('OAuth Error:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const signOut = async () => {
         setIsLoading(true);
         try {
-            await betterAuth.signOut();
+            await authClient.signOut();
             setSession(null);
             setUser(null);
             setProfile(null);
@@ -151,4 +228,3 @@ export const useAuth = () => {
     }
     return context;
 };
-
