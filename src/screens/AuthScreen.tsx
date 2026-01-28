@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Dimensions } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Dimensions, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeOut, Easing, LinearTransition } from 'react-native-reanimated';
 import { ArrowLeft, Github, Eye, EyeOff } from 'lucide-react-native';
@@ -36,6 +36,7 @@ export default function AuthScreen() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isOAuthLoading, setIsOAuthLoading] = useState(false);
 
     const handleSubmit = async () => {
         if (!email || !password || (isSignUp && !name)) {
@@ -47,17 +48,12 @@ export default function AuthScreen() {
         try {
             if (isSignUp) {
                 await signUpWithEmail(email, password, name);
-                // Success alert handled in context or here if needed, 
-                // but context handles "Check email" alert.
-                // If auto-login happens, navigation might be triggered by auth state change elsewhere?
-                // Actually, let's keep it simple:
-                // If simple sign up success (no verification needed immediately to login? Supabase default is confirm email usually)
-                // If confirm email is off, we might be logged in.
+                // Success alert handled in context if email verification needed
+                // Navigation handled reactively by AppNavigator when isLoggedIn changes
             } else {
                 await signInWithEmail(email, password);
-                Alert.alert("Success", "Welcome Back!", [
-                    { text: "OK", onPress: () => navigation.goBack() }
-                ]);
+                Alert.alert("Success", "Welcome Back!");
+                // Navigation handled reactively by AppNavigator when isLoggedIn changes
             }
         } catch (error) {
             // Error alert handled in Context
@@ -69,10 +65,13 @@ export default function AuthScreen() {
 
     const handleOAuthSignIn = async (provider: 'google' | 'github') => {
         try {
+            setIsOAuthLoading(true);
             await signInWithOAuth(provider);
-            // Success handling usually via onAuthStateChange listener
+            // Success handling - modal will close via reactive navigation
         } catch (error) {
             console.error('OAuth Error:', error);
+        } finally {
+            setIsOAuthLoading(false);
         }
     };
 
@@ -228,6 +227,25 @@ export default function AuthScreen() {
                         : "Welcome back! We missed your wallet... I mean, your presence."}
                 </Text>
             </ScrollView>
+
+            {/* OAuth Loading Overlay */}
+            <Modal
+                visible={isOAuthLoading}
+                transparent
+                animationType="fade"
+            >
+                <View className="flex-1 bg-black/70 items-center justify-center">
+                    <View className="bg-white border-[3px] border-black rounded-3xl p-8 items-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                        <ActivityIndicator size="large" color="#000" />
+                        <Text className="mt-4 text-base uppercase tracking-wide" style={{ fontFamily: FONT_BOLD }}>
+                            Signing in...
+                        </Text>
+                        <Text className="mt-2 text-xs opacity-50" style={{ fontFamily: FONT_MAIN }}>
+                            Please wait while we authenticate
+                        </Text>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }

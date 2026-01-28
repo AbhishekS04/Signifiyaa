@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Animated } from 'react-native';
+import React, { useEffect } from 'react';
+import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator, StackCardStyleInterpolator } from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
 import HomeScreen from '../screens/HomeScreen';
 import GalleryScreen from '../screens/GalleryScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -10,10 +11,10 @@ import EventsScreen from '../screens/EventsScreen';
 import AuthScreen from '../screens/AuthScreen';
 import EventRegistrationScreen from '../screens/EventRegistrationScreen';
 import { CustomTabBar } from '../components/navigation/CustomTabBar';
+import { useAuth } from '../context/AuthContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-
 
 function MainTabs() {
     return (
@@ -21,7 +22,7 @@ function MainTabs() {
             tabBar={(props) => <CustomTabBar {...props} />}
             screenOptions={{
                 headerShown: false,
-                lazy: false, // Prevent lazy loading to avoid flashing
+                lazy: false,
                 tabBarStyle: {
                     backgroundColor: 'transparent',
                     borderTopWidth: 0,
@@ -59,6 +60,27 @@ function MainTabs() {
     );
 }
 
+// Wrapper component for reactive auth navigation
+function AuthScreenWrapper() {
+    const { isLoggedIn } = useAuth();
+    const navigation = useNavigation();
+
+    useEffect(() => {
+        // Auto-dismiss auth modal when user logs in
+        if (isLoggedIn) {
+            // Use setTimeout to ensure state has settled before navigation
+            const timeout = setTimeout(() => {
+                if (navigation.canGoBack()) {
+                    navigation.goBack();
+                }
+            }, 100);
+            return () => clearTimeout(timeout);
+        }
+    }, [isLoggedIn, navigation]);
+
+    return <AuthScreen />;
+}
+
 export default function AppNavigator() {
     return (
         <View style={{ flex: 1, backgroundColor: '#000' }}>
@@ -66,10 +88,10 @@ export default function AppNavigator() {
                 <Stack.Screen name="Main" component={MainTabs} />
                 <Stack.Screen
                     name="Auth"
-                    component={AuthScreen}
+                    component={AuthScreenWrapper}
                     options={{
                         presentation: 'modal',
-                        cardStyle: { backgroundColor: '#F5E6FA' }, // Ensure background is painted immediately
+                        cardStyle: { backgroundColor: '#F5E6FA' },
                         gestureEnabled: true,
                     }}
                 />
