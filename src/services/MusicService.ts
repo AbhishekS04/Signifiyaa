@@ -13,7 +13,7 @@ class MusicService {
         try {
             await Audio.setAudioModeAsync({
                 allowsRecordingIOS: false,
-                staysActiveInBackground: false, // User requested music to stop on minimize
+                staysActiveInBackground: true, // Keep active so we can manually pause without thread crash
                 playsInSilentModeIOS: true,
                 shouldDuckAndroid: true,
                 playThroughEarpieceAndroid: false,
@@ -55,17 +55,24 @@ class MusicService {
 
         if (this.sound) {
             if (shouldPlay) {
-                await this.sound.playAsync();
-                this.isCurrentlyPlaying = true;
+                try {
+                    await this.sound.playAsync();
+                    this.isCurrentlyPlaying = true;
+                } catch (error) {
+                    console.error('Error playing music:', error);
+                }
             }
         }
     }
 
     async pauseMusic() {
-        // Fire and forget usually better for UI responsiveness, but we abide by async
         if (this.sound && this.isCurrentlyPlaying) {
-            this.sound.pauseAsync(); // Don't await for UI speed?
-            this.isCurrentlyPlaying = false;
+            try {
+                await this.sound.pauseAsync();
+                this.isCurrentlyPlaying = false;
+            } catch (error) {
+                console.error('Error pausing music:', error);
+            }
         }
     }
 
@@ -78,11 +85,21 @@ class MusicService {
 
     async stopMusic() {
         if (this.sound) {
-            await this.sound.stopAsync();
-            await this.sound.unloadAsync();
-            this.sound = null;
-            this.isCurrentlyPlaying = false;
-            this.isLoaded = false;
+            try {
+                // Check status first to avoid stopping if already stopped/unloaded
+                const status = await this.sound.getStatusAsync();
+                if (status.isLoaded) {
+                    await this.sound.stopAsync();
+                    await this.sound.unloadAsync();
+                }
+            } catch (error) {
+                console.warn('Error stopping music:', error);
+            } finally {
+                // Always reset state to ensure clean slate
+                this.sound = null;
+                this.isCurrentlyPlaying = false;
+                this.isLoaded = false;
+            }
         }
     }
 

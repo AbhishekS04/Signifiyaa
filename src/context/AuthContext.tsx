@@ -4,6 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { authClient } from '../lib/betterAuthClient';
 import { supabase } from '../lib/supabase';
+import MusicService from '../services/MusicService';
 
 // Ensure web browser sessions are completed properly
 WebBrowser.maybeCompleteAuthSession();
@@ -31,6 +32,9 @@ interface AuthContextType {
     signInWithOAuth: (provider: 'google' | 'github') => Promise<void>;
     signOut: () => Promise<void>;
     updateProfile: (updates: { name?: string; mobileNo?: string; collegeName?: string; bookingId?: string; image?: string; gender?: string }) => Promise<void>;
+    welcomeToastVisible: boolean;
+    setWelcomeToastVisible: (visible: boolean) => void;
+    triggerWelcomeToast: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -113,41 +117,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         let finalUser: User = { ...baseUser };
         console.log('Initial bookingId:', finalUser.bookingId);
 
-        // If bookingId is missing, try to fetch it from Supabase
-        if (!finalUser.bookingId) {
-            console.log('No bookingId found, fetching from Supabase...');
-            try {
-                const { data: sbUser, error } = await supabase
-                    .from('user')
-                    .select('bookingId, mobileNo, collegeName, gender, image')
-                    .eq('email', finalUser.email)
-                    .single();
+        // Always fetch from Supabase to ensure we have the latest profile data (image, mobile, etc.)
+        try {
+            console.log('Fetching latest profile from Supabase...');
+            const { data: sbUser, error } = await supabase
+                .from('user')
+                .select('bookingId, mobileNo, collegeName, gender, image')
+                .eq('email', finalUser.email)
+                .single();
 
-                if (error) {
-                    console.error('Supabase query error:', error);
-                }
-
-                if (sbUser) {
-                    console.log('Fetched Supabase User Raw:', JSON.stringify(sbUser, null, 2));
-                    finalUser = {
-                        ...finalUser,
-                        bookingId: sbUser.bookingId || finalUser.bookingId,
-                        mobileNo: sbUser.mobileNo || finalUser.mobileNo,
-                        collegeName: sbUser.collegeName || finalUser.collegeName,
-                        gender: sbUser.gender || finalUser.gender,
-                        // Prioritize DB image if it exists (e.g. selected avatar), otherwise keep OAuth image
-                        image: sbUser.image || finalUser.image,
-                    };
-                    console.log('Updated bookingId:', finalUser.bookingId);
-                } else {
-                    console.log('No Supabase user data returned');
-                }
-            } catch (err) {
-                console.error('Supabase sync exception:', err);
+            if (error) {
+                console.error('Supabase query error:', error);
             }
-        } else {
-            console.log('BookingId already exists:', finalUser.bookingId);
+
+            if (sbUser) {
+                console.log('SB User:', JSON.stringify(sbUser, null, 2));
+                console.log('Base User Image:', finalUser.image);
+
+                finalUser = {
+                    ...finalUser,
+                    bookingId: sbUser.bookingId || finalUser.bookingId,
+                    mobileNo: sbUser.mobileNo || finalUser.mobileNo,
+                    collegeName: sbUser.collegeName || finalUser.collegeName,
+                    gender: sbUser.gender || finalUser.gender,
+                    // Prioritize DB image if it exists, else use base (OAuth) image
+                    image: sbUser.image || finalUser.image, // If sbUser.image is null, valid OAuth URL persists
+                };
+                console.log('Final Merged Image:', finalUser.image);
+            }
+        } catch (err) {
+            console.error('Supabase sync exception:', err);
         }
+
         console.log('=== syncUserProfile completed ===');
         return finalUser;
     };
@@ -292,15 +293,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    // Welcome Toast State
+    const [welcomeToastVisible, setWelcomeToastVisible] = useState(false);
+
+    const triggerWelcomeToast = () => {
+        setWelcomeToastVisible(true);
+    };
+
     const signOut = async () => {
         setIsLoading(true);
         try {
-            await authClient.signOut();
+            // OPTIMISTIC LOGOUT: Clear state immediately to mask API delay
             setSession(null);
             setUser(null);
             setProfile(null);
+
+            // Perform API call in background
+            await authClient.signOut();
         } catch (e) {
             console.error('Sign Out Error:', e);
+            // In theory we could revert, but for logout it's better to just stay out
         } finally {
             setIsLoading(false);
         }
@@ -342,7 +354,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // So we directly update Supabase to ensure persistence
             if (user?.email) {
                 try {
-                    const { error: supabaseError } = await supabase
+                    // Normalize email for matching
+                    const targetEmail = user.email;
+
+                    console.log(`Attempting Supabase update for: ${targetEmail}`);
+
+                    const { error: supabaseError, count } = await supabase
                         .from('user')
                         .update({
                             ...(updates.mobileNo && { mobileNo: updates.mobileNo }),
@@ -350,13 +367,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                             ...(updates.gender && { gender: updates.gender }),
                             ...(updates.name && { name: updates.name }),
                             ...(updates.image && { image: updates.image }),
-                        })
-                        .eq('email', user.email);
+                        }, { count: 'exact' }) // Request count
+                        .eq('email', targetEmail);
 
                     if (supabaseError) {
                         console.error('Supabase direct update error:', supabaseError);
                     } else {
-                        console.log('✓ Custom fields updated directly in Supabase');
+                        console.log(`✓ Custom fields updated. Rows modified: ${count}`);
+
+                        // If no rows updated, maybe email case mismatch? Try lowercase
+                        if (count === 0) {
+                            console.warn('0 rows updated! Trying lowercase email match...');
+                            const { count: retryCount, error: retryError } = await supabase
+                                .from('user')
+                                .update({
+                                    ...(updates.mobileNo && { mobileNo: updates.mobileNo }),
+                                    ...(updates.collegeName && { collegeName: updates.collegeName }),
+                                    ...(updates.gender && { gender: updates.gender }),
+                                    ...(updates.name && { name: updates.name }),
+                                    ...(updates.image && { image: updates.image }),
+                                }, { count: 'exact' })
+                                .ilike('email', targetEmail); // Case insensitive match
+
+                            if (retryError) {
+                                console.error('Retry update failed:', retryError);
+                            } else {
+                                console.log(`Retry update rows modified: ${retryCount}`);
+                            }
+                        }
                     }
                 } catch (err) {
                     console.error('Supabase update exception:', err);
@@ -399,6 +437,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signInWithOAuth,
         signOut,
         updateProfile,
+        welcomeToastVisible,
+        setWelcomeToastVisible,
+        triggerWelcomeToast,
     };
 
     return (

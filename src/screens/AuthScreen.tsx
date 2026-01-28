@@ -27,7 +27,7 @@ const GoogleLogo = () => (
 
 export default function AuthScreen() {
     const navigation = useNavigation();
-    const { signInWithEmail, signUpWithEmail, signInWithOAuth } = useAuth();
+    const { signInWithEmail, signUpWithEmail, signInWithOAuth, triggerWelcomeToast } = useAuth();
 
     // Form State
     const [isSignUp, setIsSignUp] = useState(false);
@@ -52,8 +52,8 @@ export default function AuthScreen() {
                 // Navigation handled reactively by AppNavigator when isLoggedIn changes
             } else {
                 await signInWithEmail(email, password);
-                Alert.alert("Success", "Welcome Back!");
-                // Navigation handled reactively by AppNavigator when isLoggedIn changes
+                // Trigger smooth global welcome toast
+                triggerWelcomeToast();
             }
         } catch (error) {
             // Error alert handled in Context

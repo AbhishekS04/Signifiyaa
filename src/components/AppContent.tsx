@@ -3,7 +3,9 @@ import PreloaderScreen from '../screens/PreloaderScreen';
 import MusicPromptModal from '../components/MusicPromptModal';
 import MusicService from '../services/MusicService';
 import { useMusicContext } from '../context/MusicContext';
+import { useAuth } from '../context/AuthContext';
 import AppNavigator from '../navigation/AppNavigator';
+import WelcomeToast from './ui/WelcomeToast';
 
 // CONSTANT SOURCE
 const MUSIC_SOURCE = {
@@ -12,6 +14,7 @@ const MUSIC_SOURCE = {
 
 export default function AppContent() {
     const { setIsPlaying } = useMusicContext();
+    const { welcomeToastVisible, setWelcomeToastVisible } = useAuth();
     const [showPreloader, setShowPreloader] = useState(true);
     const [showMusicPrompt, setShowMusicPrompt] = useState(false);
 
@@ -47,6 +50,11 @@ export default function AppContent() {
             <AppNavigator />
             {showPreloader && <PreloaderScreen onFinish={handlePreloaderFinish} />}
             {showMusicPrompt && <MusicPromptModal onSelectMusic={handleMusicSelection} />}
+
+            {/* Global Welcome Toast */}
+            {welcomeToastVisible && (
+                <WelcomeToast onComplete={() => setWelcomeToastVisible(false)} />
+            )}
         </>
     );
 }

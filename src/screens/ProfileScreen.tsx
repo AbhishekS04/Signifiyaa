@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Image, Platform, StyleSheet, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Copy, ChevronDown, Calendar, Ticket, Lock, User } from 'lucide-react-native';
+import { Copy, Check, ChevronDown, Calendar, Ticket, Lock, User } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
-import Animated, { FadeIn, Easing, useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { FadeIn, Easing, useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS, cancelAnimation } from 'react-native-reanimated';
 import { PageTransition } from '../components/navigation/PageTransition';
 import { useAuth } from '../context/AuthContext';
 import AvatarChooserModal, { AVATAR_MAP } from '../components/ui/AvatarChooserModal';
+import * as Haptics from 'expo-haptics';
+import * as Clipboard from 'expo-clipboard';
 
 // Font Constants
 const FONT_MAIN = 'Gilton';
@@ -116,15 +118,83 @@ const ProfileScreen = () => {
 
     // Avatar Toast State
     const [showAvatarToast, setShowAvatarToast] = useState(false);
+    const [showCopyToast, setShowCopyToast] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
+
+    // ... existing code ...
+
+    const handleCopyBookingId = async () => {
+        if (bookingId) {
+            await Clipboard.setStringAsync(bookingId);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); // Haptic Feedback
+            setShowCopyToast(true);
+        }
+    };
     const avatarToastY = useSharedValue(-100);
+    const copyToastY = useSharedValue(-100);
+
+    // Logout Hold State
+    const holdProgress = useSharedValue(0);
+    const [isHolding, setIsHolding] = useState(false);
 
     const flipRotation = useSharedValue(0);
     const { updateProfile } = useAuth();
 
+    // Copy Toast Animation
+    React.useEffect(() => {
+        if (showCopyToast) {
+            copyToastY.value = withTiming(Platform.OS === 'ios' ? 60 : 40, {
+                duration: 400,
+                easing: Easing.out(Easing.poly(4))
+            });
+
+            const timer = setTimeout(() => {
+                copyToastY.value = withTiming(-100, { duration: 300 });
+                setTimeout(() => setShowCopyToast(false), 300);
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [showCopyToast]);
+
+    const copyToastStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: copyToastY.value }],
+    }));
+
+    const handleLogoutPressIn = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        setIsHolding(true);
+        holdProgress.value = withTiming(1, { duration: 2000, easing: Easing.linear }, (finished) => {
+            if (finished) {
+                runOnJS(triggerLogout)();
+            }
+        });
+    };
+
+    const handleLogoutPressOut = () => {
+        setIsHolding(false);
+        cancelAnimation(holdProgress);
+        holdProgress.value = withTiming(0, { duration: 300 });
+    };
+
+    const triggerLogout = () => {
+        // Strong feedback on completion as requested
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        signOut();
+    };
+
+    const holdProgressStyle = useAnimatedStyle(() => ({
+        width: `${holdProgress.value * 100}%`,
+    }));
+
     // Avatar Toast Animation
     React.useEffect(() => {
         if (showAvatarToast) {
-            avatarToastY.value = withSpring(Platform.OS === 'ios' ? 60 : 40, { damping: 12, stiffness: 100 });
+            // Smooth slide in (no bounce)
+            avatarToastY.value = withTiming(Platform.OS === 'ios' ? 60 : 40, {
+                duration: 400,
+                easing: Easing.out(Easing.poly(4))
+            });
+
             const timer = setTimeout(() => {
                 avatarToastY.value = withTiming(-100, { duration: 300 });
                 setTimeout(() => setShowAvatarToast(false), 300);
@@ -344,7 +414,6 @@ const ProfileScreen = () => {
                                             <Text className="text-xs underline tracking-tight" style={{ fontFamily: FONT_BOLD, color: 'black' }}>Change Avatar</Text>
                                         </TouchableOpacity>
                                     </View>
-
                                     {/* Fields */}
                                     <View className="gap-5">
                                         <View>
@@ -360,12 +429,15 @@ const ProfileScreen = () => {
                                             <View className="relative">
                                                 <TextInput value={bookingId} editable={false} className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-gray-100" style={{ fontFamily: FONT_MAIN, color: '#4b5563' }} />
                                                 <TouchableOpacity
-                                                    className="absolute right-3 top-[10px]"
-                                                    onPress={() => {
-                                                        Alert.alert("Success", "Booking ID copied to clipboard!");
-                                                    }}
+                                                    className={`absolute right-3 top-[10px] w-8 h-8 items-center justify-center rounded-lg ${isCopied ? 'bg-green-500' : 'bg-white/50 active:bg-gray-200'}`}
+                                                    onPress={handleCopyBookingId}
+                                                    disabled={isCopied}
                                                 >
-                                                    <Copy color="black" size={18} />
+                                                    {isCopied ? (
+                                                        <Check color="white" size={16} strokeWidth={3} />
+                                                    ) : (
+                                                        <Copy color="black" size={16} />
+                                                    )}
                                                 </TouchableOpacity>
                                             </View>
                                         </View>
@@ -444,13 +516,55 @@ const ProfileScreen = () => {
                                 </ShadowCard>
                             </Animated.View>
 
-                            <TouchableOpacity onPress={signOut} className="mt-4 mb-10 border-[3px] border-red-500 rounded-3xl py-4 items-center bg-red-50">
-                                <Text className="text-red-500 font-bold uppercase tracking-widest text-[10px]">Logout from account</Text>
-                            </TouchableOpacity>
+                            {/* Hold to Logout Button */}
+                            <View className="mt-8 mb-10">
+                                <SmoothButton
+                                    buttonStyle="bg-red-500 rounded-[30px] h-[60px] items-center justify-center border-[2px] border-black overflow-hidden relative"
+                                    shadowStyle="bg-black rounded-[30px]"
+                                    depth={4}
+                                    onPressIn={handleLogoutPressIn}
+                                    onPressOut={handleLogoutPressOut}
+                                    active={isHolding} // Keeps button pressed while holding
+                                >
+                                    {/* Progress Fill Overlay */}
+                                    <Animated.View
+                                        style={[
+                                            {
+                                                position: 'absolute',
+                                                left: 0,
+                                                top: 0,
+                                                bottom: 0,
+                                                backgroundColor: 'rgba(0,0,0,0.2)', // Darker red/black overlay
+                                                zIndex: 0
+                                            },
+                                            holdProgressStyle
+                                        ]}
+                                    />
+
+                                    {/* Text Content */}
+                                    <View className="z-10 flex-row items-center gap-2">
+                                        {isHolding ? (
+                                            <ActivityIndicator color="white" size="small" />
+                                        ) : (
+                                            <View className="w-4" />
+                                        )}
+                                        <Text
+                                            className="text-white text-sm uppercase tracking-[0.2em]"
+                                            style={{ fontFamily: FONT_BOLD }}
+                                        >
+                                            {isHolding ? "HOLDING..." : "HOLD TO LOG OUT"}
+                                        </Text>
+                                        <View className="w-4" />
+                                    </View>
+                                </SmoothButton>
+                                <Text className="text-center text-[10px] text-gray-500 mt-3 font-medium">
+                                    Press and hold for 2 seconds
+                                </Text>
+                            </View>
                         </>
                     )}
                 </ScrollView>
-            </PageTransition>
+            </PageTransition >
 
             <AvatarChooserModal
                 visible={showAvatarModal}
@@ -458,7 +572,7 @@ const ProfileScreen = () => {
                 onSelect={handleAvatarSelect}
                 currentAvatarId={rawImage || undefined}
             />
-        </SafeAreaView>
+        </SafeAreaView >
     );
 };
 
