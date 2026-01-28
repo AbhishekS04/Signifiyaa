@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Image, Platform, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Image, Platform, StyleSheet, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Copy, ChevronDown, Calendar, Ticket, Lock, User } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
-import Animated, { FadeIn, Easing } from 'react-native-reanimated';
+import Animated, { FadeIn, Easing, useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { PageTransition } from '../components/navigation/PageTransition';
 import { useAuth } from '../context/AuthContext';
+import AvatarChooserModal, { AVATAR_MAP } from '../components/ui/AvatarChooserModal';
 
 // Font Constants
 const FONT_MAIN = 'Gilton';
@@ -90,12 +91,51 @@ const ProfileScreen = () => {
 
     // Profile Image
     // Profile Image Logic: Use DB image -> User Image -> Generated Avatar
-    const PROFILE_IMAGE = profile?.image
-        || user?.image
-        || `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(name || 'User')}`;
+    // Profile Image Logic
+    // If it starts with 'avatar', it's a local asset. Otherwise check if it's a URL.
+    const rawImage = profile?.image || user?.image;
+
+    // Determine the image source for the Image component
+    let imageSource = null;
+    if (rawImage?.startsWith('avatar') && AVATAR_MAP[rawImage]) {
+        // It's a local asset key
+        imageSource = AVATAR_MAP[rawImage];
+    } else if (rawImage?.startsWith('http')) {
+        // It's a remote URL (Google/GitHub/etc)
+        imageSource = { uri: rawImage };
+    } else {
+        // Default / Null state
+        imageSource = null;
+    }
 
     const [isLoading, setIsLoading] = useState(true);
-    const { updateProfile } = useAuth(); // destructure updateProfile
+    const [isSaving, setIsSaving] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [showAvatarModal, setShowAvatarModal] = useState(false);
+
+    // Avatar Toast State
+    const [showAvatarToast, setShowAvatarToast] = useState(false);
+    const avatarToastY = useSharedValue(-100);
+
+    const flipRotation = useSharedValue(0);
+    const { updateProfile } = useAuth();
+
+    // Avatar Toast Animation
+    React.useEffect(() => {
+        if (showAvatarToast) {
+            avatarToastY.value = withSpring(Platform.OS === 'ios' ? 60 : 40, { damping: 12, stiffness: 100 });
+            const timer = setTimeout(() => {
+                avatarToastY.value = withTiming(-100, { duration: 300 });
+                setTimeout(() => setShowAvatarToast(false), 300);
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [showAvatarToast]);
+
+    const avatarToastStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: avatarToastY.value }],
+    }));
 
     React.useEffect(() => {
         // Simulate loading to give the "app feel"
@@ -105,9 +145,64 @@ const ProfileScreen = () => {
         return () => clearTimeout(timer);
     }, []);
 
+    // Button flip animation
+    React.useEffect(() => {
+        if (showSuccess) {
+            flipRotation.value = withTiming(180, { duration: 400, easing: Easing.inOut(Easing.ease) });
+            const timer = setTimeout(() => {
+                flipRotation.value = withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) });
+                setTimeout(() => setShowSuccess(false), 400);
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [showSuccess]);
 
+    const buttonFlipStyle = useAnimatedStyle(() => ({
+        transform: [{ rotateX: `${flipRotation.value}deg` }],
+    }));
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        try {
+            // Import supabase at the top if needed, but we can use it directly here
+            const { supabase } = await import('../lib/supabase');
+            const { data: freshProfile, error } = await supabase
+                .from('user')
+                .select('bookingId, mobileNo, collegeName, gender, name, image')
+                .eq('email', user?.email)
+                .single();
+
+            if (!error && freshProfile) {
+                // Update local state with fresh data
+                setName(freshProfile.name || user?.name || '');
+                setMobile(freshProfile.mobileNo || '');
+                setCollege(freshProfile.collegeName || '');
+                setGender(freshProfile.gender || 'Male');
+                console.log('✓ Profile refreshed from server');
+            }
+        } catch (error) {
+            console.error('Refresh error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
+    const handleAvatarSelect = async (avatarId: string) => {
+        try {
+            // Update immediately in UI
+            await updateProfile({
+                image: avatarId
+            });
+            setShowAvatarModal(false);
+            // Show custom toast instead of alert
+            setShowAvatarToast(true);
+        } catch (error) {
+            Alert.alert("Error", "Failed to update avatar");
+        }
+    };
 
     const handleSave = async () => {
+        setIsSaving(true);
         try {
             await updateProfile({
                 name,
@@ -115,8 +210,11 @@ const ProfileScreen = () => {
                 collegeName: college,
                 gender,
             });
+            setIsSaving(false);
+            setShowSuccess(true);
         } catch (error) {
-            // Alert handled in context
+            setIsSaving(false);
+            Alert.alert('Error', 'Failed to update profile');
         }
     };
 
@@ -142,11 +240,38 @@ const ProfileScreen = () => {
 
     return (
         <SafeAreaView className="flex-1 bg-[#F5E6FA] pt-3" edges={['top', 'left', 'right']}>
+            {/* Custom Avatar Success Toast */}
+            {showAvatarToast && (
+                <Animated.View
+                    style={[avatarToastStyle, {
+                        position: 'absolute',
+                        alignSelf: 'center',
+                        zIndex: 9999,
+                        top: 0,
+                    }]}
+                >
+                    <View className="bg-black px-6 py-3 rounded-full flex-row items-center gap-3 border-[2px] border-white/20 shadow-lg shadow-black/50">
+                        <View className="bg-green-500 rounded-full w-5 h-5 items-center justify-center">
+                            <Text className="text-black text-[10px] font-bold">✓</Text>
+                        </View>
+                        <Text className="text-white text-sm font-bold tracking-wide uppercase">Avatar Updated</Text>
+                    </View>
+                </Animated.View>
+            )}
+
             <PageTransition style={{ flex: 1 }}>
                 <ScrollView
                     contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 16, paddingTop: 20 }}
                     showsVerticalScrollIndicator={false}
                     style={{ backgroundColor: '#F5E6FA' }}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor="#000"
+                            colors={['#000']}
+                        />
+                    }
                 >
                     {!isLoggedIn ? (
                         <Animated.View entering={FadeIn.duration(400)} className="pt-10">
@@ -200,13 +325,22 @@ const ProfileScreen = () => {
                                     {/* Avatar */}
                                     <View className="items-center mb-6">
                                         <ShadowAvatar>
-                                            <Image
-                                                source={{ uri: PROFILE_IMAGE }}
-                                                className="w-full h-full"
-                                                resizeMode="cover"
-                                            />
+                                            {imageSource ? (
+                                                <Image
+                                                    source={imageSource}
+                                                    className="w-full h-full"
+                                                    resizeMode="cover"
+                                                />
+                                            ) : (
+                                                <View className="w-full h-full items-center justify-center bg-gray-200">
+                                                    <User size={40} color="#9ca3af" />
+                                                </View>
+                                            )}
                                         </ShadowAvatar>
-                                        <TouchableOpacity className="mt-2">
+                                        <TouchableOpacity
+                                            className="mt-2"
+                                            onPress={() => setShowAvatarModal(true)}
+                                        >
                                             <Text className="text-xs underline tracking-tight" style={{ fontFamily: FONT_BOLD, color: 'black' }}>Change Avatar</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -258,8 +392,25 @@ const ProfileScreen = () => {
                                     </View>
 
                                     <View className="mt-8 mb-2">
-                                        <SmoothButton buttonStyle="bg-black rounded-full py-4 items-center justify-center border-[2px] border-black" shadowStyle="bg-black rounded-full" depth={2} onPress={handleSave}>
-                                            <Text className="text-sm uppercase tracking-widest" style={{ fontFamily: FONT_BOLD, color: 'white' }}>SAVE CHANGES</Text>
+                                        <SmoothButton
+                                            buttonStyle="bg-black rounded-full py-4 items-center justify-center border-[2px] border-black"
+                                            shadowStyle="bg-black rounded-full"
+                                            depth={2}
+                                            onPress={handleSave}
+                                            disabled={isSaving || showSuccess}
+                                        >
+                                            <Animated.View style={[buttonFlipStyle, { width: '100%', alignItems: 'center' }]}>
+                                                {isSaving ? (
+                                                    <ActivityIndicator size="small" color="white" />
+                                                ) : showSuccess ? (
+                                                    <View className="flex-row items-center gap-2">
+                                                        <Text className="text-white font-bold text-lg">✓</Text>
+                                                        <Text className="text-sm uppercase tracking-widest" style={{ fontFamily: FONT_BOLD, color: 'white' }}>SUCCESSFUL</Text>
+                                                    </View>
+                                                ) : (
+                                                    <Text className="text-sm uppercase tracking-widest" style={{ fontFamily: FONT_BOLD, color: 'white' }}>SAVE CHANGES</Text>
+                                                )}
+                                            </Animated.View>
                                         </SmoothButton>
                                     </View>
                                 </ShadowCard>
@@ -300,6 +451,13 @@ const ProfileScreen = () => {
                     )}
                 </ScrollView>
             </PageTransition>
+
+            <AvatarChooserModal
+                visible={showAvatarModal}
+                onClose={() => setShowAvatarModal(false)}
+                onSelect={handleAvatarSelect}
+                currentAvatarId={rawImage || undefined}
+            />
         </SafeAreaView>
     );
 };

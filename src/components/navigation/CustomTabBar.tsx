@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { View, TouchableOpacity, Platform, Image as RNImage } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Home, Calendar, Image, Ticket, IndianRupee } from 'lucide-react-native';
+import { Home, Calendar, Image, Ticket, IndianRupee, User } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AVATAR_MAP } from '../ui/AvatarChooserModal';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -103,12 +104,17 @@ const TabItem = ({ route, isFocused, onPress }: { route: any, isFocused: boolean
     const { profile, user } = useAuth();
 
     // BetterAuth User object has direct properties
-    const userName = profile?.name || user?.name || 'User';
-    const imageUrl = profile?.image
-        || user?.image
-        || `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(userName)}`;
+    const rawImage = profile?.image || user?.image;
 
-    const profileImage = { uri: imageUrl };
+    // Determine the image source
+    let imageSource = null;
+    if (rawImage?.startsWith('avatar') && AVATAR_MAP[rawImage]) {
+        imageSource = AVATAR_MAP[rawImage];
+    } else if (rawImage?.startsWith('http')) {
+        imageSource = { uri: rawImage };
+    } else {
+        imageSource = null;
+    }
 
     useEffect(() => {
         opacity.value = withTiming(isFocused ? 1 : 0.5, { duration: 200 });
@@ -137,12 +143,16 @@ const TabItem = ({ route, isFocused, onPress }: { route: any, isFocused: boolean
             return (
                 <View className={`relative items-center justify-center`}>
                     {/* Profile Image - No Border, Maximized Size */}
-                    <View className={`w-8 h-8 rounded-full overflow-hidden bg-gray-700`}>
-                        <RNImage
-                            source={profileImage}
-                            className="w-full h-full"
-                            resizeMode="cover"
-                        />
+                    <View className={`w-8 h-8 rounded-full overflow-hidden bg-gray-700 items-center justify-center`}>
+                        {imageSource ? (
+                            <RNImage
+                                source={imageSource}
+                                className="w-full h-full"
+                                resizeMode="cover"
+                            />
+                        ) : (
+                            <User size={18} color="#9ca3af" />
+                        )}
                     </View>
 
                     {/* Red Dot - ONLY visible when Active (acting as the selection indicator) */}

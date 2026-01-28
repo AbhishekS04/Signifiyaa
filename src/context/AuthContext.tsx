@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             try {
                 const { data: sbUser, error } = await supabase
                     .from('user')
-                    .select('bookingId, mobileNo, collegeName, gender')
+                    .select('bookingId, mobileNo, collegeName, gender, image')
                     .eq('email', finalUser.email)
                     .single();
 
@@ -135,6 +135,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                         mobileNo: sbUser.mobileNo || finalUser.mobileNo,
                         collegeName: sbUser.collegeName || finalUser.collegeName,
                         gender: sbUser.gender || finalUser.gender,
+                        // Prioritize DB image if it exists (e.g. selected avatar), otherwise keep OAuth image
+                        image: sbUser.image || finalUser.image,
                     };
                     console.log('Updated bookingId:', finalUser.bookingId);
                 } else {
@@ -191,7 +193,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             if (data?.user) {
-                const fullUser = await syncUserProfile(data.user);
+                let fullUser = await syncUserProfile(data.user);
+
+                // If booking ID is still missing after sync, generate and save one
+                if (!fullUser.bookingId) {
+                    const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+                    const newBookingId = `SGF26-${randomPart}`;
+                    console.log('Generating booking ID for new user:', newBookingId);
+
+                    try {
+                        // Save to Supabase directly
+                        const { error: updateError } = await supabase
+                            .from('user')
+                            .update({ bookingId: newBookingId })
+                            .eq('email', fullUser.email);
+
+                        if (updateError) {
+                            console.error('Failed to save booking ID:', updateError);
+                        } else {
+                            fullUser = { ...fullUser, bookingId: newBookingId };
+                            console.log('✓ Booking ID saved to database');
+                        }
+                    } catch (err) {
+                        console.error('Booking ID generation error:', err);
+                    }
+                }
+
                 setSession(data.token || data);
                 setUser(fullUser);
                 setProfile(fullUser);
@@ -228,7 +255,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // After browser closes, fetch session to update state
             const { data } = await authClient.getSession();
             if (data?.user) {
-                const fullUser = await syncUserProfile(data.user);
+                let fullUser = await syncUserProfile(data.user);
+
+                // If booking ID is missing (new OAuth user), generate and save one
+                if (!fullUser.bookingId) {
+                    const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+                    const newBookingId = `SGF26-${randomPart}`;
+                    console.log('Generating booking ID for OAuth user:', newBookingId);
+
+                    try {
+                        const { error: updateError } = await supabase
+                            .from('user')
+                            .update({ bookingId: newBookingId })
+                            .eq('email', fullUser.email);
+
+                        if (updateError) {
+                            console.error('Failed to save booking ID:', updateError);
+                        } else {
+                            fullUser = { ...fullUser, bookingId: newBookingId };
+                            console.log('✓ Booking ID saved to database');
+                        }
+                    } catch (err) {
+                        console.error('Booking ID generation error:', err);
+                    }
+                }
+
                 setSession(data.session);
                 setUser(fullUser);
                 setProfile(fullUser);
@@ -298,6 +349,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                             ...(updates.collegeName && { collegeName: updates.collegeName }),
                             ...(updates.gender && { gender: updates.gender }),
                             ...(updates.name && { name: updates.name }),
+                            ...(updates.image && { image: updates.image }),
                         })
                         .eq('email', user.email);
 
@@ -316,7 +368,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 const fullUser = await syncUserProfile(data.user);
                 setUser(fullUser);
                 setProfile(fullUser);
-                Alert.alert('Success', 'Profile updated successfully!');
+                // Success - UI will handle notification
             } else {
                 // Refresh session to get updated user data, then sync
                 const { data: sessionData } = await authClient.getSession();
@@ -324,7 +376,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     const fullUser = await syncUserProfile(sessionData.user);
                     setUser(fullUser);
                     setProfile(fullUser);
-                    Alert.alert('Success', 'Profile updated successfully!');
+                    // Success - UI will handle notification
                 }
             }
         } catch (error: any) {
