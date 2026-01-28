@@ -9,6 +9,7 @@ import Animated, {
     withTiming,
     ZoomIn
 } from 'react-native-reanimated';
+import { useAuth } from '../../context/AuthContext';
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
@@ -99,6 +100,11 @@ const TabItem = ({ route, isFocused, onPress }: { route: any, isFocused: boolean
     // Opacity for glow effect
     const opacity = useSharedValue(isFocused ? 1 : 0.5);
 
+    const { profile } = useAuth();
+    const profileImage = profile?.image
+        ? { uri: profile.image }
+        : require('../../../assets/icon.png');
+
     useEffect(() => {
         opacity.value = withTiming(isFocused ? 1 : 0.5, { duration: 200 });
     }, [isFocused]);
@@ -126,9 +132,9 @@ const TabItem = ({ route, isFocused, onPress }: { route: any, isFocused: boolean
             return (
                 <View className={`relative items-center justify-center`}>
                     {/* Profile Image - No Border, Maximized Size */}
-                    <View className={`w-8 h-8 rounded-full overflow-hidden`}>
+                    <View className={`w-8 h-8 rounded-full overflow-hidden bg-gray-700`}>
                         <RNImage
-                            source={{ uri: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/68e0efce-84a4-42ae-9bd7-a2be6aca73d8.jpg' }}
+                            source={profileImage}
                             className="w-full h-full"
                             resizeMode="cover"
                         />

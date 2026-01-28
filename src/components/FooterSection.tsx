@@ -107,7 +107,7 @@ const FooterSection = () => {
                 {/* Cartoon Pencil - Positioned */}
                 <View className={`absolute right-[-10px] bottom-0 ${isSmallDevice ? 'w-20 h-40' : 'w-24 h-48'} pointer-events-none`}>
                     <Image
-                        source={{ uri: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/e9dcd668-ddfb-4f07-bde7-fc5d8c18be11.png' }}
+                        source={{ uri: '.../assets/original/VikfqxN0JL.lottie' }}
                         className="w-full h-full"
                         resizeMode="contain"
                     />

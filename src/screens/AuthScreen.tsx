@@ -27,7 +27,7 @@ const GoogleLogo = () => (
 
 export default function AuthScreen() {
     const navigation = useNavigation();
-    const { login } = useAuth();
+    const { signInWithEmail, signUpWithEmail } = useAuth();
 
     // Form State
     const [isSignUp, setIsSignUp] = useState(false);
@@ -35,20 +35,36 @@ export default function AuthScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!email || !password || (isSignUp && !name)) {
             Alert.alert("Error", "Please fill in all fields");
             return;
         }
 
-        // Mock Login/Signup
-        login();
-        Alert.alert(
-            "Success",
-            isSignUp ? "Account Created!" : "Welcome Back!",
-            [{ text: "OK", onPress: () => navigation.goBack() }]
-        );
+        setIsSubmitting(true);
+        try {
+            if (isSignUp) {
+                await signUpWithEmail(email, password, name);
+                // Success alert handled in context or here if needed, 
+                // but context handles "Check email" alert.
+                // If auto-login happens, navigation might be triggered by auth state change elsewhere?
+                // Actually, let's keep it simple:
+                // If simple sign up success (no verification needed immediately to login? Supabase default is confirm email usually)
+                // If confirm email is off, we might be logged in.
+            } else {
+                await signInWithEmail(email, password);
+                Alert.alert("Success", "Welcome Back!", [
+                    { text: "OK", onPress: () => navigation.goBack() }
+                ]);
+            }
+        } catch (error) {
+            // Error alert handled in Context
+            console.log(error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -168,13 +184,13 @@ export default function AuthScreen() {
 
                         {/* Action Button */}
                         <SmoothButton
-                            onPress={handleSubmit}
-                            buttonStyle="w-full bg-black rounded-[20px] py-5 items-center justify-center border-[2.5px] border-black"
+                            onPress={isSubmitting ? undefined : handleSubmit}
+                            buttonStyle={`w-full bg-black rounded-[20px] py-5 items-center justify-center border-[2.5px] border-black ${isSubmitting ? 'opacity-50' : ''}`}
                             shadowStyle="bg-black rounded-[20px]"
-                            depth={6}
+                            depth={isSubmitting ? 0 : 6}
                         >
                             <Text className="text-white text-lg uppercase tracking-widest" style={{ fontFamily: FONT_BOLD }}>
-                                {isSignUp ? 'REGISTER NOW' : 'SIGN IN'}
+                                {isSubmitting ? 'PLEASE WAIT...' : (isSignUp ? 'REGISTER NOW' : 'SIGN IN')}
                             </Text>
                         </SmoothButton>
 

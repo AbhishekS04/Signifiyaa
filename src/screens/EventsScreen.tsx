@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EVENTS_DATA } from '../data/EventsData';
+import { useEvents } from '../hooks/useEvents'; // [NEW]
 import SmoothButton from '../components/ui/SmoothButton';
 import EventsHeader from '../components/ui/EventsHeader';
 import SketchyEventCard from '../components/ui/SketchyEventCard';
@@ -26,22 +27,23 @@ const EventsScreen = () => {
 
     // State
     const [activeFilter, setActiveFilter] = useState('ALL');
+    const { events } = useEvents(); // [NEW] Use hook
 
     const filters = ['ALL', 'ESPORTS', 'CSE', 'CIVIL', 'MECHANICAL', 'EEE', 'ROBOTICS', 'NON-TECH'];
 
     // 📂 Filter Logic
     const day1Events = activeFilter === 'ALL'
-        ? EVENTS_DATA.filter(e => e.date === '25th March')
-        : EVENTS_DATA.filter(e => e.date === '25th March' && e.category === activeFilter);
+        ? events.filter(e => e.date && (e.date === '25th March' || e.date.includes('25'))) // Relaxed date check
+        : events.filter(e => (e.date === '25th March' || e.date?.includes('25')) && e.category === activeFilter);
 
     const day2Events = activeFilter === 'ALL'
-        ? EVENTS_DATA.filter(e => e.date === 'Day 2')
-        : EVENTS_DATA.filter(e => e.date === 'Day 2' && e.category === activeFilter);
+        ? events.filter(e => e.date && (e.date === 'Day 2' || e.date === '26th March' || e.date.includes('26')))
+        : events.filter(e => (e.date === 'Day 2' || e.date === '26th March' || e.date?.includes('26')) && e.category === activeFilter);
 
     const handleFilterChange = (filter: string) => {
         if (filter === activeFilter) return;
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        // Removed LayoutAnimation for instant filter switching
         setActiveFilter(filter);
     };
 
@@ -234,7 +236,7 @@ const EventsScreen = () => {
                                 </View>
 
                                 {/* Guidelines Badge */}
-                               <View className="bg-white border-[1.5px]  px-3 py-1 rounded-[6px] mt-[-8px] shadow-[2px_2px_0px_rgba(0,0,0,1)] z-20 mr-2 transform rotate-1">
+                                <View className="bg-white border-[1.5px]  px-3 py-1 rounded-[6px] mt-[-8px] shadow-[2px_2px_0px_rgba(0,0,0,1)] z-20 mr-2 transform rotate-1">
                                     <Text className="text-[10px] uppercase tracking-wide" style={{ fontFamily: 'Gilton' }}>
                                         Events & Guidelines
                                     </Text>

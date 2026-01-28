@@ -63,17 +63,31 @@ const ShadowAvatar = ({ children }: { children: React.ReactNode }) => (
 
 const ProfileScreen = () => {
     const navigation = useNavigation<any>();
-    const { isLoggedIn, login, logout } = useAuth();
-    // Mock State
-    const [name, setName] = useState('Abhishek Singh');
-    const [email, setEmail] = useState('abhishek23main@gmail.com');
-    const [mobile, setMobile] = useState('+919883511660');
-    const [college, setCollege] = useState('Adamas University');
-    const [gender, setGender] = useState('Male');
-    const bookingId = 'SGF26-DC2940D1';
+    const { isLoggedIn, signOut, user, profile } = useAuth();
 
-    // User provided Profile Image
-    const PROFILE_IMAGE = 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/68e0efce-84a4-42ae-9bd7-a2be6aca73d8.jpg';
+    // Real State from Profile
+    const [name, setName] = useState(profile?.name || user?.user_metadata?.full_name || 'Signifiya User');
+    const [email, setEmail] = useState(user?.email || 'user@signifiya.com');
+    const [mobile, setMobile] = useState(profile?.mobileNo || '');
+    const [college, setCollege] = useState(profile?.collegeName || '');
+    const [gender, setGender] = useState(profile?.gender || 'Male');
+    const bookingId = profile?.bookingId || 'NOT-ASSIGNED';
+
+    // Update state when profile loads
+    React.useEffect(() => {
+        if (profile) {
+            setName(profile.name || user?.user_metadata?.full_name || '');
+            setMobile(profile.mobileNo || '');
+            setCollege(profile.collegeName || '');
+            setGender(profile.gender || 'Male');
+        }
+        if (user) {
+            setEmail(user.email || '');
+        }
+    }, [profile, user]);
+
+    // Profile Image
+    const PROFILE_IMAGE = profile?.image || 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/68e0efce-84a4-42ae-9bd7-a2be6aca73d8.jpg';
 
     const [isLoading, setIsLoading] = useState(true);
 
@@ -202,7 +216,7 @@ const ProfileScreen = () => {
                                             <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>GENDER</Text>
                                             <TouchableOpacity
                                                 onPress={() => {
-                                                    setGender(prev => prev === 'Male' ? 'Female' : 'Male');
+                                                    setGender((prev: string) => prev === 'Male' ? 'Female' : 'Male');
                                                 }}
                                                 className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 flex-row justify-between items-center bg-white"
                                             >
@@ -256,7 +270,7 @@ const ProfileScreen = () => {
                                 </ShadowCard>
                             </Animated.View>
 
-                            <TouchableOpacity onPress={logout} className="mt-4 mb-10 border-[3px] border-red-500 rounded-3xl py-4 items-center bg-red-50">
+                            <TouchableOpacity onPress={signOut} className="mt-4 mb-10 border-[3px] border-red-500 rounded-3xl py-4 items-center bg-red-50">
                                 <Text className="text-red-500 font-bold uppercase tracking-widest text-[10px]">Logout from account</Text>
                             </TouchableOpacity>
                         </>

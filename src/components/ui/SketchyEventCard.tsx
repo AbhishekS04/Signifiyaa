@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, Dimensions, Platform } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Image } from 'expo-image';
-import { VideoView, useVideoPlayer } from 'expo-video';
+// Video removed as per request
 import { ArrowUpRight, MapPin, Clock, Star } from 'lucide-react-native';
 import Svg, { Line, G } from 'react-native-svg';
 import SmoothButton from './SmoothButton';
@@ -25,28 +24,12 @@ const SECTION_FONTS = {
 
 const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: SketchyEventCardProps) => {
     // Reference image pattern:
-    // "Text Left, Image Right" seems to be the standard in the reference.
-    // User liked zig-zag (alternating) before, but "replicate this" usually means match strictly.
-    // However, user said "make the thing like this", showing one card. 
-    // I will keep zig-zag features but style the distinct elements (tags, buttons, coordinators) exactly like reference.
+    // "Polaroid" thrown on a table style.
 
     const isEven = index % 2 === 0;
-    const imageRotate = '0deg'; // Reference image shows a straight frame, maybe slight tilt?
-    // Actually reference image has a slight tilt on the inner photo but the frame is also tilted.
-    // Let's keep the rotation but subtly. Reference: Frame is rotated left, inner image straight?
-    // No, it looks like a "Polaroid" thrown on a table.
-
-    // Video Player Logic
-    const player = useVideoPlayer(item.videoUrl || '', player => {
-        player.loop = true;
-        player.muted = true;
-    });
 
     return (
-        <Animated.View
-            entering={FadeInDown.delay(index * 100).springify()}
-            className="w-full mb-12 px-5"
-        >
+        <View className="w-full mb-12 px-5">
             <View className={`flex-row ${isEven ? '' : 'flex-row-reverse'} justify-between items-start`}>
 
                 {/* TEXT SECTION (~55%) */}
@@ -89,7 +72,6 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                     <View className="gap-3 w-full items-start mb-6">
 
                         {/* Time Pill (Light Purple) */}
-                        {/* Time Pill (Light Purple) */}
                         <View
                             className="bg-[#E0C3FC] border-[2px] border-black rounded-[14px] px-4 py-2 flex-row items-center shadow-[3px_3px_0px_#000] w-full mb-3"
                             style={{ elevation: 4 }}
@@ -117,7 +99,7 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
 
                 {/* IMAGE SECTION (~45%) */}
                 <View className="w-[45%] pt-2 items-center justify-start">
-                    <Animated.View
+                    <View
                         className="bg-[#F5F5F5] p-2 border-[3px] border-black"
                         style={{
                             transform: [{ rotate: isEven ? '2deg' : '-2deg' }],
@@ -131,13 +113,15 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                             aspectRatio: 0.85,
                         }}
                     >
-                        {/* Inner Image/Video */}
+                        {/* Inner Image Only - No Video */}
                         <View className="w-full h-full bg-black border-[2px] border-black rounded-[10px] overflow-hidden relative">
-                            {item.videoUrl ? (
-                                <VideoView player={player} style={{ width: '100%', height: '100%' }} contentFit="cover" nativeControls={false} />
-                            ) : (
-                                <Image source={{ uri: item.imageUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
-                            )}
+                            <Image
+                                source={{ uri: item.imageUrl }}
+                                style={{ width: '100%', height: '100%' }}
+                                contentFit="cover"
+                                cachePolicy="memory-disk"
+                                transition={200}
+                            />
                         </View>
 
                         {/* Star Badge (Top Right Corner) */}
@@ -145,7 +129,7 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                             <Star size={14} color="white" fill="white" />
                         </View>
 
-                    </Animated.View>
+                    </View>
                 </View>
 
             </View>
@@ -196,7 +180,7 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                 </View>
             </View>
 
-        </Animated.View>
+        </View>
     );
 };
 
