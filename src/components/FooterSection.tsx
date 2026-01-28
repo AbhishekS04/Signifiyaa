@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Dimensions } from 'react-native';
 import Svg, { Path, G } from 'react-native-svg';
 import SmoothButton from './ui/SmoothButton';
+import SponsorModal from './SponsorModal';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
 const FooterSection = () => {
+    const [isSponsorModalVisible, setSponsorModalVisible] = useState(false);
     return (
         <View className="bg-[#4ADE80] rounded-t-[30px] px-6 pt-5 pb-18 mt-[-30px] z-10">
 
@@ -60,7 +62,11 @@ const FooterSection = () => {
                     <TouchableOpacity
                         key={item}
                         activeOpacity={1}
-                        onPressIn={() => { /* Add local scale logic or leave as simple opacity if not wanting full 3D */ }}
+                        onPress={() => {
+                            if (item === 'BECOME A SPONSOR') {
+                                setSponsorModalVisible(true);
+                            }
+                        }}
                     >
                         <Text className={`${isSmallDevice ? 'text-lg' : 'text-xl'} text-black uppercase`}
                             style={{
@@ -72,6 +78,8 @@ const FooterSection = () => {
                     </TouchableOpacity>
                 ))}
             </View>
+
+            <SponsorModal visible={isSponsorModalVisible} onClose={() => setSponsorModalVisible(false)} />
 
             {/* Footer Area */}
             <View className="relative">

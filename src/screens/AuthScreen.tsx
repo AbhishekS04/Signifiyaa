@@ -27,7 +27,7 @@ const GoogleLogo = () => (
 
 export default function AuthScreen() {
     const navigation = useNavigation();
-    const { signInWithEmail, signUpWithEmail } = useAuth();
+    const { signInWithEmail, signUpWithEmail, signInWithOAuth } = useAuth();
 
     // Form State
     const [isSignUp, setIsSignUp] = useState(false);
@@ -67,6 +67,15 @@ export default function AuthScreen() {
         }
     };
 
+    const handleOAuthSignIn = async (provider: 'google' | 'github') => {
+        try {
+            await signInWithOAuth(provider);
+            // Success handling usually via onAuthStateChange listener
+        } catch (error) {
+            console.error('OAuth Error:', error);
+        }
+    };
+
     return (
         <SafeAreaView className="flex-1 bg-[#F5E6FA]" edges={['top', 'left', 'right']}>
             <ScrollView
@@ -92,6 +101,7 @@ export default function AuthScreen() {
                         className="bg-white border-[3px] border-black rounded-[40px] p-6 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]"
                     >
                         {/* Title Segment */}
+                        {/* ... */}
                         <Animated.Text
                             key={isSignUp ? 'signup-title' : 'signin-title'}
                             entering={FadeIn.duration(300)}
@@ -104,6 +114,7 @@ export default function AuthScreen() {
                         {/* Social Auth */}
                         <View className="gap-4 mb-8">
                             <SmoothButton
+                                onPress={() => handleOAuthSignIn('google')}
                                 buttonStyle="flex-row items-center justify-center py-4 border-[2.5px] border-black rounded-2xl bg-white"
                                 shadowStyle="bg-black rounded-2xl"
                                 depth={4}
@@ -115,6 +126,7 @@ export default function AuthScreen() {
                             </SmoothButton>
 
                             <SmoothButton
+                                onPress={() => handleOAuthSignIn('github')}
                                 buttonStyle="flex-row items-center justify-center py-4 border-[2.5px] border-black rounded-2xl bg-white"
                                 shadowStyle="bg-black rounded-2xl"
                                 depth={4}

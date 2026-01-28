@@ -1,159 +1,139 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
-import { Session, User } from '@supabase/supabase-js';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
+import { betterAuth } from '../lib/betterAuthClient';
+
+// Use loose types for now as BetterAuth types map closely
+interface User {
+    id: string;
+    email: string;
+    name: string;
+    image?: string;
+    emailVerified: boolean;
+}
 
 interface AuthContextType {
-    session: Session | null;
+    session: any | null;
     user: User | null;
-    profile: any | null; // Use specific type if possible later
+    profile: any | null;
     isLoggedIn: boolean;
     isLoading: boolean;
     signInWithEmail: (email: string, password: string) => Promise<void>;
     signUpWithEmail: (email: string, password: string, name: string) => Promise<void>;
+    signInWithOAuth: (provider: 'google' | 'github') => Promise<void>;
     signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [session, setSession] = useState<Session | null>(null);
+    const [session, setSession] = useState<any | null>(null);
     const [user, setUser] = useState<User | null>(null);
-    const [profile, setProfile] = useState<any | null>(null); // Added profile state
+    const [profile, setProfile] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const fetchProfile = async (userId: string) => {
+    const initAuth = async () => {
         try {
-            const { data, error } = await supabase
-                .from('user') // Querying the public 'user' table
-                .select('*')
-                .eq('id', userId)
-                .maybeSingle();
-
-            if (error) {
-                console.error('Error fetching profile:', error);
+            console.log('Initializing BetterAuth...');
+            const data = await betterAuth.getSession();
+            if (data?.session && data?.user) {
+                console.log('Session restored for:', data.user.email);
+                setSession(data.session);
+                setUser(data.user);
+                // BetterAuth user object IS the profile usually
+                setProfile(data.user);
             } else {
-                setProfile(data);
+                setSession(null);
+                setUser(null);
+                setProfile(null);
             }
         } catch (e) {
-            console.error('Exception fetching profile:', e);
+            console.error('Auth Init Error:', e);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        // 1. Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                fetchProfile(session.user.id);
-            } else {
-                setProfile(null);
-            }
-            setIsLoading(false);
-        });
-
-        // 2. Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                fetchProfile(session.user.id);
-            } else {
-                setProfile(null);
-            }
-            setIsLoading(false);
-        });
-
-        return () => subscription.unsubscribe();
+        initAuth();
     }, []);
 
     const signInWithEmail = async (email: string, password: string) => {
         setIsLoading(true);
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
-
-        if (error) {
-            setIsLoading(false);
+        try {
+            const data = await betterAuth.signIn(email.trim(), password);
+            if (data?.session && data?.user) {
+                setSession(data.session);
+                setUser(data.user);
+                setProfile(data.user);
+            }
+        } catch (error: any) {
             Alert.alert('Sign In Error', error.message);
             throw error;
+        } finally {
+            setIsLoading(false);
         }
-        // State updates via onAuthStateChange
     };
 
     const signUpWithEmail = async (email: string, password: string, name: string) => {
         setIsLoading(true);
-        const { data: { user, session }, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    full_name: name,
-                },
-            },
-        });
+        try {
+            // Check if user has an image, if not generate one
+            const image = `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(name)}`;
 
-        if (error) {
-            setIsLoading(false);
+            const data = await betterAuth.signUp(name, email, password, image);
+
+            if (data?.session && data?.user) {
+                setSession(data.session);
+                setUser(data.user);
+                setProfile(data.user);
+                // Allow auto login
+            } else {
+                // If email verification is ON, session might be null depending on config
+                Alert.alert('Success', 'Account created! Please login.');
+            }
+        } catch (error: any) {
             Alert.alert('Sign Up Error', error.message);
             throw error;
+        } finally {
+            setIsLoading(false);
         }
+    };
 
-        if (user) {
-            // Create public user record
-            // matching the Prisma schema: id, name, email, emailVerified
-            const { error: dbError } = await supabase
-                .from('user') // Prisma maps "User" model to "user" table
-                .insert([
-                    {
-                        id: user.id,
-                        name: name,
-                        email: email,
-                        emailVerified: false,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                    },
-                ]);
+    // Keep strict types for the hook but generic internal impl
+    const signInWithOAuth = async (provider: 'google' | 'github') => {
+        // OAuth with BetterAuth usually involves Redirects to the backend
+        // For now, let's notify the user this might need specific backend endpoints
+        // or we use the WebBrowser to hit /api/auth/sign-in/social?provider=google
 
-            if (dbError) {
-                console.error('Error creating user profile:', dbError);
-                Alert.alert('Profile Creation Error', 'Account created but profile setup failed. Please contact support.');
-                // Optional: Delete auth user if profile creation fails? 
-                // For now, we keep it but warn.
-            } else {
-                // Fetch profile immediately after creation
-                await fetchProfile(user.id);
-            }
-        }
-
-        // If email confirmation is required, session might be null
-        if (!session && user) {
-            Alert.alert('Success', 'Please check your email for the confirmation link.');
-        }
-
-        setIsLoading(false);
+        Alert.alert('Coming Soon', 'Please use Email/Password for now. OAuth setup requires backend redirect config update.');
+        // Implementation TODO: 
+        // 1. Open WebBrowser to BETTER_AUTH_URL/api/auth/sign-in/google
+        // 2. Backend handles flow and redirects back to App Scheme with cookie or token
     };
 
     const signOut = async () => {
         setIsLoading(true);
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-            console.error('Sign Out Error:', error);
+        try {
+            await betterAuth.signOut();
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+        } catch (e) {
+            console.error('Sign Out Error:', e);
+        } finally {
+            setIsLoading(false);
         }
-        setProfile(null); // Clear profile on logout
-        setIsLoading(false);
     };
 
     const value = {
         session,
         user,
-        profile, // Exposed profile
+        profile,
         isLoggedIn: !!user,
         isLoading,
         signInWithEmail,
         signUpWithEmail,
+        signInWithOAuth,
         signOut,
     };
 

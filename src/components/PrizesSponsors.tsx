@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
 import SmoothButton from './ui/SmoothButton';
+import SponsorModal from './SponsorModal';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -161,6 +162,8 @@ const PrizesSponsors = () => {
         { name: 'Tesla', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tesla_logo.png/1200px-Tesla_logo.png' },
     ];
 
+    const [isSponsorModalVisible, setSponsorModalVisible] = useState(false);
+
     return (
         <View className="w-full pb-8">
             {/* Section A: Prize Pool Card with Floating Money */}
@@ -256,7 +259,7 @@ const PrizesSponsors = () => {
 
                 {/* Action Button */}
                 <SmoothButton
-                    onPress={() => { }}
+                    onPress={() => setSponsorModalVisible(true)}
                     containerStyle={{ width: '100%' }}
                     buttonStyle="bg-black py-4 rounded-full items-center"
                     shadowStyle="bg-black rounded-full"
@@ -269,6 +272,8 @@ const PrizesSponsors = () => {
                         BECOME A SPONSOR
                     </Text>
                 </SmoothButton>
+
+                <SponsorModal visible={isSponsorModalVisible} onClose={() => setSponsorModalVisible(false)} />
 
             </View>
         </View>

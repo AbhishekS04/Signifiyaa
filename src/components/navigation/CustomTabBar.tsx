@@ -100,10 +100,15 @@ const TabItem = ({ route, isFocused, onPress }: { route: any, isFocused: boolean
     // Opacity for glow effect
     const opacity = useSharedValue(isFocused ? 1 : 0.5);
 
-    const { profile } = useAuth();
-    const profileImage = profile?.image
-        ? { uri: profile.image }
-        : require('../../../assets/icon.png');
+    const { profile, user } = useAuth();
+
+    // BetterAuth User object has direct properties
+    const userName = profile?.name || user?.name || 'User';
+    const imageUrl = profile?.image
+        || user?.image
+        || `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(userName)}`;
+
+    const profileImage = { uri: imageUrl };
 
     useEffect(() => {
         opacity.value = withTiming(isFocused ? 1 : 0.5, { duration: 200 });

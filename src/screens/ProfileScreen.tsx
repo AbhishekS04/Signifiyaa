@@ -66,7 +66,7 @@ const ProfileScreen = () => {
     const { isLoggedIn, signOut, user, profile } = useAuth();
 
     // Real State from Profile
-    const [name, setName] = useState(profile?.name || user?.user_metadata?.full_name || 'Signifiya User');
+    const [name, setName] = useState(profile?.name || user?.name || 'Signifiya User');
     const [email, setEmail] = useState(user?.email || 'user@signifiya.com');
     const [mobile, setMobile] = useState(profile?.mobileNo || '');
     const [college, setCollege] = useState(profile?.collegeName || '');
@@ -76,10 +76,12 @@ const ProfileScreen = () => {
     // Update state when profile loads
     React.useEffect(() => {
         if (profile) {
-            setName(profile.name || user?.user_metadata?.full_name || '');
+            setName(profile.name || user?.name || '');
             setMobile(profile.mobileNo || '');
             setCollege(profile.collegeName || '');
             setGender(profile.gender || 'Male');
+        } else if (user) {
+            setName(user.name || '');
         }
         if (user) {
             setEmail(user.email || '');
@@ -87,7 +89,10 @@ const ProfileScreen = () => {
     }, [profile, user]);
 
     // Profile Image
-    const PROFILE_IMAGE = profile?.image || 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/68e0efce-84a4-42ae-9bd7-a2be6aca73d8.jpg';
+    // Profile Image Logic: Use DB image -> User Image -> Generated Avatar
+    const PROFILE_IMAGE = profile?.image
+        || user?.image
+        || `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(name || 'User')}`;
 
     const [isLoading, setIsLoading] = useState(true);
 
