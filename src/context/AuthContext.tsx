@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { authClient } from '../lib/betterAuthClient';
+import { supabase } from '../lib/supabase';
 
 // Ensure web browser sessions are completed properly
 WebBrowser.maybeCompleteAuthSession();
@@ -13,6 +14,10 @@ interface User {
     name: string;
     image?: string | null;
     emailVerified: boolean;
+    mobileNo?: string;
+    collegeName?: string;
+    bookingId?: string;
+    gender?: string;
 }
 
 interface AuthContextType {
@@ -25,6 +30,7 @@ interface AuthContextType {
     signUpWithEmail: (email: string, password: string, name: string) => Promise<void>;
     signInWithOAuth: (provider: 'google' | 'github') => Promise<void>;
     signOut: () => Promise<void>;
+    updateProfile: (updates: { name?: string; mobileNo?: string; collegeName?: string; bookingId?: string; image?: string; gender?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,9 +49,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 const { data, error } = await authClient.getSession();
                 if (data?.user) {
                     console.log('Session restored for:', data.user.email);
+                    console.log('Full User Object:', JSON.stringify(data.user, null, 2));
+
+                    const fullUser = await syncUserProfile(data.user);
+
                     setSession(data.session);
-                    setUser(data.user);
-                    setProfile(data.user);
+                    setUser(fullUser);
+                    setProfile(fullUser);
                 } else {
                     setSession(null);
                     setUser(null);
@@ -97,6 +107,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return () => subscription.remove();
     }, []);
 
+    // Helper to sync extra profile data from Supabase
+    const syncUserProfile = async (baseUser: any) => {
+        let finalUser: User = { ...baseUser };
+
+        // If bookingId is missing, try to fetch it from Supabase
+        if (!finalUser.bookingId) {
+            try {
+                const { data: sbUser, error } = await supabase
+                    .from('user')
+                    .select('bookingId, mobileNo, collegeName, gender')
+                    .eq('email', finalUser.email)
+                    .single();
+
+                if (sbUser) {
+                    console.log('Fetched extended profile from Supabase');
+                    finalUser = {
+                        ...finalUser,
+                        bookingId: sbUser.bookingId || finalUser.bookingId,
+                        mobileNo: sbUser.mobileNo || finalUser.mobileNo,
+                        collegeName: sbUser.collegeName || finalUser.collegeName,
+                        gender: sbUser.gender || finalUser.gender,
+                    };
+                }
+            } catch (err) {
+                console.error('Supabase sync error:', err);
+            }
+        }
+        return finalUser;
+    };
+
     const signInWithEmail = async (email: string, password: string) => {
         setIsLoading(true);
         try {
@@ -110,9 +150,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             if (data?.user) {
+                const fullUser = await syncUserProfile(data.user);
                 setSession(data.token || data);
-                setUser(data.user);
-                setProfile(data.user);
+                setUser(fullUser);
+                setProfile(fullUser);
             }
         } catch (error: any) {
             Alert.alert('Sign In Error', error.message);
@@ -140,9 +181,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             if (data?.user) {
+                const fullUser = await syncUserProfile(data.user);
                 setSession(data.token || data);
-                setUser(data.user);
-                setProfile(data.user);
+                setUser(fullUser);
+                setProfile(fullUser);
             } else {
                 // Email verification might be required
                 Alert.alert('Success', 'Account created! Please check your email to verify.');
@@ -176,9 +218,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // After browser closes, fetch session to update state
             const { data } = await authClient.getSession();
             if (data?.user) {
+                const fullUser = await syncUserProfile(data.user);
                 setSession(data.session);
-                setUser(data.user);
-                setProfile(data.user);
+                setUser(fullUser);
+                setProfile(fullUser);
             }
         } catch (error: any) {
             Alert.alert('OAuth Error', error.message || 'Failed to sign in with ' + provider);
@@ -202,6 +245,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+
+    const updateProfile = async (updates: { name?: string; mobileNo?: string; collegeName?: string; bookingId?: string; image?: string; gender?: string }) => {
+        setIsLoading(true);
+        try {
+            console.log('Updating profile with:', updates);
+
+            // Better Auth doesn't expose user.update on the client
+            // We need to make a direct API call to the update-user endpoint
+            const BASE_URL = process.env.EXPO_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
+
+            const response = await fetch(`${BASE_URL}/api/auth/update-user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Origin': BASE_URL, // Required by Better Auth for CSRF check
+                },
+                credentials: 'include', // Important for cookies
+                body: JSON.stringify(updates),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Failed to update profile' }));
+                throw new Error(errorData.message || 'Failed to update profile');
+            }
+
+            const data = await response.json();
+
+            if (data?.user) {
+                // Update local state immediately
+                setUser(data.user);
+                setProfile(data.user);
+                Alert.alert('Success', 'Profile updated successfully!');
+            } else {
+                // Refresh session to get updated user data
+                const { data: sessionData } = await authClient.getSession();
+                if (sessionData?.user) {
+                    setUser(sessionData.user);
+                    setProfile(sessionData.user);
+                    Alert.alert('Success', 'Profile updated successfully!');
+                }
+            }
+        } catch (error: any) {
+            console.error('Update Profile Error:', error);
+            Alert.alert('Update Error', error.message || 'Failed to update profile');
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const value = {
         session,
         user,
@@ -212,6 +305,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signUpWithEmail,
         signInWithOAuth,
         signOut,
+        updateProfile,
     };
 
     return (

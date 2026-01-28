@@ -71,7 +71,7 @@ const ProfileScreen = () => {
     const [mobile, setMobile] = useState(profile?.mobileNo || '');
     const [college, setCollege] = useState(profile?.collegeName || '');
     const [gender, setGender] = useState(profile?.gender || 'Male');
-    const bookingId = profile?.bookingId || 'NOT-ASSIGNED';
+    const bookingId = profile?.bookingId || user?.bookingId || 'NOT-ASSIGNED';
 
     // Update state when profile loads
     React.useEffect(() => {
@@ -95,12 +95,30 @@ const ProfileScreen = () => {
         || `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(name || 'User')}`;
 
     const [isLoading, setIsLoading] = useState(true);
+    const { updateProfile } = useAuth(); // destructure updateProfile
 
     React.useEffect(() => {
         // Simulate loading to give the "app feel"
-        const timer = setTimeout(() => setIsLoading(false), 800);
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 800);
         return () => clearTimeout(timer);
     }, []);
+
+
+
+    const handleSave = async () => {
+        try {
+            await updateProfile({
+                name,
+                mobileNo: mobile,
+                collegeName: college,
+                gender,
+            });
+        } catch (error) {
+            // Alert handled in context
+        }
+    };
 
     if (isLoading) {
         return (
@@ -240,7 +258,7 @@ const ProfileScreen = () => {
                                     </View>
 
                                     <View className="mt-8 mb-2">
-                                        <SmoothButton buttonStyle="bg-black rounded-full py-4 items-center justify-center border-[2px] border-black" shadowStyle="bg-black rounded-full" depth={2} onPress={() => console.log('Save Changes')}>
+                                        <SmoothButton buttonStyle="bg-black rounded-full py-4 items-center justify-center border-[2px] border-black" shadowStyle="bg-black rounded-full" depth={2} onPress={handleSave}>
                                             <Text className="text-sm uppercase tracking-widest" style={{ fontFamily: FONT_BOLD, color: 'white' }}>SAVE CHANGES</Text>
                                         </SmoothButton>
                                     </View>
