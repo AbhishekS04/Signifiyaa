@@ -109,10 +109,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Helper to sync extra profile data from Supabase
     const syncUserProfile = async (baseUser: any) => {
+        console.log('=== syncUserProfile called ===');
         let finalUser: User = { ...baseUser };
+        console.log('Initial bookingId:', finalUser.bookingId);
 
         // If bookingId is missing, try to fetch it from Supabase
         if (!finalUser.bookingId) {
+            console.log('No bookingId found, fetching from Supabase...');
             try {
                 const { data: sbUser, error } = await supabase
                     .from('user')
@@ -120,8 +123,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     .eq('email', finalUser.email)
                     .single();
 
+                if (error) {
+                    console.error('Supabase query error:', error);
+                }
+
                 if (sbUser) {
-                    console.log('Fetched extended profile from Supabase');
+                    console.log('Fetched Supabase User Raw:', JSON.stringify(sbUser, null, 2));
                     finalUser = {
                         ...finalUser,
                         bookingId: sbUser.bookingId || finalUser.bookingId,
@@ -129,11 +136,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                         collegeName: sbUser.collegeName || finalUser.collegeName,
                         gender: sbUser.gender || finalUser.gender,
                     };
+                    console.log('Updated bookingId:', finalUser.bookingId);
+                } else {
+                    console.log('No Supabase user data returned');
                 }
             } catch (err) {
-                console.error('Supabase sync error:', err);
+                console.error('Supabase sync exception:', err);
             }
+        } else {
+            console.log('BookingId already exists:', finalUser.bookingId);
         }
+        console.log('=== syncUserProfile completed ===');
         return finalUser;
     };
 
@@ -166,14 +179,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const signUpWithEmail = async (email: string, password: string, name: string) => {
         setIsLoading(true);
         try {
-            // Generate default avatar
-            const image = `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(name)}`;
-
             const { data, error } = await authClient.signUp.email({
                 email: email.trim(),
                 password,
                 name,
-                image,
+                // image is optional, let it be null/undefined for now so UI handles default
             });
 
             if (error) {
@@ -249,11 +259,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const updateProfile = async (updates: { name?: string; mobileNo?: string; collegeName?: string; bookingId?: string; image?: string; gender?: string }) => {
         setIsLoading(true);
         try {
-            console.log('Updating profile with:', updates);
+            console.log('=== Updating profile with:', updates);
 
             // Better Auth doesn't expose user.update on the client
             // We need to make a direct API call to the update-user endpoint
             const BASE_URL = process.env.EXPO_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
+            console.log('API URL:', `${BASE_URL}/api/auth/update-user`);
 
             const response = await fetch(`${BASE_URL}/api/auth/update-user`, {
                 method: 'POST',
@@ -265,24 +276,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 body: JSON.stringify(updates),
             });
 
+            console.log('Update response status:', response.status);
+
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: 'Failed to update profile' }));
+                console.error('Update failed:', errorData);
                 throw new Error(errorData.message || 'Failed to update profile');
             }
 
             const data = await response.json();
+            console.log('Update response data:', data);
+
+            // IMPORTANT: better-auth API may not save custom fields (mobileNo, collegeName, gender)
+            // So we directly update Supabase to ensure persistence
+            if (user?.email) {
+                try {
+                    const { error: supabaseError } = await supabase
+                        .from('user')
+                        .update({
+                            ...(updates.mobileNo && { mobileNo: updates.mobileNo }),
+                            ...(updates.collegeName && { collegeName: updates.collegeName }),
+                            ...(updates.gender && { gender: updates.gender }),
+                            ...(updates.name && { name: updates.name }),
+                        })
+                        .eq('email', user.email);
+
+                    if (supabaseError) {
+                        console.error('Supabase direct update error:', supabaseError);
+                    } else {
+                        console.log('✓ Custom fields updated directly in Supabase');
+                    }
+                } catch (err) {
+                    console.error('Supabase update exception:', err);
+                }
+            }
 
             if (data?.user) {
-                // Update local state immediately
-                setUser(data.user);
-                setProfile(data.user);
+                // Sync the updated user with Supabase to get all fields
+                const fullUser = await syncUserProfile(data.user);
+                setUser(fullUser);
+                setProfile(fullUser);
                 Alert.alert('Success', 'Profile updated successfully!');
             } else {
-                // Refresh session to get updated user data
+                // Refresh session to get updated user data, then sync
                 const { data: sessionData } = await authClient.getSession();
                 if (sessionData?.user) {
-                    setUser(sessionData.user);
-                    setProfile(sessionData.user);
+                    const fullUser = await syncUserProfile(sessionData.user);
+                    setUser(fullUser);
+                    setProfile(fullUser);
                     Alert.alert('Success', 'Profile updated successfully!');
                 }
             }
