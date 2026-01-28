@@ -342,13 +342,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.log('Update response status:', response.status);
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: 'Failed to update profile' }));
-                console.error('Update failed:', errorData);
-                throw new Error(errorData.message || 'Failed to update profile');
+                const errorData = await response.json().catch(() => ({ message: 'Failed to update profile on Auth Server' }));
+                console.warn('Auth Server Update Warning:', errorData);
+                // Don't throw here! Let Supabase logic try to save the data.
+            } else {
+                const data = await response.json();
+                console.log('Auth Server Update Success:', data);
             }
-
-            const data = await response.json();
-            console.log('Update response data:', data);
 
             // IMPORTANT: better-auth API may not save custom fields (mobileNo, collegeName, gender)
             // So we directly update Supabase to ensure persistence
@@ -372,6 +372,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
                     if (supabaseError) {
                         console.error('Supabase direct update error:', supabaseError);
+                        // Now we might want to throw if BOTH failed
+                        if (!response.ok) throw new Error(supabaseError.message);
                     } else {
                         console.log(`✓ Custom fields updated. Rows modified: ${count}`);
 
@@ -401,21 +403,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 }
             }
 
-            if (data?.user) {
-                // Sync the updated user with Supabase to get all fields
-                const fullUser = await syncUserProfile(data.user);
+            // Always try to refresh the local user state
+            // Refresh session to get updated user data, then sync
+            const { data: sessionData } = await authClient.getSession();
+            if (sessionData?.user) {
+                const fullUser = await syncUserProfile(sessionData.user);
                 setUser(fullUser);
                 setProfile(fullUser);
                 // Success - UI will handle notification
-            } else {
-                // Refresh session to get updated user data, then sync
-                const { data: sessionData } = await authClient.getSession();
-                if (sessionData?.user) {
-                    const fullUser = await syncUserProfile(sessionData.user);
-                    setUser(fullUser);
-                    setProfile(fullUser);
-                    // Success - UI will handle notification
-                }
             }
         } catch (error: any) {
             console.error('Update Profile Error:', error);
