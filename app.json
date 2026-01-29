@@ -41,8 +41,6 @@
     },
     "plugins": [
       "expo-font",
-      "expo-video",
-      "expo-audio",
       "expo-web-browser"
     ],
     "scheme": "signifiya",
