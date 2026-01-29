@@ -3,6 +3,7 @@ import { expoClient } from "@better-auth/expo/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const BASE_URL = process.env.EXPO_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
+console.log(`[BetterAuth] Connecting to: ${BASE_URL}`);
 
 // In-memory cache for synchronous access
 // The expoClient sometimes calls getItem synchronously

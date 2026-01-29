@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Check, AlertCircle, X } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
-import Animated, { FadeInDown, Layout, FadeIn, useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import Animated, { FadeInDown, Layout, FadeIn, useSharedValue, useAnimatedStyle, withTiming, Easing, withRepeat } from 'react-native-reanimated';
 import { useAuth } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
@@ -51,12 +51,13 @@ const EventRegistrationScreen = () => {
         setShowReceipt(false);
         setIsTransitioning(true);
 
-        // Duration of skeleton visibility
+        // Instant navigation start
+        (navigation as any).navigate('Main', { screen: 'Profile' });
+
+        // Keep skeleton for a short, crisp duration while profile loads in background
         setTimeout(() => {
-            (navigation as any).navigate('Main', { screen: 'Profile' });
-            // Small delay before resetting transition state to ensure smooth handoff
-            setTimeout(() => setIsTransitioning(false), 500);
-        }, 1500);
+            setIsTransitioning(false);
+        }, 600);
     };
 
     // --- Step 1 State ---
@@ -121,13 +122,26 @@ const EventRegistrationScreen = () => {
     const [timer, setTimer] = useState(872); // 14:32 in seconds
 
     React.useEffect(() => {
-        if (currentStep === 4) {
+        if (currentStep === 3) {
             const interval = setInterval(() => {
                 setTimer((prev) => (prev > 0 ? prev - 1 : 0));
             }, 1000);
             return () => clearInterval(interval);
         }
     }, [currentStep]);
+
+    // Handle Timer Expiry
+    React.useEffect(() => {
+        if (timer === 0 && currentStep === 3) {
+            showAlert(
+                "SESSION EXPIRED",
+                "Your registration session has timed out. Please start again to ensure availability.",
+                'error'
+            );
+            setCurrentStep(1);
+            setTimer(872); // Reset timer
+        }
+    }, [timer, currentStep]);
 
     React.useEffect(() => {
         const backAction = () => {
@@ -221,25 +235,32 @@ const EventRegistrationScreen = () => {
     const FONT_SUB = 'Softura';
 
     // Validation
-    const validateStep1 = () => {
+    const validateTeamInfo = () => {
         if (!teamName.trim()) { showAlert("MISSING INPUT", "Please enter your Team Name.", 'error'); return false; }
         if (!leaderName.trim()) { showAlert("MISSING INPUT", "Please enter the Team Leader's Name.", 'error'); return false; }
+        if (!college.trim()) { showAlert("MISSING INPUT", "Please enter your College.", 'error'); return false; }
+        if (!email.trim()) { showAlert("MISSING INPUT", "Please enter your Email.", 'error'); return false; }
+        if (!phone.trim()) { showAlert("MISSING INPUT", "Please enter your Phone.", 'error'); return false; }
         if (!bookingId.trim()) {
             showAlert("MISSING BOOKING ID", "You must enter your Booking ID to proceed.", 'error');
             return false;
         }
 
-        // --- BOOKING ID VERIFICATION ---
-        // Normalizes string comparison (trim + uppercase)
         const inputId = bookingId.trim().toUpperCase();
         const actualId = user?.bookingId?.trim().toUpperCase();
 
         if (inputId !== actualId) {
             showAlert(
                 "INVALID BOOKING ID",
-                "The Booking ID you entered does not match your profile.\n\nPlease visit your Profile, copy your unique Booking ID, and use that to register.",
+                "The Booking ID you entered does not match your profile.",
                 'error'
             );
+            return false;
+        }
+
+        const hasEmptyMember = teamMembers.find(m => !m.name.trim() || !m.college.trim());
+        if (hasEmptyMember) {
+            showAlert("MEMBER DETAILS", "Please fill in names and colleges for all team members.", 'error');
             return false;
         }
 
@@ -248,28 +269,36 @@ const EventRegistrationScreen = () => {
 
     const handleNext = () => {
         if (currentStep === 1) {
-            if (!validateStep1()) return;
+            if (selectedEvents.length === 0) {
+                showAlert("CHOOSE EVENT", "Please select at least one event.", 'error');
+                return;
+            }
+            setCurrentStep(2);
+        } else if (currentStep === 2) {
+            if (validateTeamInfo()) {
+                setCurrentStep(3);
+            }
+        } else {
+            handlePay();
         }
-        if (currentStep < 4) setCurrentStep(currentStep + 1);
-        else handlePay();
     };
 
     const ProgressBar = () => {
-        const progressWidth = currentStep === 1 ? '25%' : currentStep === 2 ? '50%' : currentStep === 3 ? '75%' : '100%';
+        const progressWidth = currentStep === 1 ? '33%' : currentStep === 2 ? '66%' : '100%';
 
         return (
-            <View className="mb-2">
-                <View className="h-6 w-full bg-white border-[2px] border-black rounded-full overflow-hidden relative">
-                    <View className="h-full bg-[#1F2937] relative overflow-hidden" style={{ width: progressWidth }}>
-                        <View className="absolute top-0 left-0 right-0 bottom-0 opacity-20 bg-gray-500" />
-                        <View className="absolute top-0 left-0 w-full h-full opacity-30 bg-black" />
-                    </View>
+            <View className="mb-4">
+                <View className="h-4 w-full bg-gray-100 border-[2px] border-black rounded-full overflow-hidden">
+                    <Animated.View
+                        layout={Layout.springify()}
+                        className="h-full bg-purple-600"
+                        style={{ width: progressWidth }}
+                    />
                 </View>
                 <View className="flex-row justify-between px-1 mt-2">
-                    <Text className={`text-[10px] font-bold uppercase tracking-widest ${currentStep >= 1 ? 'text-black' : 'text-gray-400'}`}>LEADER</Text>
-                    <Text className={`text-[10px] font-bold uppercase tracking-widest ${currentStep >= 2 ? 'text-black' : 'text-gray-400'}`}>EVENTS</Text>
-                    <Text className={`text-[10px] font-bold uppercase tracking-widest ${currentStep >= 3 ? 'text-black' : 'text-gray-400'}`}>TEAM</Text>
-                    <Text className={`text-[10px] font-bold uppercase tracking-widest ${currentStep >= 4 ? 'text-black' : 'text-gray-400'}`}>PAY</Text>
+                    <Text className={`text-[8px] font-black uppercase tracking-widest ${currentStep >= 1 ? 'text-black' : 'text-gray-300'}`}>EVENTS</Text>
+                    <Text className={`text-[8px] font-black uppercase tracking-widest ${currentStep >= 2 ? 'text-black' : 'text-gray-300'}`}>TEAM</Text>
+                    <Text className={`text-[8px] font-black uppercase tracking-widest ${currentStep >= 3 ? 'text-black' : 'text-gray-300'}`}>PAY</Text>
                 </View>
             </View>
         );
@@ -386,11 +415,10 @@ const EventRegistrationScreen = () => {
                                 </View>
                             </View>
 
-                            {/* Barcode Visual */}
                             <View className="mt-4 opacity-40">
                                 <View className="h-8 flex-row items-end justify-center gap-[2px]">
                                     {Array.from({ length: 40 }).map((_, i) => (
-                                        <View key={i} className={`bg-black h-full w-[${Math.random() > 0.5 ? '2px' : '4px'}]`} />
+                                        <View key={i} className={`bg-black h-full w-[${i % 3 === 0 ? '4px' : '2px'}]`} />
                                     ))}
                                 </View>
                                 <Text className="text-center text-[8px] font-mono mt-1 text-black">OFFICIAL RECEIPT • SIGNIFIYA 2026</Text>
@@ -454,64 +482,38 @@ const EventRegistrationScreen = () => {
 
                         <Animated.View layout={Layout.springify()} className="mb-6">
                             {currentStep === 1 && (
-                                <View className="bg-[#FAE8FF] border-[2px] border-black rounded-full py-2 px-5 shadow-[3px_3px_0px_#000000]">
-                                    <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                        STEP 1/4: TEAM LEADER DETAILS
-                                    </Text>
-                                </View>
-                            )}
-                            {currentStep === 2 && (
                                 <View className="bg-[#FEF08A] border-[2px] border-black rounded-full py-2 px-5 shadow-[3px_3px_0px_#000000] flex-row justify-between items-center">
                                     <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                        STEP 2/4: CHOOSE EVENTS
+                                        STEP 1/3: CHOOSE EVENTS
                                     </Text>
                                     <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
                                         ₹{totalPrice}
                                     </Text>
                                 </View>
                             )}
-                            {currentStep === 3 && (
+                            {currentStep === 2 && (
                                 <View className="bg-[#BFDBFE] border-[2px] border-black rounded-full py-2 px-5 shadow-[3px_3px_0px_#000000]">
                                     <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                        STEP 3/4: ADD TEAM
+                                        STEP 2/3: TEAM INFORMATION
                                     </Text>
                                 </View>
                             )}
-                            {currentStep === 4 && (
+                            {currentStep === 3 && (
                                 <View className="bg-[#FECACA] border-[2px] border-black rounded-full py-2 px-5 shadow-[3px_3px_0px_#000000] flex-row justify-between items-center">
                                     <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                        STEP 4/4: PAYMENT
+                                        STEP 3/3: FINAL REVIEW
                                     </Text>
-                                    <Text className="text-xs font-black uppercase tracking-widest text-[#DC2626]" style={{ fontFamily: FONT_SUB }}>
-                                        {formatTime(timer)}
-                                    </Text>
+                                    <View className="flex-row items-center gap-1.5 bg-white/40 px-2 py-0.5 rounded-full">
+                                        <View className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                                        <Text className="text-[10px] font-black tracking-widest text-[#DC2626]" style={{ fontFamily: FONT_SUB }}>
+                                            REVIEW & PAY
+                                        </Text>
+                                    </View>
                                 </View>
                             )}
                         </Animated.View>
 
                         {currentStep === 1 && (
-                            <Animated.View entering={FadeInDown} exiting={FadeInDown} className="gap-5 mb-6">
-                                <InputGroup label="TEAM NAME" value={teamName} onChange={setTeamName} placeholder="CODE WARRIORS" />
-                                <InputGroup label="LEADER NAME" value={leaderName} onChange={setLeaderName} placeholder="JANE DOE" />
-                                <InputGroup label="COLLEGE" value={college} onChange={setCollege} placeholder="ADAMAS UNIVERSITY" />
-                                <InputGroup label="EMAIL" value={email} onChange={setEmail} placeholder="EMAIL@COLLEGE.EDU" keyboardType="email-address" />
-                                <InputGroup label="PHONE" value={phone} onChange={setPhone} placeholder="9876543210" keyboardType="phone-pad" />
-
-                                <View>
-                                    <InputGroup
-                                        label="BOOKING ID"
-                                        value={bookingId}
-                                        onChange={setBookingId}
-                                        placeholder="SGF26-XXXXXXXX"
-                                    />
-                                    <Text className="text-[11px] text-gray-500 mt-2 leading-4 ml-1" style={{ fontFamily: FONT_BODY }}>
-                                        Find it in <Text className="underline font-bold text-black" onPress={() => (navigation as any).navigate('Main', { screen: 'Profile' })}>Profile</Text>. Sign in and visit Profile first if you don't have one.
-                                    </Text>
-                                </View>
-                            </Animated.View>
-                        )}
-
-                        {currentStep === 2 && (
                             <Animated.View entering={FadeInDown} className="gap-3 mb-4">
                                 {AVAILABLE_EVENTS.map((event) => (
                                     <EventSelectionCard
@@ -524,56 +526,121 @@ const EventRegistrationScreen = () => {
                             </Animated.View>
                         )}
 
-                        {currentStep === 3 && (
-                            <Animated.View entering={FadeInDown} className="gap-5 mb-4">
+                        {currentStep === 2 && (
+                            <Animated.View entering={FadeInDown} exiting={FadeInDown} className="gap-5 mb-6">
+                                <View className="bg-gray-50 border-[2px] border-black border-dashed rounded-[20px] p-5 gap-5">
+                                    <InputGroup label="TEAM NAME" value={teamName} onChange={setTeamName} placeholder="YOUR TEAM NAME" />
+                                    <InputGroup label="LEADER NAME" value={leaderName} onChange={setLeaderName} placeholder="FULL NAME" />
+                                    <InputGroup label="COLLEGE" value={college} onChange={setCollege} placeholder="YOUR COLLEGE" />
+                                    <View className="flex-row gap-3">
+                                        <View className="flex-1">
+                                            <InputGroup label="EMAIL" value={email} onChange={setEmail} placeholder="EMAIL" keyboardType="email-address" />
+                                        </View>
+                                        <View className="flex-1">
+                                            <InputGroup label="PHONE" value={phone} onChange={setPhone} placeholder="PHONE" keyboardType="phone-pad" />
+                                        </View>
+                                    </View>
+                                    <View>
+                                        <InputGroup
+                                            label="BOOKING ID"
+                                            value={bookingId}
+                                            onChange={setBookingId}
+                                            placeholder="SGF26-XXXXXXXX"
+                                        />
+                                        <Text className="text-[10px] text-gray-500 mt-2 leading-4 ml-1" style={{ fontFamily: FONT_BODY }}>
+                                            Find it in <Text className="underline font-bold text-black" onPress={() => (navigation as any).navigate('Main', { screen: 'Profile' })}>Profile</Text>.
+                                        </Text>
+                                    </View>
+                                </View>
+
                                 {teamMembers.map((member, index) => (
                                     <View key={member.id} className="relative mt-2">
-                                        <View className="absolute -top-3 left-6 z-20 bg-black px-3 py-1 rounded-md transform -rotate-2">
+                                        <View className="absolute -top-3 left-6 z-20 bg-black px-3 py-1 rounded-md transform -rotate-1">
                                             <Text className="text-white text-[10px] font-bold uppercase tracking-widest">
                                                 MEMBER {index + 1}
                                             </Text>
                                         </View>
-                                        {teamMembers.length > 1 && (
-                                            <TouchableOpacity onPress={() => removeMember(member.id)} className="absolute -top-3 right-4 z-20 bg-red-500 border-2 border-black w-7 h-7 rounded-full items-center justify-center">
-                                                <Text className="text-white font-bold text-[10px]">X</Text>
-                                            </TouchableOpacity>
-                                        )}
+                                        <TouchableOpacity onPress={() => removeMember(member.id)} className="absolute -top-3 right-4 z-20 bg-red-500 border-2 border-black w-7 h-7 rounded-full items-center justify-center">
+                                            <Text className="text-white font-bold text-[10px]">X</Text>
+                                        </TouchableOpacity>
                                         <View className="bg-white border-[2px] border-black rounded-[20px] p-4 pt-6 gap-3 shadow-[3px_3px_0px_rgba(0,0,0,1)]">
                                             <InputGroup label="FULL NAME" value={member.name} onChange={(t: string) => updateMember(member.id, 'name', t)} placeholder="Name" />
                                             <InputGroup label="COLLEGE" value={member.college} onChange={(t: string) => updateMember(member.id, 'college', t)} placeholder="College" />
-                                            <InputGroup label="PHONE" value={member.phone} onChange={(t: string) => updateMember(member.id, 'phone', t)} placeholder="Phone" keyboardType="phone-pad" />
-                                            <InputGroup label="EMAIL" value={member.email} onChange={(t: string) => updateMember(member.id, 'email', t)} placeholder="Email" keyboardType="email-address" />
                                         </View>
                                     </View>
                                 ))}
                                 <TouchableOpacity onPress={addMember} className="border-[2px] border-black border-dashed rounded-[20px] py-4 items-center justify-center bg-gray-50 active:bg-gray-100">
-                                    <Text className="text-black font-bold uppercase tracking-widest text-xs">+ ADD MEMBER</Text>
+                                    <Text className="text-black font-bold uppercase tracking-widest text-[10px]">+ ADD TEAM MEMBER</Text>
                                 </TouchableOpacity>
                             </Animated.View>
                         )}
 
-                        {currentStep === 4 && (
+                        {currentStep === 3 && (
                             <Animated.View entering={FadeInDown} className="gap-5 mb-4">
-                                <View className="relative">
-                                    <View className="absolute -top-3 self-center w-6 h-6 rounded-full bg-black z-20 border-[2px] border-white" />
-                                    <View className="bg-white border-[2px] border-black rounded-[30px] px-5 py-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-                                        <Text className="text-center font-bold text-sm tracking-[0.2em] mb-4 uppercase" style={{ fontFamily: 'Courier New' }}>Receipt Summary</Text>
-                                        <View className="border-b-[2px] border-black border-dashed mb-6 opacity-30" />
+                                <View className="bg-white border-[2.5px] border-black rounded-[30px] overflow-hidden shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+                                    {/* Receipt Top Section */}
+                                    <View className="bg-black p-4 flex-row justify-between items-center">
+                                        <Text className="text-white text-[10px] font-black tracking-widest uppercase">Payment Summary</Text>
+                                        <View className="bg-red-600 px-3 py-1 rounded-full">
+                                            <Text className="text-white text-[9px] font-bold">EXPIRES IN {formatTime(timer)}</Text>
+                                        </View>
+                                    </View>
+
+                                    <View className="p-6">
+                                        {/* Team Info Snippet */}
+                                        <View className="mb-6 bg-gray-50 p-4 rounded-[20px] border-[1.5px] border-black/10">
+                                            <View className="flex-row justify-between mb-2">
+                                                <Text className="text-[10px] font-bold text-gray-400 uppercase">TEAM</Text>
+                                                <Text className="text-[11px] font-black text-black uppercase">{teamName}</Text>
+                                            </View>
+                                            <View className="flex-row justify-between mb-2">
+                                                <Text className="text-[10px] font-bold text-gray-400 uppercase">LEADER</Text>
+                                                <Text className="text-[11px] font-bold text-black uppercase">{leaderName}</Text>
+                                            </View>
+                                            <View className="flex-row justify-between">
+                                                <Text className="text-[10px] font-bold text-gray-400 uppercase">COLLEGE</Text>
+                                                <Text className="text-[11px] font-medium text-black uppercase" numberOfLines={1}>{college}</Text>
+                                            </View>
+                                        </View>
+
+                                        <Text className="text-[10px] font-black tracking-[0.2em] mb-4 text-gray-400 uppercase">EVENTS BREAKDOWN</Text>
+
                                         <View className="gap-3 mb-6">
                                             {selectedEvents.map((id) => {
                                                 const event = AVAILABLE_EVENTS.find(e => e.id === id);
                                                 return (
-                                                    <View key={id} className="flex-row justify-between items-center">
-                                                        <Text className="text-sm font-bold text-black max-w-[70%]" style={{ fontFamily: 'Courier New' }}>{event?.name}</Text>
-                                                        <Text className="text-sm font-bold text-black" style={{ fontFamily: 'Courier New' }}>₹{event?.price}</Text>
+                                                    <View key={id} className="flex-row justify-between items-center pb-2 border-b-[1px] border-gray-100">
+                                                        <View className="flex-1">
+                                                            <Text className="text-xs font-bold text-black" style={{ fontFamily: 'Courier New' }}>{event?.name}</Text>
+                                                            <Text className="text-[9px] text-gray-400 uppercase tracking-tighter">Registration Fee</Text>
+                                                        </View>
+                                                        <Text className="text-sm font-black text-black">₹{event?.price}</Text>
                                                     </View>
                                                 );
                                             })}
                                         </View>
-                                        <View className="h-[2px] bg-black mb-4" />
-                                        <View className="flex-row justify-between items-center">
-                                            <Text className="text-lg font-extrabold uppercase">TOTAL</Text>
-                                            <Text className="text-xl font-black">₹{totalPrice}</Text>
+
+                                        {/* Tear Line divider */}
+                                        <View className="flex-row items-center gap-2 mb-6">
+                                            <View className="h-[1px] bg-black flex-1 opacity-10" />
+                                            <View className="w-2 h-2 rounded-full border border-black opacity-20" />
+                                            <View className="h-[1px] bg-black flex-1 opacity-10" />
+                                        </View>
+
+                                        <View className="flex-row justify-between items-center bg-purple-50 p-4 rounded-[20px] border-[2px] border-black">
+                                            <View>
+                                                <Text className="text-[10px] font-black uppercase text-purple-900">Final Total</Text>
+                                                <Text className="text-[8px] text-purple-500 uppercase">Incl. all taxes</Text>
+                                            </View>
+                                            <Text className="text-3xl font-black text-black">₹{totalPrice}</Text>
+                                        </View>
+
+                                        <View className="mt-4 opacity-30 items-center">
+                                            <View className="w-full h-10 flex-row gap-[3px] justify-center overflow-hidden">
+                                                {Array.from({ length: 30 }).map((_, i) => (
+                                                    <View key={i} style={{ width: i % 3 === 0 ? 3 : 1 }} className="bg-black h-full" />
+                                                ))}
+                                            </View>
                                         </View>
                                     </View>
                                 </View>
@@ -589,10 +656,9 @@ const EventRegistrationScreen = () => {
                                 depth={0}
                             >
                                 <Text className="text-white text-base uppercase font-black tracking-widest text-center" style={{ fontFamily: FONT_SUB }}>
-                                    {currentStep === 1 ? 'NEXT: SELECT EVENT →' :
-                                        currentStep === 2 ? 'NEXT: TEAM DETAILS →' :
-                                            currentStep === 3 ? 'PROCEED TO PAY →' :
-                                                `PAY ₹${totalPrice}`}
+                                    {currentStep === 1 ? 'NEXT: TEAM INFO →' :
+                                        currentStep === 2 ? 'NEXT: REVIEW & PAY →' :
+                                            `PAY ₹${totalPrice}`}
                                 </Text>
                             </SmoothButton>
                         </View>
@@ -603,9 +669,7 @@ const EventRegistrationScreen = () => {
 
             {/* --- TRANSITION SKELETON OVERLAY --- */}
             {isTransitioning && (
-                <Animated.View
-                    entering={FadeIn.duration(300)}
-                    exiting={FadeIn.duration(300)}
+                <View
                     className="absolute inset-0 z-[100] bg-[#F5E6FA] p-4"
                     style={StyleSheet.absoluteFill}
                 >
@@ -620,20 +684,20 @@ const EventRegistrationScreen = () => {
                             </View>
                         </View>
 
-                        {/* Skeleton Card (Profile Info) */}
-                        <View className="bg-white rounded-[30px] border-[3px] border-black/10 p-6 mb-6 h-[420px] overflow-hidden">
+                        {/* Skeleton Card (Profile Info) - Matches ProfileScreen layout */}
+                        <View className="bg-white rounded-[30px] border-[3px] border-black/10 p-6 mb-6 overflow-hidden">
                             <View className="items-center mb-8">
-                                <View className="w-24 h-24 rounded-full bg-black/5 border-[3px] border-black/5 overflow-hidden">
+                                <View className="w-24 h-24 rounded-full bg-black/5 overflow-hidden">
                                     <SkeletonPulse />
                                 </View>
                             </View>
                             <View className="gap-6">
-                                {[1, 2, 3, 4].map(i => (
+                                {[1, 2, 3].map(i => (
                                     <View key={i}>
-                                        <View className="h-3 w-20 bg-black/10 rounded mb-2 overflow-hidden">
+                                        <View className="h-2 w-16 bg-black/10 rounded mb-3 overflow-hidden">
                                             <SkeletonPulse />
                                         </View>
-                                        <View className="h-12 w-full bg-black/5 rounded-xl overflow-hidden">
+                                        <View className="h-12 w-full bg-black/5 rounded-xl border border-black/5 overflow-hidden">
                                             <SkeletonPulse />
                                         </View>
                                     </View>
@@ -641,17 +705,12 @@ const EventRegistrationScreen = () => {
                             </View>
                         </View>
 
-                        {/* Skeleton Card (Events) */}
-                        <View className="bg-white rounded-[30px] border-[3px] border-black/10 p-6 h-[120px] overflow-hidden">
-                            <View className="h-8 w-40 bg-black/10 rounded-lg mb-4 overflow-hidden">
-                                <SkeletonPulse />
-                            </View>
-                            <View className="h-10 w-full bg-black/5 rounded-xl overflow-hidden">
-                                <SkeletonPulse />
-                            </View>
+                        {/* Skeleton Footer (Logout/Actions) */}
+                        <View className="h-14 w-full bg-black/5 rounded-2xl overflow-hidden mt-auto mb-4">
+                            <SkeletonPulse />
                         </View>
                     </SafeAreaView>
-                </Animated.View>
+                </View>
             )}
         </SafeAreaView>
     );
@@ -662,11 +721,11 @@ const SkeletonPulse = () => {
     const opacity = useSharedValue(0.3);
 
     React.useEffect(() => {
-        opacity.value = withTiming(0.7, { duration: 800, easing: Easing.inOut(Easing.ease) });
-        const interval = setInterval(() => {
-            opacity.value = withTiming(opacity.value === 0.3 ? 0.7 : 0.3, { duration: 800 });
-        }, 800);
-        return () => clearInterval(interval);
+        opacity.value = withRepeat(
+            withTiming(0.6, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+            -1,
+            true
+        );
     }, []);
 
     const style = useAnimatedStyle(() => ({
