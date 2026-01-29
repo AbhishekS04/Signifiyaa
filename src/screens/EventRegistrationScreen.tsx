@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Dimensions, KeyboardAvoidingView, Platform, Pressable, BackHandler, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Dimensions, KeyboardAvoidingView, Platform, Pressable, BackHandler, Modal, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Check, AlertCircle, X } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
-import Animated, { FadeInDown, Layout, FadeIn } from 'react-native-reanimated';
+import Animated, { FadeInDown, Layout, FadeIn, useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import { useAuth } from '../context/AuthContext';
 
 const { width } = Dimensions.get('window');
@@ -40,6 +40,23 @@ const EventRegistrationScreen = () => {
 
     const hideAlert = () => {
         setAlertConfig(prev => ({ ...prev, visible: false }));
+    };
+
+    // --- Receipt Modal State ---
+    const [showReceipt, setShowReceipt] = useState(false);
+    const [receiptData, setReceiptData] = useState<any>(null);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    const handleCloseReceipt = () => {
+        setShowReceipt(false);
+        setIsTransitioning(true);
+
+        // Duration of skeleton visibility
+        setTimeout(() => {
+            (navigation as any).navigate('Main', { screen: 'Profile' });
+            // Small delay before resetting transition state to ensure smooth handoff
+            setTimeout(() => setIsTransitioning(false), 500);
+        }, 1500);
     };
 
     // --- Step 1 State ---
@@ -165,28 +182,35 @@ const EventRegistrationScreen = () => {
             const data = await RazorpayCheckout.open(options);
 
             // Handle Success
-            console.log(`Payment Success: ${data.razorpay_payment_id}`);
-            showAlert(
-                "REGISTRATION SUCCESSFUL!",
-                `Payment ID: ${data.razorpay_payment_id}\n\nYour team has been registered successfully.`,
-                'success'
-            );
+            console.log("\n" + "=".repeat(40));
+            console.log("💰 PAYMENT SUCCESSFUL");
+            console.log("=".repeat(40));
+            console.log(`Payment ID: ${data.razorpay_payment_id}`);
+            if (data.razorpay_order_id) console.log(`Order ID:   ${data.razorpay_order_id}`);
+            console.log(`Amount:     ₹${totalPrice}`);
+            console.log("=".repeat(40) + "\n");
 
-            // Navigate after a delay or let user close alert
-            setTimeout(() => {
-                (navigation as any).navigate('Main', { screen: 'Events' });
-            }, 2000);
+            // Show Official Receipt Modal
+            setReceiptData({
+                paymentId: data.razorpay_payment_id,
+                orderId: data.razorpay_order_id,
+                amount: totalPrice,
+                date: new Date().toLocaleString()
+            });
+            setShowReceipt(true);
 
         } catch (error: any) {
             // Handle Failure
-            console.log(`Payment Error: ${error.code} | ${error.description}`);
+            console.log("\n" + "=".repeat(40));
+            console.log("❌ PAYMENT FAILED / CANCELLED");
+            console.log("=".repeat(40));
+            console.log(`Code:        ${error.code}`);
+            console.log(`Description: ${error.description || "User cancelled or session expired"}`);
+            console.log("=".repeat(40) + "\n");
 
-            // Don't show error if user cancelled
-            if (error.code !== 0) { // 0 is often used for cancellation or check description
+            // Don't show error if user cancelled (code 0 is common for cancel)
+            if (error.code !== 0 && error.code !== 'PAYMENT_CANCELLED') {
                 showAlert("PAYMENT FAILED", error.description || "The payment transaction failed.", 'error');
-            } else {
-                // User cancelled, maybe just log or show info
-                console.log("User cancelled payment");
             }
         }
     };
@@ -295,6 +319,96 @@ const EventRegistrationScreen = () => {
                                     UNDERSTOOD
                                 </Text>
                             </SmoothButton>
+                        </View>
+                    </Animated.View>
+                </View>
+            </Modal>
+
+            {/* --- PAYMENT RECEIPT MODAL --- */}
+            <Modal
+                transparent
+                visible={showReceipt}
+                animationType="slide"
+                onRequestClose={() => { }} // Disable back button close to force "Go to Profile"
+            >
+                <View className="flex-1 bg-black/90 items-center justify-center px-4">
+                    <Animated.View
+                        entering={FadeInDown.delay(200).springify()}
+                        className="w-full max-w-sm bg-white rounded-[20px] overflow-hidden"
+                    >
+                        {/* Receipt Header */}
+                        <View className="bg-green-500 p-6 items-center">
+                            <View className="bg-white p-3 rounded-full mb-3 shadow-lg">
+                                <Check color="green" size={32} strokeWidth={4} />
+                            </View>
+                            <Text className="text-white text-xl font-black uppercase tracking-widest text-center" style={{ fontFamily: FONT_HEADING }}>
+                                Payment Successful
+                            </Text>
+                            <Text className="text-white/90 text-xs font-bold uppercase tracking-widest mt-1">
+                                Team Registration confirmed
+                            </Text>
+                        </View>
+
+                        {/* ZigZag / Tear Line Visual */}
+                        <View className="h-4 bg-green-500 relative z-10">
+                            <View className="absolute -bottom-2 w-full flex-row ml-[-5px]">
+                                {Array.from({ length: 20 }).map((_, i) => (
+                                    <View key={i} className="w-4 h-4 bg-white transform rotate-45 ml-1.5" />
+                                ))}
+                            </View>
+                        </View>
+
+                        {/* Receipt Details */}
+                        <View className="p-6 pt-8 bg-white gap-4">
+                            <View className="flex-row justify-between items-end border-b-2 border-dashed border-gray-200 pb-4">
+                                <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Amount Paid</Text>
+                                <Text className="text-3xl font-black text-black" style={{ fontFamily: 'Courier New' }}>₹{receiptData?.amount}</Text>
+                            </View>
+
+                            <View className="gap-3">
+                                <View className="flex-row justify-between">
+                                    <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Payment ID</Text>
+                                    <Text className="text-xs font-bold text-black" style={{ fontFamily: 'Courier New' }}>{receiptData?.paymentId}</Text>
+                                </View>
+                                {receiptData?.orderId && (
+                                    <View className="flex-row justify-between">
+                                        <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Order ID</Text>
+                                        <Text className="text-xs font-bold text-black" style={{ fontFamily: 'Courier New' }}>{receiptData?.orderId}</Text>
+                                    </View>
+                                )}
+                                <View className="flex-row justify-between">
+                                    <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Date</Text>
+                                    <Text className="text-xs font-bold text-black" style={{ fontFamily: 'Courier New' }}>{receiptData?.date}</Text>
+                                </View>
+                                <View className="flex-row justify-between">
+                                    <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Team</Text>
+                                    <Text className="text-xs font-bold text-black uppercase" style={{ fontFamily: FONT_SUB }}>{teamName}</Text>
+                                </View>
+                            </View>
+
+                            {/* Barcode Visual */}
+                            <View className="mt-4 opacity-40">
+                                <View className="h-8 flex-row items-end justify-center gap-[2px]">
+                                    {Array.from({ length: 40 }).map((_, i) => (
+                                        <View key={i} className={`bg-black h-full w-[${Math.random() > 0.5 ? '2px' : '4px'}]`} />
+                                    ))}
+                                </View>
+                                <Text className="text-center text-[8px] font-mono mt-1 text-black">OFFICIAL RECEIPT • SIGNIFIYA 2026</Text>
+                            </View>
+
+                            <View className="mt-4">
+                                <SmoothButton
+                                    onPress={handleCloseReceipt}
+                                    containerStyle={{ width: '100%' }}
+                                    buttonStyle="bg-black py-3.5 rounded-xl items-center justify-center border-[2px] border-black"
+                                    shadowStyle="bg-green-500 rounded-xl top-1 left-1"
+                                    depth={0}
+                                >
+                                    <Text className="text-white font-black uppercase tracking-widest text-sm">
+                                        Continue to Profile
+                                    </Text>
+                                </SmoothButton>
+                            </View>
                         </View>
                     </Animated.View>
                 </View>
@@ -486,8 +600,80 @@ const EventRegistrationScreen = () => {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            {/* --- TRANSITION SKELETON OVERLAY --- */}
+            {isTransitioning && (
+                <Animated.View
+                    entering={FadeIn.duration(300)}
+                    exiting={FadeIn.duration(300)}
+                    className="absolute inset-0 z-[100] bg-[#F5E6FA] p-4"
+                    style={StyleSheet.absoluteFill}
+                >
+                    <SafeAreaView className="flex-1" edges={['top']}>
+                        {/* Skeleton Header */}
+                        <View className="mb-6 mt-4">
+                            <View className="h-14 w-56 bg-black/10 rounded-xl mb-3 overflow-hidden">
+                                <SkeletonPulse />
+                            </View>
+                            <View className="h-4 w-40 bg-black/5 rounded-md overflow-hidden">
+                                <SkeletonPulse />
+                            </View>
+                        </View>
+
+                        {/* Skeleton Card (Profile Info) */}
+                        <View className="bg-white rounded-[30px] border-[3px] border-black/10 p-6 mb-6 h-[420px] overflow-hidden">
+                            <View className="items-center mb-8">
+                                <View className="w-24 h-24 rounded-full bg-black/5 border-[3px] border-black/5 overflow-hidden">
+                                    <SkeletonPulse />
+                                </View>
+                            </View>
+                            <View className="gap-6">
+                                {[1, 2, 3, 4].map(i => (
+                                    <View key={i}>
+                                        <View className="h-3 w-20 bg-black/10 rounded mb-2 overflow-hidden">
+                                            <SkeletonPulse />
+                                        </View>
+                                        <View className="h-12 w-full bg-black/5 rounded-xl overflow-hidden">
+                                            <SkeletonPulse />
+                                        </View>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+
+                        {/* Skeleton Card (Events) */}
+                        <View className="bg-white rounded-[30px] border-[3px] border-black/10 p-6 h-[120px] overflow-hidden">
+                            <View className="h-8 w-40 bg-black/10 rounded-lg mb-4 overflow-hidden">
+                                <SkeletonPulse />
+                            </View>
+                            <View className="h-10 w-full bg-black/5 rounded-xl overflow-hidden">
+                                <SkeletonPulse />
+                            </View>
+                        </View>
+                    </SafeAreaView>
+                </Animated.View>
+            )}
         </SafeAreaView>
     );
+};
+
+// Helper for Pulse Effect
+const SkeletonPulse = () => {
+    const opacity = useSharedValue(0.3);
+
+    React.useEffect(() => {
+        opacity.value = withTiming(0.7, { duration: 800, easing: Easing.inOut(Easing.ease) });
+        const interval = setInterval(() => {
+            opacity.value = withTiming(opacity.value === 0.3 ? 0.7 : 0.3, { duration: 800 });
+        }, 800);
+        return () => clearInterval(interval);
+    }, []);
+
+    const style = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+    }));
+
+    return <Animated.View style={[style, { flex: 1, backgroundColor: 'black' }]} />;
 };
 
 const InputGroup = ({ label, value, onChange, placeholder, keyboardType = 'default' }: any) => {
