@@ -21,7 +21,6 @@ export default function AppContent() {
     // 🚀 STEP 1: Preload music IMMEDIATELY on app launch
     useEffect(() => {
         const preloadMusic = async () => {
-            console.log('Started preloading music...');
             await MusicService.loadMusic(MUSIC_SOURCE);
         };
         preloadMusic();

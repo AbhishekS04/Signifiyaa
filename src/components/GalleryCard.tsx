@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useMemo } from 'react';
 import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { Svg, Image as SvgImage, Defs, Filter, FeColorMatrix } from 'react-native-svg';
 import Animated, {
@@ -81,7 +81,7 @@ interface GalleryItemProps {
     onToggle: () => void;
 }
 
-const GalleryCard = ({ item, isActive, onToggle }: GalleryItemProps) => {
+const GalleryCard = memo(({ item, isActive, onToggle }: GalleryItemProps) => {
     // We remove local isLiked state for coloring, but keep particles local
     const [particles, setParticles] = useState<number[]>([]);
 
@@ -90,21 +90,14 @@ const GalleryCard = ({ item, isActive, onToggle }: GalleryItemProps) => {
 
     // React to isActive prop changes for smooth transition
     React.useEffect(() => {
-        if (isActive) {
-            colorOpacity.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
-        } else {
-            colorOpacity.value = withTiming(0, { duration: 1000, easing: Easing.out(Easing.cubic) });
-        }
+        colorOpacity.value = withTiming(isActive ? 1 : 0, {
+            duration: 1000,
+            easing: Easing.out(Easing.cubic)
+        });
     }, [isActive]);
 
     const handlePress = () => {
-        // Always notify parent of intended toggle/selection
         onToggle();
-
-        // Always trigger helpful feedback (particles) on click, OR limit it?
-        // User implied: "image turned ... to colored ... after that ... image is not turning to black and white".
-        // This implies clicking an ACTIVE image should probably still trigger the "heart" effect because it's a "Like" button,
-        // even if the state doesn't change back to inactive.
         triggerExplosion();
     };
 
@@ -113,8 +106,6 @@ const GalleryCard = ({ item, isActive, onToggle }: GalleryItemProps) => {
         setParticles(newParticles);
     };
 
-
-
     const removeParticle = (id: number) => {
         setParticles(prev => prev.filter(p => p !== id));
     };
@@ -122,6 +113,15 @@ const GalleryCard = ({ item, isActive, onToggle }: GalleryItemProps) => {
     const imageAnimatedStyle = useAnimatedStyle(() => ({
         opacity: colorOpacity.value
     }));
+
+    // Memoize the grayscale filter to prevent re-calculation of the ID and Matrix
+    const grayscaleFilter = useMemo(() => (
+        <Defs>
+            <Filter id={`grayscale_${item.id}`}>
+                <FeColorMatrix type="saturate" values="0" />
+            </Filter>
+        </Defs>
+    ), [item.id]);
 
     return (
         <View className="relative">
@@ -137,11 +137,7 @@ const GalleryCard = ({ item, isActive, onToggle }: GalleryItemProps) => {
                     {/* Layer 1: Base Grayscale Image (Always Visible) */}
                     <View className="absolute inset-0">
                         <Svg width="100%" height="100%">
-                            <Defs>
-                                <Filter id={`grayscale_${item.id}`}>
-                                    <FeColorMatrix type="saturate" values="0" />
-                                </Filter>
-                            </Defs>
+                            {grayscaleFilter}
                             <SvgImage
                                 href={{ uri: item.image }}
                                 width="100%"
@@ -163,8 +159,6 @@ const GalleryCard = ({ item, isActive, onToggle }: GalleryItemProps) => {
                             />
                         </Svg>
                     </Animated.View>
-
-
                 </View>
 
                 {/* Content Block */}
@@ -174,12 +168,10 @@ const GalleryCard = ({ item, isActive, onToggle }: GalleryItemProps) => {
                             style={{ fontFamily: item.titleFont || 'Gilton' }}>
                             {item.title}
                         </Text>
-
                     </View>
 
                     {/* Heart Button Container */}
                     <View className="relative items-center justify-center" style={{ width: 48, height: 48 }}>
-
                         {/* Particles Layer */}
                         <View className="absolute inset-0 items-center justify-center pointer-events-none" style={{ zIndex: 0 }}>
                             {particles.map(id => (
@@ -208,6 +200,6 @@ const GalleryCard = ({ item, isActive, onToggle }: GalleryItemProps) => {
             </View>
         </View>
     );
-};
+});
 
 export default GalleryCard;
