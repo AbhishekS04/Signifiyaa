@@ -195,16 +195,7 @@ const EventRegistrationScreen = () => {
         try {
             const data = await RazorpayCheckout.open(options);
 
-            // Handle Success
-            console.log("\n" + "=".repeat(40));
-            console.log("💰 PAYMENT SUCCESSFUL");
-            console.log("=".repeat(40));
-            console.log(`Payment ID: ${data.razorpay_payment_id}`);
-            if (data.razorpay_order_id) console.log(`Order ID:   ${data.razorpay_order_id}`);
-            console.log(`Amount:     ₹${totalPrice}`);
-            console.log("=".repeat(40) + "\n");
-
-            // Show Official Receipt Modal
+            // Handle Success - Show Official Receipt Modal
             setReceiptData({
                 paymentId: data.razorpay_payment_id,
                 orderId: data.razorpay_order_id,
@@ -215,12 +206,6 @@ const EventRegistrationScreen = () => {
 
         } catch (error: any) {
             // Handle Failure
-            console.log("\n" + "=".repeat(40));
-            console.log("❌ PAYMENT FAILED / CANCELLED");
-            console.log("=".repeat(40));
-            console.log(`Code:        ${error.code}`);
-            console.log(`Description: ${error.description || "User cancelled or session expired"}`);
-            console.log("=".repeat(40) + "\n");
 
             // Don't show error if user cancelled (code 0 is common for cancel)
             if (error.code !== 0 && error.code !== 'PAYMENT_CANCELLED') {

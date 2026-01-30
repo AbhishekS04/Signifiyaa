@@ -19,7 +19,7 @@ class MusicService {
                 playThroughEarpieceAndroid: false,
             });
         } catch (e) {
-            console.error('Error setting audio mode', e);
+            // Silent fail - audio mode will use defaults
         }
     }
 
@@ -40,10 +40,9 @@ class MusicService {
 
             this.sound = sound;
             this.isLoaded = true;
-            console.log('Music PRELOADED successfully');
 
         } catch (error) {
-            console.error('Error loading music:', error);
+            // Silent fail - music will not play
         }
     }
 
@@ -59,7 +58,7 @@ class MusicService {
                     await this.sound.playAsync();
                     this.isCurrentlyPlaying = true;
                 } catch (error) {
-                    console.error('Error playing music:', error);
+                    // Silent fail
                 }
             }
         }
@@ -71,7 +70,7 @@ class MusicService {
                 await this.sound.pauseAsync();
                 this.isCurrentlyPlaying = false;
             } catch (error) {
-                console.error('Error pausing music:', error);
+                // Silent fail
             }
         }
     }
@@ -93,7 +92,7 @@ class MusicService {
                     await this.sound.unloadAsync();
                 }
             } catch (error) {
-                console.warn('Error stopping music:', error);
+                // Silent fail
             } finally {
                 // Always reset state to ensure clean slate
                 this.sound = null;

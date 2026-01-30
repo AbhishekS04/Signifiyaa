@@ -248,10 +248,9 @@ const ProfileScreen = () => {
                 setMobile(freshProfile.mobileNo || '');
                 setCollege(freshProfile.collegeName || '');
                 setGender(freshProfile.gender || 'Male');
-                console.log('✓ Profile refreshed from server');
             }
         } catch (error) {
-            console.error('Refresh error:', error);
+            // Silent fail - user can retry
         } finally {
             setRefreshing(false);
         }
