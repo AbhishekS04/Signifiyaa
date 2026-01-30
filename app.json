@@ -27,13 +27,13 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "pan",
-      "enableProguardInReleaseBuilds": false,
-      "enableShrinkResourcesInReleaseBuilds": false,
+      "enableProguardInReleaseBuilds": true,
+      "enableShrinkResourcesInReleaseBuilds": true,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
-      "package": "com.anonymous.signifiya"
+      "package": "com.abhishek2304.signifiya"
     },
     "jsEngine": "hermes",
     "web": {
@@ -43,12 +43,22 @@
       "expo-font",
       "expo-video",
       "expo-audio",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "https://sdk.razorpay.com/android/maven"
+            ]
+          }
+        }
+      ]
     ],
     "scheme": "signifiya",
     "extra": {
       "eas": {
-        "projectId": "49b55a89-0655-4996-8453-4d9ac6ed7aad"
+        "projectId": "11b761ae-92fa-4b25-830a-1f29fe2651d2"
       }
     }
   }
