@@ -53,7 +53,8 @@
             ]
           }
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "scheme": "signifiya",
     "extra": {
