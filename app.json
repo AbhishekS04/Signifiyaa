@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -24,41 +23,15 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "softwareKeyboardLayoutMode": "pan",
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "package": "com.abhishek2304.signifiya"
     },
-    "jsEngine": "hermes",
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-font",
-      "expo-video",
-      "expo-audio",
-      "expo-web-browser",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "extraMavenRepos": [
-              "https://sdk.razorpay.com/android/maven"
-            ]
-          }
-        }
-      ],
-      "expo-asset"
-    ],
-    "scheme": "signifiya",
-    "extra": {
-      "eas": {
-        "projectId": "11b761ae-92fa-4b25-830a-1f29fe2651d2"
-      }
-    }
+    "scheme": "signifiya"
   }
 }

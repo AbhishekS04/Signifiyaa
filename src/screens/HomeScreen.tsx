@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import { View, Text, RefreshControl } from 'react-native';
+import { View, Text, RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Animated, {
@@ -29,7 +29,7 @@ import GlobalMusicButton from '../components/GlobalMusicButton';
 
 export default function HomeScreen() {
     // 🔑 Use Reanimated Ref for Animated Components
-    const scrollRef = useAnimatedRef<Animated.ScrollView>();
+    const scrollRef = useAnimatedRef<ScrollView>();
     const scrollY = useSharedValue(0); // 1. Shared Value for scroll position
     const navigation = useNavigation();
     const route = useRoute();
@@ -49,7 +49,6 @@ export default function HomeScreen() {
         // Simulate a network request or data reload
         setTimeout(() => {
             setRefreshing(false);
-            setRefreshKey(prev => prev + 1); // 🔄 Trigger Re-mount to replay animations
         }, 2000);
     }, []);
 
@@ -83,9 +82,7 @@ export default function HomeScreen() {
             opacity: musicButtonOpacity.value,
             transform: [
                 { translateY: scrollY.value < 0 ? -scrollY.value : 0 }
-            ],
-            // Disable pointer events when hidden
-            pointerEvents: musicButtonOpacity.value === 0 ? 'none' : 'auto'
+            ]
         };
     });
 
@@ -99,7 +96,7 @@ export default function HomeScreen() {
 
                 {/* Main Scroll Content */}
                 <Animated.ScrollView
-                    ref={scrollRef}
+                    ref={scrollRef as any}
                     onScroll={scrollHandler} // Attach Handler
                     className="flex-1"
                     showsVerticalScrollIndicator={false}
@@ -132,7 +129,7 @@ export default function HomeScreen() {
                 >
                     {/* Fixed: Removed duplicate Music Button from here */}
 
-                    <StaggerEntrance key={refreshKey}>
+                    <StaggerEntrance>
                         <View className="mb-4">
                             <HeroSection onSignInPress={() => (navigation as any).navigate('Auth')} />
                         </View>
