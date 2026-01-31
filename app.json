@@ -32,6 +32,12 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "scheme": "signifiya"
+    "scheme": "signifiya",
+    "plugins": [
+      "expo-asset",
+      "expo-font",
+      "expo-video",
+      "expo-web-browser"
+    ]
   }
 }
