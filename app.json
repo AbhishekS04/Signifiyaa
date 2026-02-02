@@ -37,8 +37,15 @@
       "expo-asset",
       "expo-font",
       "expo-video",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-updates"
     ],
+    "updates": {
+      "url": "https://u.expo.dev/11b761ae-92fa-4b25-830a-1f29fe2651d2"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "extra": {
       "eas": {
         "projectId": "11b761ae-92fa-4b25-830a-1f29fe2651d2"

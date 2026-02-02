@@ -26,6 +26,8 @@ import Animated, {
     CurvedTransition,
 } from 'react-native-reanimated';
 import { ChevronDown, Check } from 'lucide-react-native';
+// @ts-ignore
+import RazorpayCheckout from 'react-native-razorpay';
 import SmoothButton from '../components/ui/SmoothButton';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -145,35 +147,67 @@ export default function VisitorRegistrationScreen() {
         return unsubscribe;
     }, [navigation, step]);
 
+    const handlePayment = async () => {
+        const RAZORPAY_KEY_ID = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_S8rSjrgYttq3i7';
+        const amount = passType.includes('89') ? 89 : 49;
+        const amountInPaise = amount * 100;
+
+        const options = {
+            description: 'Visitor Pass',
+            image: 'https://i.imgur.com/3g7nmJC.png',
+            currency: 'INR',
+            key: RAZORPAY_KEY_ID,
+            amount: amountInPaise,
+            name: 'Signifiya 2026',
+            prefill: {
+                email: email,
+                contact: phone,
+                name: `${firstName} ${lastName}`.trim()
+            },
+            theme: { color: '#000000' }
+        };
+
+        try {
+            const data = await RazorpayCheckout.open(options);
+            await saveRegistrationObj(data.razorpay_payment_id);
+        } catch (error: any) {
+            if (error.code !== 0 && error.code !== 'PAYMENT_CANCELLED') {
+                Alert.alert("Payment Failed", error.description || "Something went wrong");
+            }
+        }
+    };
+
+    const saveRegistrationObj = async (paymentId: string) => {
+        try {
+            const amount = passType.includes('89') ? 89 : 49;
+            const { error } = await supabase.from('visitor_registration').insert({
+                name: `${firstName} ${lastName}`.trim(),
+                email: email,
+                phone: phone,
+                college: college,
+                passType: passType,
+                amount: amount,
+                status: 'verified',
+                bookingId: bookingId || null,
+                paymentId: paymentId
+            });
+
+            if (error) {
+                console.error("Supabase Error:", error);
+                Alert.alert("Registration failed", error.message);
+                return;
+            }
+
+            setStep(step + 1); // Move to success step
+        } catch (err: any) {
+            console.error("Save Error:", err);
+            Alert.alert("Error", "An unexpected error occurred.");
+        }
+    };
+
     const handleContinue = async () => {
         if (step === 1) {
-            // Saving data during Step 1 -> Step 2 transition
-            try {
-                const amount = passType.includes('89') ? 89 : 49;
-
-                const { error } = await supabase.from('visitor_registration').insert({
-                    name: `${firstName} ${lastName}`.trim(),
-                    email: email,
-                    phone: phone,
-                    college: college,
-                    passType: passType,
-                    amount: amount,
-                    status: 'verified', // Assuming success mock
-                    bookingId: bookingId || null,
-                });
-
-                if (error) {
-                    console.error("Supabase Error:", error);
-                    Alert.alert("Registration failed", error.message);
-                    return; // Don't proceed to success screen
-                }
-
-                setStep(step + 1);
-
-            } catch (err: any) {
-                console.error("Save Error:", err);
-                Alert.alert("Error", "An unexpected error occurred.");
-            }
+            handlePayment();
         } else if (step < 2) {
             setStep(step + 1);
         } else {

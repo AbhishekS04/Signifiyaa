@@ -295,10 +295,12 @@ const EventRegistrationScreen = () => {
 
         } catch (error: any) {
             // Handle Failure
+            console.log("Razorpay Error:", error);
 
             // Don't show error if user cancelled (code 0 is common for cancel)
             if (error.code !== 0 && error.code !== 'PAYMENT_CANCELLED') {
-                showAlert("PAYMENT FAILED", error.description || "The payment transaction failed.", 'error');
+                const errorMsg = error.description || error.error?.description || "The payment transaction failed.";
+                showAlert("PAYMENT FAILED", `${errorMsg} (Code: ${error.code})`, 'error');
             }
         }
     };
