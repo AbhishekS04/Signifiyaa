@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import {
     View,
     Text,
@@ -7,7 +8,8 @@ import {
     ScrollView,
     Dimensions,
     Platform,
-    StyleSheet
+    StyleSheet,
+    Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -143,8 +145,36 @@ export default function VisitorRegistrationScreen() {
         return unsubscribe;
     }, [navigation, step]);
 
-    const handleContinue = () => {
-        if (step < 2) {
+    const handleContinue = async () => {
+        if (step === 1) {
+            // Saving data during Step 1 -> Step 2 transition
+            try {
+                const amount = passType.includes('89') ? 89 : 49;
+
+                const { error } = await supabase.from('visitor_registration').insert({
+                    name: `${firstName} ${lastName}`.trim(),
+                    email: email,
+                    phone: phone,
+                    college: college,
+                    passType: passType,
+                    amount: amount,
+                    status: 'verified', // Assuming success mock
+                    bookingId: bookingId || null,
+                });
+
+                if (error) {
+                    console.error("Supabase Error:", error);
+                    Alert.alert("Registration failed", error.message);
+                    return; // Don't proceed to success screen
+                }
+
+                setStep(step + 1);
+
+            } catch (err: any) {
+                console.error("Save Error:", err);
+                Alert.alert("Error", "An unexpected error occurred.");
+            }
+        } else if (step < 2) {
             setStep(step + 1);
         } else {
             // Smoothly dismiss modal and navigate to Profile

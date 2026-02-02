@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 // @ts-ignore
 import RazorpayCheckout from 'react-native-razorpay';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Dimensions, KeyboardAvoidingView, Platform, Pressable, BackHandler, Modal, StyleSheet } from 'react-native';
@@ -194,6 +195,94 @@ const EventRegistrationScreen = () => {
 
         try {
             const data = await RazorpayCheckout.open(options);
+
+            // --- SAVE TO DATABASE START ---
+            try {
+                // 1. Resolve Event IDs
+                // We map the selected integer IDs to the actual DB UUIDs using names
+                const resolvedEventIds: string[] = [];
+                for (const scalarId of selectedEvents) {
+                    const localEvent = AVAILABLE_EVENTS.find(e => e.id === scalarId);
+                    if (localEvent) {
+                        const { data: dbEvent, error: fetchError } = await supabase
+                            .from('event')
+                            .select('id')
+                            .eq('name', localEvent.name)
+                            .single();
+
+                        if (dbEvent?.id) {
+                            resolvedEventIds.push(dbEvent.id);
+                        } else {
+                            console.warn(`Event not found in DB: ${localEvent.name}`);
+                            // If event not found, we can't link it.
+                        }
+                    }
+                }
+
+                // 2. Create Team Record
+                const { data: teamData, error: teamError } = await supabase
+                    .from('participant_team')
+                    .insert({
+                        teamName: teamName,
+                        leaderName: leaderName,
+                        leaderEmail: email,
+                        leaderPhone: phone,
+                        leaderBookingId: bookingId || null,
+                        college: college,
+                        totalAmount: totalPrice,
+                        status: 'verified', // Payment successful
+                        paymentProofUrl: data.razorpay_payment_id // Storing payment ID
+                    })
+                    .select()
+                    .single();
+
+                if (teamError) {
+                    throw teamError;
+                }
+
+                if (!teamData) throw new Error("Failed to create team record.");
+
+                const teamId = teamData.id;
+
+                // 3. Create Team Members
+                if (teamMembers.length > 0) {
+                    const membersPayload = teamMembers.map(m => ({
+                        teamId: teamId,
+                        name: m.name || 'Unknown',
+                        college: m.college || 'Unknown',
+                        email: m.email || '',
+                        phone: m.phone || ''
+                    }));
+
+                    const { error: membersError } = await supabase
+                        .from('participant_team_member')
+                        .insert(membersPayload);
+
+                    if (membersError) throw membersError;
+                }
+
+                // 4. Link Events to Team
+                if (resolvedEventIds.length > 0) {
+                    const eventLinks = resolvedEventIds.map(eId => ({
+                        teamId: teamId,
+                        eventId: eId
+                    }));
+
+                    const { error: linksError } = await supabase
+                        .from('participant_team_event')
+                        .insert(eventLinks);
+
+                    if (linksError) throw linksError;
+                }
+
+                console.log("Registration saved successfully!");
+
+            } catch (dbError: any) {
+                console.error("Database Save Error:", dbError);
+                // We show an alert but still show the receipt since payment SUCCEEDED.
+                showAlert("SYNC ISSUE", "Payment successful but data save failed. Copy ID: " + data.razorpay_payment_id, 'error');
+            }
+            // --- SAVE TO DATABASE END ---
 
             // Handle Success - Show Official Receipt Modal
             setReceiptData({
