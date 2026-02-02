@@ -10,7 +10,13 @@
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_RAZORPAY_KEY_ID": "rzp_test_S8rSjrgYttq3i7",
+        "RAZORPAY_KEY_ID": "rzp_test_S8rSjrgYttq3i7",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://emqfusplwhykbsvuudie.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY": "sb_publishable_osHB8XQ5f2N1lkiXBScNgw_2qgD7GvF"
+      }
     },
     "production": {
       "autoIncrement": true,

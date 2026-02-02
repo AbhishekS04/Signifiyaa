@@ -98,6 +98,9 @@ export default function VisitorRegistrationScreen() {
     const [country, setSelectedCountry] = useState('India');
     const [passType, setPassType] = useState('Single day pass — ₹49');
 
+    // UI State
+    const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+
     // Progress Animation
     const progressWidth = useSharedValue(0.33);
     const liquidAnim = useSharedValue(0);
@@ -176,9 +179,14 @@ export default function VisitorRegistrationScreen() {
     }, [navigation, step]);
 
     const handlePayment = async () => {
+        setIsPaymentLoading(true);
         const RAZORPAY_KEY_ID = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_S8rSjrgYttq3i7';
+        console.log('🔑 Razorpay Key ID:', RAZORPAY_KEY_ID);
+        console.log('📱 Initiating Visitor Payment...');
+
         const amount = passType.includes('89') ? 89 : 49;
         const amountInPaise = amount * 100;
+        console.log('💰 Amount:', amount, 'INR (', amountInPaise, 'paise)');
 
         const options = {
             description: 'Visitor Pass',
@@ -195,10 +203,14 @@ export default function VisitorRegistrationScreen() {
             theme: { color: '#000000' }
         };
 
+        console.log('🚀 Opening Razorpay Checkout...');
         try {
             const data = await RazorpayCheckout.open(options);
+            console.log('✅ Payment Success:', data);
             await saveRegistrationObj(data.razorpay_payment_id);
         } catch (error: any) {
+            console.error('❌ Payment Error:', error);
+            setIsPaymentLoading(false);
             if (error.code !== 0 && error.code !== 'PAYMENT_CANCELLED') {
                 Alert.alert("Payment Failed", error.description || "Something went wrong");
             }
@@ -217,7 +229,7 @@ export default function VisitorRegistrationScreen() {
                 amount: amount,
                 status: 'verified',
                 bookingId: bookingId || null,
-                paymentId: paymentId
+                paymentProofUrl: paymentId // Storing Razorpay Payment ID here as per schema
             });
 
             if (error) {
@@ -234,11 +246,15 @@ export default function VisitorRegistrationScreen() {
     };
 
     const handleContinue = async () => {
+        console.log('📍 Current Step:', step, '| Button Clicked');
         if (step === 1) {
+            console.log('💳 Triggering Payment Gateway...');
             handlePayment();
         } else if (step < 2) {
+            console.log('➡️ Advancing to next step...');
             setStep(step + 1);
         } else {
+            console.log('✅ Finishing and navigating to Profile...');
             // Smoothly dismiss modal and navigate to Profile
             navigation.goBack();
             setTimeout(() => {
@@ -565,10 +581,10 @@ export default function VisitorRegistrationScreen() {
                                 buttonStyle={`${step === 0 ? 'bg-black' : step === 1 ? 'bg-[#9C27B0]' : 'bg-green-600'} rounded-[24px] py-5 items-center justify-center border-[2.5px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]`}
                                 shadowStyle="bg-black rounded-[24px]"
                                 depth={7}
-                                disabled={step === 0 && !acceptedTerms}
+                                disabled={(step === 0 && !acceptedTerms) || isPaymentLoading}
                             >
                                 <Text className="text-white text-[18px] uppercase tracking-widest" style={{ fontFamily: 'Gilton' }}>
-                                    {step === 0 ? 'Continue to Payment' : step === 1 ? 'Pay with Razorpay' : 'Finish'} →
+                                    {isPaymentLoading ? 'Processing...' : step === 0 ? 'Continue to Payment' : step === 1 ? 'Pay with Razorpay' : 'Finish'} →
                                 </Text>
                             </SmoothButton>
                         </View>
