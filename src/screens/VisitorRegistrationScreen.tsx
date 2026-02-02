@@ -101,6 +101,18 @@ export default function VisitorRegistrationScreen() {
     // UI State
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
+    // Validation
+    const validateForm = () => {
+        if (!bookingId.trim()) { Alert.alert("Missing Detail", "Please enter your Booking ID."); return false; }
+        if (!firstName.trim()) { Alert.alert("Missing Detail", "Please enter your First Name."); return false; }
+        if (!lastName.trim()) { Alert.alert("Missing Detail", "Please enter your Last Name."); return false; }
+        if (!email.trim()) { Alert.alert("Missing Detail", "Please enter your Email."); return false; }
+        if (!phone.trim()) { Alert.alert("Missing Detail", "Please enter your Phone Number."); return false; }
+        if (!college.trim()) { Alert.alert("Missing Detail", "Please enter your College Name."); return false; }
+        if (!acceptedTerms) { Alert.alert("Terms Required", "Please accept the terms and conditions."); return false; }
+        return true;
+    };
+
     // Progress Animation
     const progressWidth = useSharedValue(0.33);
     const liquidAnim = useSharedValue(0);
@@ -247,19 +259,22 @@ export default function VisitorRegistrationScreen() {
 
     const handleContinue = async () => {
         console.log('📍 Current Step:', step, '| Button Clicked');
-        if (step === 1) {
+
+        if (step === 0) {
+            // STEP 0: VALIDATION & MOVE TO PAYMENT
+            if (validateForm()) {
+                console.log('✅ Form Validated. Moving to Payment Summary.');
+                setStep(1);
+            }
+        } else if (step === 1) {
+            // STEP 1: STRICT PAYMENT TRIGGER
+            // NO bypass allowed. Only handlePayment() can advance this step on success.
             console.log('💳 Triggering Payment Gateway...');
             handlePayment();
-        } else if (step < 2) {
-            console.log('➡️ Advancing to next step...');
-            setStep(step + 1);
         } else {
+            // STEP 2: MANUAL NAVIGATION
             console.log('✅ Finishing and navigating to Profile...');
-            // Smoothly dismiss modal and navigate to Profile
-            navigation.goBack();
-            setTimeout(() => {
-                navigation.navigate('Main', { screen: 'Profile' });
-            }, 50);
+            navigation.navigate('Main', { screen: 'Profile' });
         }
     };
 
@@ -584,7 +599,7 @@ export default function VisitorRegistrationScreen() {
                                 disabled={(step === 0 && !acceptedTerms) || isPaymentLoading}
                             >
                                 <Text className="text-white text-[18px] uppercase tracking-widest" style={{ fontFamily: 'Gilton' }}>
-                                    {isPaymentLoading ? 'Processing...' : step === 0 ? 'Continue to Payment' : step === 1 ? 'Pay with Razorpay' : 'Finish'} →
+                                    {isPaymentLoading ? 'Processing...' : step === 0 ? 'Continue to Payment' : step === 1 ? 'Pay with Razorpay' : 'Go to Profile'} →
                                 </Text>
                             </SmoothButton>
                         </View>
