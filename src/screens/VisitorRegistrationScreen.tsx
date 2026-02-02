@@ -481,7 +481,7 @@ export default function VisitorRegistrationScreen() {
                                 disabled={step === 0 && !acceptedTerms}
                             >
                                 <Text className="text-white text-[18px] uppercase tracking-widest" style={{ fontFamily: 'Gilton' }}>
-                                    {step === 0 ? 'Continue to Payment' : step === 1 ? 'Confirm Payment' : 'Finish'} →
+                                    {step === 0 ? 'Continue to Payment' : step === 1 ? 'Pay with Razorpay' : 'Finish'} →
                                 </Text>
                             </SmoothButton>
                         </View>
