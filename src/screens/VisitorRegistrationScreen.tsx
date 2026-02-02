@@ -102,6 +102,34 @@ export default function VisitorRegistrationScreen() {
     const progressWidth = useSharedValue(0.33);
     const liquidAnim = useSharedValue(0);
 
+    // --- Timer Logic ---
+    const [timer, setTimer] = useState(872); // 14:32
+
+    useEffect(() => {
+        if (step === 1) {
+            const interval = setInterval(() => {
+                setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [step]);
+
+    useEffect(() => {
+        if (timer === 0 && step === 1) {
+            Alert.alert(
+                "SESSION EXPIRED",
+                "Your registration session has timed out.",
+                [{ text: "OK", onPress: () => { setStep(0); setTimer(872); } }]
+            );
+        }
+    }, [timer, step]);
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    };
+
     useEffect(() => {
         const target = step === 0 ? 0.33 : step === 1 ? 0.66 : 1.0;
         progressWidth.value = withTiming(target, {
@@ -448,13 +476,72 @@ export default function VisitorRegistrationScreen() {
                         )}
 
                         {step === 1 && (
-                            <Animated.View entering={FadeInDown.duration(600)} layout={LinearTransition.duration(400)} className="items-center py-10">
-                                <Text className="text-xl text-center mb-6 uppercase" style={{ fontFamily: 'Gilton' }}>Payment Summary</Text>
-                                <View className="w-full bg-[#F5E6FA] border-[2.5px] border-black rounded-2xl p-6 items-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                                    <Text className="text-[11px] uppercase mb-2 font-black" style={{ fontFamily: FONT_BOLD }}>Total Amount</Text>
-                                    <Text className="text-5xl" style={{ fontFamily: 'Bicubik' }}>
-                                        {passType.includes('89') ? '₹89.00' : '₹49.00'}
-                                    </Text>
+                            <Animated.View entering={FadeInDown.duration(600)} layout={LinearTransition.duration(400)} className="gap-5 mb-4">
+                                <View className="bg-white border-[2.5px] border-black rounded-[30px] overflow-hidden shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+                                    {/* Receipt Top Section */}
+                                    <View className="bg-black p-4 flex-row justify-between items-center">
+                                        <Text className="text-white text-[10px] font-black tracking-widest uppercase">Payment Summary</Text>
+                                        <View className="bg-red-600 px-3 py-1 rounded-full">
+                                            <Text className="text-white text-[9px] font-bold">EXPIRES IN {formatTime(timer)}</Text>
+                                        </View>
+                                    </View>
+
+                                    <View className="p-6">
+                                        {/* Visitor Info Snippet */}
+                                        <View className="mb-6 bg-gray-50 p-4 rounded-[20px] border-[1.5px] border-black/10">
+                                            <View className="flex-row justify-between mb-2">
+                                                <Text className="text-[10px] font-bold text-gray-400 uppercase">VISITOR</Text>
+                                                <Text className="text-[11px] font-black text-black uppercase">{`${firstName} ${lastName}`}</Text>
+                                            </View>
+                                            <View className="flex-row justify-between mb-2">
+                                                <Text className="text-[10px] font-bold text-gray-400 uppercase">COLLEGE</Text>
+                                                <Text className="text-[11px] font-bold text-black uppercase" numberOfLines={1}>{college}</Text>
+                                            </View>
+                                            <View className="flex-row justify-between">
+                                                <Text className="text-[10px] font-bold text-gray-400 uppercase">PASS TYPE</Text>
+                                                <Text className="text-[11px] font-medium text-black uppercase">{passType.split(' — ')[0]}</Text>
+                                            </View>
+                                        </View>
+
+                                        <Text className="text-[10px] font-black tracking-[0.2em] mb-4 text-gray-400 uppercase">DETAILS</Text>
+
+                                        <View className="gap-3 mb-6">
+                                            <View className="flex-row justify-between items-center pb-2 border-b-[1px] border-gray-100">
+                                                <View className="flex-1">
+                                                    <Text className="text-xs font-bold text-black" style={{ fontFamily: 'Courier New' }}>Visitor Date</Text>
+                                                    <Text className="text-[9px] text-gray-400 uppercase tracking-tighter">Event Entry</Text>
+                                                </View>
+                                                <Text className="text-sm font-black text-black">
+                                                    {passType.includes('89') ? '₹89' : '₹49'}
+                                                </Text>
+                                            </View>
+                                        </View>
+
+                                        {/* Tear Line divider */}
+                                        <View className="flex-row items-center gap-2 mb-6">
+                                            <View className="h-[1px] bg-black flex-1 opacity-10" />
+                                            <View className="w-2 h-2 rounded-full border border-black opacity-20" />
+                                            <View className="h-[1px] bg-black flex-1 opacity-10" />
+                                        </View>
+
+                                        <View className="flex-row justify-between items-center bg-purple-50 p-4 rounded-[20px] border-[2px] border-black">
+                                            <View>
+                                                <Text className="text-[10px] font-black uppercase text-purple-900">Final Total</Text>
+                                                <Text className="text-[8px] text-purple-500 uppercase">Incl. all taxes</Text>
+                                            </View>
+                                            <Text className="text-3xl font-black text-black">
+                                                {passType.includes('89') ? '₹89.00' : '₹49.00'}
+                                            </Text>
+                                        </View>
+
+                                        <View className="mt-4 opacity-30 items-center">
+                                            <View className="w-full h-10 flex-row gap-[3px] justify-center overflow-hidden">
+                                                {Array.from({ length: 30 }).map((_, i) => (
+                                                    <View key={i} style={{ width: i % 3 === 0 ? 3 : 1 }} className="bg-black h-full" />
+                                                ))}
+                                            </View>
+                                        </View>
+                                    </View>
                                 </View>
                             </Animated.View>
                         )}
