@@ -196,6 +196,8 @@ const EventRegistrationScreen = () => {
         try {
             const data = await RazorpayCheckout.open(options);
 
+            let syncError = false;
+
             // --- SAVE TO DATABASE START ---
             try {
                 // 1. Resolve Event IDs
@@ -279,8 +281,7 @@ const EventRegistrationScreen = () => {
 
             } catch (dbError: any) {
                 console.error("Database Save Error:", dbError);
-                // We show an alert but still show the receipt since payment SUCCEEDED.
-                showAlert("SYNC ISSUE", "Payment successful but data save failed. Copy ID: " + data.razorpay_payment_id, 'error');
+                syncError = true;
             }
             // --- SAVE TO DATABASE END ---
 
@@ -289,7 +290,8 @@ const EventRegistrationScreen = () => {
                 paymentId: data.razorpay_payment_id,
                 orderId: data.razorpay_order_id,
                 amount: totalPrice,
-                date: new Date().toLocaleString()
+                date: new Date().toLocaleString(),
+                syncError: syncError
             });
             setShowReceipt(true);
 
@@ -442,20 +444,20 @@ const EventRegistrationScreen = () => {
                         className="w-full max-w-sm bg-white rounded-[20px] overflow-hidden"
                     >
                         {/* Receipt Header */}
-                        <View className="bg-green-500 p-6 items-center">
+                        <View className={`${receiptData?.syncError ? 'bg-orange-500' : 'bg-green-500'} p-6 items-center`}>
                             <View className="bg-white p-3 rounded-full mb-3 shadow-lg">
-                                <Check color="green" size={32} strokeWidth={4} />
+                                {receiptData?.syncError ? <AlertCircle color="orange" size={32} strokeWidth={3} /> : <Check color="green" size={32} strokeWidth={4} />}
                             </View>
                             <Text className="text-white text-xl font-black uppercase tracking-widest text-center" style={{ fontFamily: FONT_HEADING }}>
-                                Payment Successful
+                                {receiptData?.syncError ? 'Payment Success' : 'Payment Successful'}
                             </Text>
-                            <Text className="text-white/90 text-xs font-bold uppercase tracking-widest mt-1">
-                                Team Registration confirmed
+                            <Text className="text-white/90 text-[10px] font-bold uppercase tracking-widest mt-1 text-center">
+                                {receiptData?.syncError ? 'BUT SYNC FAILED - SAVE RECEIPT' : 'Team Registration confirmed'}
                             </Text>
                         </View>
 
                         {/* ZigZag / Tear Line Visual */}
-                        <View className="h-4 bg-green-500 relative z-10">
+                        <View className={`${receiptData?.syncError ? 'bg-orange-500' : 'bg-green-500'} h-4 relative z-10`}>
                             <View className="absolute -bottom-2 w-full flex-row ml-[-5px]">
                                 {Array.from({ length: 20 }).map((_, i) => (
                                     <View key={i} className="w-4 h-4 bg-white transform rotate-45 ml-1.5" />
@@ -465,6 +467,14 @@ const EventRegistrationScreen = () => {
 
                         {/* Receipt Details */}
                         <View className="p-6 pt-8 bg-white gap-4">
+                            {receiptData?.syncError && (
+                                <View className="bg-orange-50 p-3 rounded-lg border border-orange-200 mb-2">
+                                    <Text className="text-orange-800 text-[10px] font-bold text-center">
+                                        Server sync failed. Please screenshot this screen and contact support with Payment ID.
+                                    </Text>
+                                </View>
+                            )}
+
                             <View className="flex-row justify-between items-end border-b-2 border-dashed border-gray-200 pb-4">
                                 <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Amount Paid</Text>
                                 <Text className="text-3xl font-black text-black" style={{ fontFamily: 'Courier New' }}>₹{receiptData?.amount}</Text>
