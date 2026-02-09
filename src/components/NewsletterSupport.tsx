@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Dimensions, Linking } from 'react-native';
 import Animated, { Layout } from 'react-native-reanimated';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 import { ArrowUpRight } from 'lucide-react-native';
 
 const NewsletterSupport = () => {
+    const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [agreed, setAgreed] = useState(false);
 
@@ -26,31 +28,26 @@ const NewsletterSupport = () => {
                             style={{
                                 fontFamily: 'Gilton',
                             }}
-                        >YOUR </Text>
+                        >OUR </Text>
                         <Text className=" "
                             style={{
                                 fontFamily: 'Gilton',
                             }}
-                        >INBOX</Text>
+                        >OFFICIAL</Text>
                     </Text>
                     <Text className={`text-black leading-[0.9] ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
                         <Text className=""
                             style={{
                                 fontFamily: 'Gilton',
                             }}
-                        >JUST</Text>
+                        >COMMUNITY</Text>
                     </Text>
                     <Text className={`text-black leading-[0.9] -mt-1 ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
                         <Text className=""
                             style={{
                                 fontFamily: 'Gilton',
                             }}
-                        >GOT </Text>
-                        <Text className=""
-                            style={{
-                                fontFamily: 'Gilton',
-                            }}
-                        >BETTER</Text>
+                        >PARTNER </Text>
                     </Text>
                 </View>
 
@@ -60,10 +57,10 @@ const NewsletterSupport = () => {
                         fontFamily: 'Softura',
                     }}
                 >
-                    Subscribe to our newsletter for VIP access to news, offers, and insights!
+                    Join our community partner Cerkle to connect with fellow attendees and stay updated!
                 </Text>
 
-                {/* Input Field */}
+                {/* Input Field
                 <View className="bg-white rounded-full h-14 px-6 justify-center border-2 border-black mb-4"
                 >
                     <TextInput
@@ -76,23 +73,25 @@ const NewsletterSupport = () => {
                             fontFamily: 'Softura',
                         }}
                     />
-                </View>
+                </View> */}
 
                 {/* Subscribe Button */}
                 <TouchableOpacity
-                    className="bg-black rounded-full h-14 justify-center items-center mb-6"
+                    className="bg-black rounded-full h-14 flex-row justify-center items-center gap-2 mb-3/"
                     activeOpacity={0.8}
+                    onPress={() => Linking.openURL('https://vybecerkle.com/')}
                 >
                     <Text className="text-white text-lg tracking-widest uppercase"
                         style={{
                             fontFamily: 'Softura',
                         }}
                     >
-                        SUBSCRIBE
+                        JOIN CERKLE
                     </Text>
+                    <ArrowUpRight size={24} color="white" strokeWidth={3} />
                 </TouchableOpacity>
 
-                {/* Checkbox Row */}
+                {/* Checkbox Row
                 <TouchableOpacity
                     className="flex-row items-center gap-3"
                     onPress={() => setAgreed(!agreed)}
@@ -108,7 +107,7 @@ const NewsletterSupport = () => {
                     >
                         I agree to receive communications from SIGNIFIYA'26.
                     </Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
             </View>
 
 
@@ -151,6 +150,7 @@ const NewsletterSupport = () => {
                 <TouchableOpacity
                     className="bg-black rounded-full px-8 h-14 flex-row items-center self-start gap-2"
                     activeOpacity={0.8}
+                    onPress={() => navigation.navigate('ContactSupport' as never)}
                 >
                     <Text className="text-white font-[Inter_700Bold] text-lg uppercase"
                         style={{

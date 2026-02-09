@@ -33,12 +33,12 @@ const EventsScreen = () => {
 
     // 📂 Filter Logic
     const day1Events = activeFilter === 'ALL'
-        ? events.filter(e => e.date && (e.date === '25th March' || e.date.includes('25')))
-        : events.filter(e => (e.date === '25th March' || e.date?.includes('25')) && e.category === activeFilter);
+        ? events.filter(e => e.date && (e.date === '13th March' || e.date.includes('13')))
+        : events.filter(e => (e.date === '13th March' || e.date?.includes('13')) && e.category === activeFilter);
 
     const day2Events = activeFilter === 'ALL'
-        ? events.filter(e => e.date && (e.date === 'Day 2' || e.date === '26th March' || e.date.includes('26')))
-        : events.filter(e => (e.date === 'Day 2' || e.date === '26th March' || e.date?.includes('26')) && e.category === activeFilter);
+        ? events.filter(e => e.date && (e.date === 'Day 2' || e.date === '14th March' || e.date.includes('14')))
+        : events.filter(e => (e.date === 'Day 2' || e.date === '14th March' || e.date?.includes('14')) && e.category === activeFilter);
 
     const handleFilterChange = (filter: string) => {
         if (filter === activeFilter) return;

@@ -10,6 +10,7 @@ import PaymentsScreen from '../screens/PaymentsScreen';
 import EventsScreen from '../screens/EventsScreen';
 import AuthScreen from '../screens/AuthScreen';
 import EventRegistrationScreen from '../screens/EventRegistrationScreen';
+import ContactSupportScreen from '../screens/ContactSupportScreen';
 import { CustomTabBar } from '../components/navigation/CustomTabBar';
 import { useAuth } from '../context/AuthContext';
 
@@ -98,6 +99,11 @@ export default function AppNavigator() {
                 <Stack.Screen
                     name="EventRegistration"
                     component={EventRegistrationScreen}
+                    options={{ animation: 'slide_from_bottom', headerShown: false }}
+                />
+                <Stack.Screen
+                    name="ContactSupport"
+                    component={ContactSupportScreen}
                     options={{ animation: 'slide_from_bottom', headerShown: false }}
                 />
             </Stack.Navigator>

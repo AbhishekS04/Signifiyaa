@@ -32,7 +32,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 1,
         title: 'Coding Premier League',
-        date: '25th March',
+        date: 'MARCH 13TH - 14TH',
         category: 'CSE',
         description: 'Teams battle through algorithmic challenges to prove their speed, logic, and coding mastery.',
         prizePool: '₹25,000',
@@ -48,7 +48,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 2,
         title: 'Electrifying Circuit',
-        date: '25th March',
+        date: 'MARCH 13TH - 14TH',
         category: 'EEE',
         description: 'Students race against the clock to design, build, and troubleshoot complex circuits.',
         prizePool: 'TBA',
@@ -64,7 +64,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 3,
         title: 'Tower Making',
-        date: '25th March',
+        date: 'MARCH 13TH - 14TH',
         category: 'CIVIL',
         description: 'Build the tallest, strongest tower using creativity, strategy, and skill.',
         prizePool: 'TBA',
@@ -80,7 +80,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 4,
         title: 'Waste to Wealth',
-        date: '25th March',
+        date: 'MARCH 13TH - 14TH',
         category: 'MECHANICAL',
         description: 'Participants transform scrap materials into innovative, functional prototypes with suitable design.',
         prizePool: 'TBA',
@@ -96,7 +96,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 5,
         title: 'Path Follower',
-        date: '25th March',
+        date: 'MARCH 13TH - 14TH',
         category: 'ROBOTICS',
         description: 'Autonomous bots must navigate a complex, winding track with speed and pinpoint accuracy.',
         prizePool: 'TBA',
@@ -114,7 +114,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 6,
         title: 'Dil Se Design',
-        date: 'Day 2',
+        date: 'MARCH 13TH - 14TH',
         category: 'CSE',
         description: 'A UI/UX challenge to craft intuitive, beautiful, and user-centered digital experiences.',
         prizePool: 'TBA',
@@ -130,7 +130,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 7,
         title: 'Bridge Making',
-        date: 'Day 2',
+        date: 'MARCH 13TH - 14TH',
         category: 'CIVIL',
         description: 'Bridge the gap between theory and reality. Build a truss bridge that can withstand maximum load.',
         prizePool: 'TBA',
@@ -146,7 +146,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 8,
         title: 'Lathe War',
-        date: 'Day 2',
+        date: 'MARCH 13TH - 14TH',
         category: 'MECHANICAL',
         description: 'Participants face off to machine raw materials into perfect components with speed and surgical accuracy.',
         prizePool: 'TBA',
@@ -162,7 +162,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 9,
         title: 'Robo Terrain',
-        date: 'Day 2',
+        date: 'MARCH 13TH - 14TH',
         category: 'ROBOTICS',
         description: 'Custom built bots must navigate a grueling obstacle course of mud, sand, and steep inclines.',
         prizePool: 'TBA',
@@ -178,7 +178,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 10,
         title: 'Dance Battle',
-        date: 'Day 2',
+        date: 'MARCH 13TH - 14TH',
         category: 'NON-TECH',
         description: 'Rhythm, style, and attitude collide, bring your best moves, own the stage, and outshine the competition.',
         prizePool: 'TBA',
@@ -194,7 +194,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 11,
         title: 'Rap Battle',
-        date: 'Day 2',
+        date: 'MARCH 13TH - 14TH',
         category: 'NON-TECH',
         description: 'Rhythm & wordplay collide, drop sharp bars, own the mic, and outflow your opponent.',
         prizePool: 'TBA',
@@ -212,7 +212,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 12,
         title: 'Valorant Tournament',
-        date: '25th March',
+        date: 'MARCH 13TH - 14TH',
         category: 'ESPORTS',
         description: 'Precise gunplay with agent abilities with smart strategy and perfect coordination to secure victory.',
         prizePool: 'TBA',
@@ -227,7 +227,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 13,
         title: 'BGMI',
-        date: '25th March',
+        date: 'MARCH 13TH - 14TH',
         category: 'ESPORTS',
         description: 'Drop in, gear up, and fight through intense combat zones to be the last team standing.',
         prizePool: 'TBA',
@@ -242,7 +242,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 14,
         title: 'Treasure Hunt',
-        date: '25th March',
+        date: 'MARCH 13TH - 14TH',
         category: 'NON-TECH',
         description: 'Solve puzzles, race against time, and uncover the hidden prize.',
         prizePool: 'TBA',
@@ -257,7 +257,7 @@ export const EVENTS_DATA: EventData[] = [
     {
         id: 15,
         title: 'Arm Wrestling',
-        date: '25th March',
+        date: 'MARCH 13TH - 14TH',
         category: 'NON-TECH',
         description: 'Lock hands, hold your ground, and power through to pin your opponent down.',
         prizePool: 'TBA',

@@ -13,6 +13,7 @@ import Animated, {
 // Import footer components as requested
 import SmoothButton from '../components/ui/SmoothButton';
 import SocialConnect from '../components/SocialConnect';
+import NewsletterSupport from '../components/NewsletterSupport';
 import FooterSection from '../components/FooterSection';
 import { PageTransition } from '../components/navigation/PageTransition';
 import GlobalMusicButton from '../components/GlobalMusicButton';
@@ -82,11 +83,13 @@ const GalleryScreen = () => {
     }
 
     const renderItem = ({ item }: { item: typeof GALLERY_ITEMS[0] }) => (
-        <GalleryCard
-            item={item}
-            isActive={activeImageId === item.id}
-            onToggle={() => handleCardToggle(item.id)}
-        />
+        <View className="px-4">
+            <GalleryCard
+                item={item}
+                isActive={activeImageId === item.id}
+                onToggle={() => handleCardToggle(item.id)}
+            />
+        </View>
     );
 
     const ListHeaderComponent = () => (
@@ -160,7 +163,7 @@ const GalleryScreen = () => {
             </View>
 
             {/* Filter Container Start */}
-            <View className="mx-4 mt-8 bg-white border-x-[3px] border-t-[3px] border-black rounded-t-[30px] p-6 pb-0">
+            <View className="mx-4 mt-8 bg-white border-[3px] border-black rounded-[30px] p-6 pb-0">
                 <View className="items-center mb-6">
                     {/* Row 1: ALL, TECH */}
                     <View className="flex-row gap-4 mb-4">
@@ -209,8 +212,10 @@ const GalleryScreen = () => {
     );
 
     const ListFooterComponent = () => (
-        <View className="mx-4 bg-white border-x-[3px] border-b-[3px] border-black rounded-b-[30px] p-6 pt-0 mb-12">
-            <View className="h-6" />
+        <View className="mt-8">
+            <View className="px-4 gap-4">
+                <NewsletterSupport />
+            </View>
             <SocialConnect />
             <FooterSection />
         </View>
@@ -238,7 +243,7 @@ const GalleryScreen = () => {
                             offset: 450 * index,
                             index,
                         })}
-                        ItemSeparatorComponent={() => <View className="h-10 bg-white mx-4 border-x-[3px] border-black" />}
+                        ItemSeparatorComponent={() => <View className="h-10" />}
                         style={{ flex: 1 }}
                     />
                 </View>

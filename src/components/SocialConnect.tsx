@@ -17,7 +17,7 @@ const SocialConnect = () => {
         >
 
             {/* --- Row 1 --- */}
-            <View className="flex-row gap-6 mb-8 h-40">
+            <View className="flex-row gap-6 mb-8 items-center">
                 <SocialCard>
                     <DiscordLink />
                 </SocialCard>
@@ -30,7 +30,7 @@ const SocialConnect = () => {
             <HazardDivider />
 
             {/* --- Row 2 --- */}
-            <View className="flex-row gap-6 h-40">
+            <View className="flex-row gap-6 items-center">
                 <SocialCard>
                     <Instagram size={80} color="black" strokeWidth={2} />
                 </SocialCard>

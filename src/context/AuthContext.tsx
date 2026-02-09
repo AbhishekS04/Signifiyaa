@@ -65,8 +65,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     setUser(null);
                     setProfile(null);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error('Auth Init Error:', e);
+                console.error('Error Details:', e.message, e.stack);
                 setSession(null);
                 setUser(null);
                 setProfile(null);
