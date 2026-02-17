@@ -78,10 +78,14 @@ const FAQSection = () => {
 
 const AccordionItem = ({ question, answer }: { question: string, answer: string }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const contentRef = useAnimatedRef<Animated.View>();
 
     // Animation Values
     const rotation = useSharedValue(0);
     const buttonOffset = useSharedValue(-4); // Initial depth
+    const contentHeight = useSharedValue(0);
+    const animatedHeight = useSharedValue(0);
+    const opacity = useSharedValue(0);
 
     const toggleOpen = () => {
         const nextState = !isOpen;
@@ -89,10 +93,32 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
         if (nextState) {
+            // Measure content height and animate to it
+            runOnUI(() => {
+                'worklet';
+                const measurement = measure(contentRef);
+                if (measurement) {
+                    contentHeight.value = measurement.height;
+                    animatedHeight.value = withSpring(measurement.height, {
+                        damping: 18,
+                        stiffness: 150,
+                        mass: 0.8
+                    });
+                    opacity.value = withTiming(1, { duration: 250 });
+                }
+            })();
+
             // Rotate 45deg to turn Plus into Cross (X)
             rotation.value = withSpring(45, { damping: 12, stiffness: 120 });
             buttonOffset.value = withSpring(0, { damping: 15, stiffness: 150 }); // Press down
         } else {
+            // Collapse
+            animatedHeight.value = withSpring(0, {
+                damping: 18,
+                stiffness: 150,
+                mass: 0.8
+            });
+            opacity.value = withTiming(0, { duration: 200 });
             rotation.value = withSpring(0, { damping: 12, stiffness: 120 });
             buttonOffset.value = withSpring(-4, { damping: 15, stiffness: 150 }); // Pop up
         }
@@ -116,8 +142,11 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
         transform: [{ translateY: buttonOffset.value }]
     }));
 
-    // CHILD PHYSICS: Fast and Crisp (Stiffness 250, Damping 30)
-    // Ensures child shrinks BEFORE parent collapses to prevent clipping, but with minimal bounce.
+    // Smart height animation
+    const contentStyle = useAnimatedStyle(() => ({
+        height: animatedHeight.value,
+        opacity: opacity.value,
+    }));
 
     return (
         // OUTER CONTAINER (Shadow)
@@ -158,25 +187,28 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
                     </Animated.View>
                 </TouchableOpacity>
 
-                {/* Answer Content */}
-                {isOpen && (
+                {/* Answer Content - Smart Height Animation */}
+                <Animated.View style={[contentStyle, { overflow: 'hidden' }]}>
                     <Animated.View
-                        entering={FadeIn.duration(150).delay(50)}
-                        exiting={FadeIn.duration(0)}
-                        style={{ overflow: 'hidden' }}
+                        ref={contentRef}
+                        className="px-5 pb-5 pt-0"
+                        onLayout={(event) => {
+                            if (!isOpen && contentHeight.value === 0) {
+                                // Store initial height for first measurement
+                                contentHeight.value = event.nativeEvent.layout.height;
+                            }
+                        }}
                     >
-                        <View className="px-5 pb-5 pt-0">
-                            <View className="border-t-[1px] border-black/10 pt-4">
-                                <Text
-                                    className="text-gray-800 text-base leading-6"
-                                    style={{ fontFamily: FAQ_FONTS.ANSWER }}
-                                >
-                                    {answer}
-                                </Text>
-                            </View>
+                        <View className="border-t-[1px] border-black/10 pt-4">
+                            <Text
+                                className="text-gray-800 text-base leading-6"
+                                style={{ fontFamily: FAQ_FONTS.ANSWER }}
+                            >
+                                {answer}
+                            </Text>
                         </View>
                     </Animated.View>
-                )}
+                </Animated.View>
             </Animated.View>
         </Animated.View>
     );
