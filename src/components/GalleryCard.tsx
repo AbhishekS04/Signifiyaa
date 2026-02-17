@@ -1,11 +1,12 @@
-import React, { useState, memo, useMemo } from 'react';
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useCallback, memo, useMemo, useRef } from 'react';
+import { View, Text, Pressable, Dimensions } from 'react-native';
 import { Svg, Image as SvgImage, Defs, Filter, FeColorMatrix } from 'react-native-svg';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
     withTiming,
     withSequence,
+    withSpring,
     withDelay,
     runOnJS,
     Easing,
@@ -13,18 +14,16 @@ import Animated, {
     FadeOut
 } from 'react-native-reanimated';
 import { Heart } from 'lucide-react-native';
-import SmoothButton from './ui/SmoothButton';
+import * as Haptics from 'expo-haptics';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-// --- Heart Particle Component ---
-const HeartParticle = ({ index, onComplete }: { index: number, onComplete: () => void }) => {
-    // Randomize initial direction and distance
-    const angle = Math.random() * Math.PI * 2; // Random angle 0 to 360
-    const distance = 40 + Math.random() * 40; // Random distance 40-80
-    const duration = 600 + Math.random() * 300; // Random duration
+// --- Heart Particle Component (lighter) ---
+const HeartParticle = memo(({ index, onComplete }: { index: number, onComplete: (id: number) => void }) => {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 35 + Math.random() * 35;
+    const duration = 450 + Math.random() * 200;
 
-    // Target coordinates relative to center (0,0)
     const tx = Math.cos(angle) * distance;
     const ty = Math.sin(angle) * distance;
 
@@ -34,19 +33,17 @@ const HeartParticle = ({ index, onComplete }: { index: number, onComplete: () =>
     const scale = useSharedValue(0.5);
 
     React.useEffect(() => {
-        // Explode outward
         translateX.value = withTiming(tx, { duration, easing: Easing.out(Easing.quad) });
         translateY.value = withTiming(ty, { duration, easing: Easing.out(Easing.quad) });
 
-        // Scale up then fade out
         scale.value = withSequence(
-            withTiming(1, { duration: duration * 0.3 }),
-            withTiming(0, { duration: duration * 0.7 })
+            withTiming(1, { duration: duration * 0.25 }),
+            withTiming(0, { duration: duration * 0.75 })
         );
 
         opacity.value = withTiming(0, { duration, easing: Easing.in(Easing.quad) }, (finished) => {
             if (finished) {
-                runOnJS(onComplete)();
+                runOnJS(onComplete)(index);
             }
         });
     }, []);
@@ -65,7 +62,7 @@ const HeartParticle = ({ index, onComplete }: { index: number, onComplete: () =>
             <Heart fill="#ef4444" color="#ef4444" size={14} />
         </Animated.View>
     );
-};
+});
 
 // --- Main Gallery Card Component ---
 interface GalleryItemProps {
@@ -82,39 +79,57 @@ interface GalleryItemProps {
 }
 
 const GalleryCard = memo(({ item, isActive, onToggle }: GalleryItemProps) => {
-    // We remove local isLiked state for coloring, but keep particles local
     const [particles, setParticles] = useState<number[]>([]);
+    const particleCounter = useRef(0);
 
-    // Shared value for color opacity (0 = B&W, 1 = Color)
+    // Shared values for instant button feedback
+    const buttonScale = useSharedValue(1);
+    const buttonOffset = useSharedValue(-4);
     const colorOpacity = useSharedValue(0);
 
-    // React to isActive prop changes for smooth transition
+    // Faster color transition
     React.useEffect(() => {
         colorOpacity.value = withTiming(isActive ? 1 : 0, {
-            duration: 1000,
+            duration: 400,
             easing: Easing.out(Easing.cubic)
         });
     }, [isActive]);
 
-    const handlePress = () => {
+    const handlePressIn = useCallback(() => {
+        buttonScale.value = withTiming(0.85, { duration: 40 });
+        buttonOffset.value = withTiming(0, { duration: 40 });
+    }, []);
+
+    const handlePressOut = useCallback(() => {
+        buttonScale.value = withSpring(1, { damping: 18, stiffness: 400, mass: 0.3 });
+        buttonOffset.value = withSpring(-4, { damping: 18, stiffness: 400, mass: 0.3 });
+    }, []);
+
+    const handlePress = useCallback(() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         onToggle();
-        triggerExplosion();
-    };
 
-    const triggerExplosion = () => {
-        const newParticles = Array.from({ length: 16 }, (_, i) => Date.now() + i);
-        setParticles(newParticles);
-    };
+        // Fewer particles = faster render (8 instead of 16)
+        const batch = Array.from({ length: 8 }, () => ++particleCounter.current);
+        setParticles(prev => [...prev, ...batch]);
+    }, [onToggle]);
 
-    const removeParticle = (id: number) => {
+    const removeParticle = useCallback((id: number) => {
         setParticles(prev => prev.filter(p => p !== id));
-    };
+    }, []);
 
     const imageAnimatedStyle = useAnimatedStyle(() => ({
         opacity: colorOpacity.value
     }));
 
-    // Memoize the grayscale filter to prevent re-calculation of the ID and Matrix
+    const heartButtonStyle = useAnimatedStyle(() => ({
+        transform: [
+            { translateX: buttonOffset.value },
+            { translateY: buttonOffset.value },
+            { scale: buttonScale.value }
+        ]
+    }));
+
     const grayscaleFilter = useMemo(() => (
         <Defs>
             <Filter id={`grayscale_${item.id}`}>
@@ -170,31 +185,57 @@ const GalleryCard = memo(({ item, isActive, onToggle }: GalleryItemProps) => {
                         </Text>
                     </View>
 
-                    {/* Heart Button Container */}
+                    {/* Heart Button — Direct Pressable for zero-delay response */}
                     <View className="relative items-center justify-center" style={{ width: 48, height: 48 }}>
                         {/* Particles Layer */}
                         <View className="absolute inset-0 items-center justify-center pointer-events-none" style={{ zIndex: 0 }}>
                             {particles.map(id => (
-                                <HeartParticle key={id} index={id} onComplete={() => removeParticle(id)} />
+                                <HeartParticle key={id} index={id} onComplete={removeParticle} />
                             ))}
                         </View>
 
-                        {/* Interactive Button - Fixed RED Color */}
-                        <SmoothButton
+                        {/* Shadow layer */}
+                        <View
+                            style={{
+                                position: 'absolute',
+                                width: 48,
+                                height: 48,
+                                borderRadius: 24,
+                                backgroundColor: 'black',
+                            }}
+                        />
+
+                        {/* Animated heart button — no SmoothButton overhead */}
+                        <Pressable
                             onPress={handlePress}
-                            containerStyle={{ width: 48, height: 48 }}
-                            buttonStyle="w-full h-full bg-red-500 border-[2.5px] border-black rounded-full items-center justify-center"
-                            shadowStyle="bg-black rounded-full"
-                            depth={6}
+                            onPressIn={handlePressIn}
+                            onPressOut={handlePressOut}
                             hitSlop={20}
+                            style={{ zIndex: 1 }}
                         >
-                            <Heart
-                                fill="white"
-                                color="white"
-                                size={20}
-                                strokeWidth={2.5}
-                            />
-                        </SmoothButton>
+                            <Animated.View
+                                style={[
+                                    heartButtonStyle,
+                                    {
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: 24,
+                                        borderWidth: 2.5,
+                                        borderColor: 'black',
+                                        backgroundColor: '#ef4444',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }
+                                ]}
+                            >
+                                <Heart
+                                    fill="white"
+                                    color="white"
+                                    size={20}
+                                    strokeWidth={2.5}
+                                />
+                            </Animated.View>
+                        </Pressable>
                     </View>
                 </View>
             </View>
