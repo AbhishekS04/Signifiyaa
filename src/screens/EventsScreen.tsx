@@ -170,7 +170,7 @@ const EventsScreen = () => {
                     keyExtractor={(item) => item.id}
                     showsVerticalScrollIndicator={false}
                     removeClippedSubviews={Platform.OS === 'android'}
-                    contentContainerStyle={{ paddingBottom: 100 }}
+                    contentContainerStyle={{ paddingBottom: 0 }}
                 />
             </PageTransition>
         </SafeAreaView>

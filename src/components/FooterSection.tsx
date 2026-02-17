@@ -10,7 +10,7 @@ const isSmallDevice = width < 380;
 const FooterSection = () => {
     const [isSponsorModalVisible, setSponsorModalVisible] = useState(false);
     return (
-        <View className="bg-[#4ADE80] rounded-t-[30px] px-6 pt-5 pb-18 mt-[-30px] z-10">
+        <View className="bg-[#4ADE80] rounded-t-[30px] px-6 pt-5 pb-10 mt-[-30px] z-10">
 
             {/* Header - Reduced size */}
             <View className="mb-6">
@@ -103,7 +103,7 @@ const FooterSection = () => {
                 </View>
 
                 {/* Copyright */}
-                <Text className={`${isSmallDevice ? 'text-base' : 'text-lg'} text-black mb-6`}
+                <Text className={`${isSmallDevice ? 'text-base' : 'text-lg'} text-black mb-2`}
                     style={{
                         fontFamily: 'Gilton',
                     }}

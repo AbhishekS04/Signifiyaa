@@ -232,7 +232,7 @@ const GalleryScreen = () => {
                         keyExtractor={(item) => item.id}
                         ListHeaderComponent={ListHeaderComponent}
                         ListFooterComponent={ListFooterComponent}
-                        contentContainerStyle={{ paddingBottom: 40 }}
+                        contentContainerStyle={{ paddingBottom: 0 }}
                         showsVerticalScrollIndicator={false}
                         removeClippedSubviews={Platform.OS === 'android'}
                         initialNumToRender={4}
