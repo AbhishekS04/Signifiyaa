@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useCallback, memo } from 'react';
 import { View, Text, FlatList, Dimensions, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,7 +7,10 @@ import Animated, {
     useAnimatedStyle,
     withRepeat,
     withTiming,
-    Easing
+    withSpring,
+    Easing,
+    useAnimatedScrollHandler,
+    useAnimatedRef
 } from 'react-native-reanimated';
 
 // Import footer components as requested
@@ -25,22 +28,80 @@ import GalleryCard from '../components/GalleryCard';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 // Extracted Filter Button with Tactile Click (Font Configurable)
-const FilterButton = memo(({ label, isActive, onPress, font }: { label: string, isActive: boolean, onPress: () => void, font: string }) => (
-    <SmoothButton
-        onPress={onPress}
-        containerStyle={{ minWidth: 100 }}
-        buttonStyle={`px-8 py-2.5 border-[2.5px] border-black rounded-2xl items-center ${isActive ? 'bg-[#9d4edd]' : 'bg-white'}`}
-        shadowStyle="bg-black rounded-2xl"
-        depth={6}
-    >
-        <Text className={`uppercase text-[13px] tracking-widest ${isActive ? 'text-white' : 'text-black'}`} style={{ fontFamily: font }}>
-            {label}
-        </Text>
-    </SmoothButton>
-));
+// Extracted Filter Button with Tactile Click (Font Configurable)
 
-const GalleryScreen = () => {
-    const [selectedFilter, setSelectedFilter] = useState('ALL');
+const FilterButton = memo(({ label, isActive, onPress, font }: { label: string, isActive: boolean, onPress: () => void, font: string }) => {
+    // Smooth press effect: scale down on press, instant scale up on filter switch
+    const scale = useSharedValue(1);
+
+    useLayoutEffect(() => {
+        // Use layout effect for instant scale update on filter switch
+        scale.value = isActive ? 1.05 : 1;
+    }, [isActive]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+    }));
+
+    // Press in/out handlers for tactile feedback
+    const handlePressIn = () => {
+        scale.value = 0.95;
+        onPress();
+    };
+    const handlePressOut = () => {
+        // Restore correct scale instantly based on active state
+        scale.value = isActive ? 1.05 : 1;
+    };
+
+    const handlePress = () => {
+        // Visual release state only; filter already switched on press-in
+        scale.value = 1.05;
+    };
+
+    return (
+        <Animated.View style={animatedStyle}>
+            <SmoothButton
+                onPress={handlePress}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                containerStyle={{ minWidth: 100 }}
+                buttonStyle={`px-8 py-2.5 border-[2.5px] border-black rounded-2xl items-center ${isActive ? 'bg-[#9d4edd]' : 'bg-white'}`}
+                shadowStyle="bg-black rounded-2xl"
+                depth={6}
+            >
+                <Text className={`uppercase text-[13px] tracking-widest ${isActive ? 'text-white' : 'text-black'}`} style={{ fontFamily: font }}>
+                    {label}
+                </Text>
+            </SmoothButton>
+        </Animated.View>
+    );
+});
+
+const GalleryScreen: React.FC = () => {
+    // --- Animated FlatList and Elastic Overscroll ---
+    const scrollRef = useAnimatedRef<Animated.FlatList<any>>();
+    const scrollY = useSharedValue(0);
+
+    // 60fps-optimized scroll handler
+    const scrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            scrollY.value = event.contentOffset.y;
+        },
+    }, []);
+
+    // Elastic filter card transform (only on negative overscroll)
+    const elasticStyle = useAnimatedStyle(() => {
+        'worklet';
+        const y = scrollY.value < 0 ? -scrollY.value * 0.6 : 0;
+        return { transform: [{ translateY: y }] };
+    }, [scrollY]);
+
+    const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
+
+    // Immediate filter switch: update state only, no scroll or delay
+    const handleFilterPress = useCallback((label: string) => {
+        setSelectedFilter(label);
+    }, []);
 
     // Marquee State
     const [textWidth, setTextWidth] = useState(0);
@@ -73,16 +134,27 @@ const GalleryScreen = () => {
         setActiveImageId(id);
     };
 
-    const filteredItems = selectedFilter === 'ALL'
-        ? GALLERY_ITEMS
-        : GALLERY_ITEMS.filter(item => item.tag === selectedFilter);
+    const itemsByFilter = useMemo(() => {
+        const grouped: Record<string, typeof GALLERY_ITEMS> = { ALL: GALLERY_ITEMS };
+
+        GALLERY_ITEMS.forEach((item) => {
+            if (!grouped[item.tag]) {
+                grouped[item.tag] = [] as typeof GALLERY_ITEMS;
+            }
+            grouped[item.tag].push(item as (typeof GALLERY_ITEMS)[number]);
+        });
+
+        return grouped;
+    }, []);
+
+    const filteredItems = itemsByFilter[selectedFilter] || GALLERY_ITEMS;
 
     // Helper to get font for a specific filter label
     const getFilterFont = (label: string) => {
         return GALLERY_FILTERS.find(f => f.label === label)?.font || 'Gilton';
     }
 
-    const renderItem = ({ item }: { item: typeof GALLERY_ITEMS[0] }) => (
+    const renderItem = useCallback(({ item }: { item: typeof GALLERY_ITEMS[0] }) => (
         <View className="px-4">
             <GalleryCard
                 item={item}
@@ -90,7 +162,9 @@ const GalleryScreen = () => {
                 onToggle={() => handleCardToggle(item.id)}
             />
         </View>
-    );
+    ), [activeImageId]);
+
+    const keyExtractor = useCallback((item: typeof GALLERY_ITEMS[0]) => item.id, []);
 
     const ListHeaderComponent = () => (
         <View>
@@ -163,20 +237,20 @@ const GalleryScreen = () => {
             </View>
 
             {/* Filter Container Start */}
-            <View className="mx-4 mt-8 bg-white border-[3px] border-black rounded-[30px] p-6 pb-0">
+            <Animated.View style={elasticStyle} className="mx-4 mt-8 bg-white border-[3px] border-black rounded-[30px] p-6 pb-0">
                 <View className="items-center mb-6">
                     {/* Row 1: ALL, TECH */}
                     <View className="flex-row gap-4 mb-4">
                         <FilterButton
                             label="ALL"
                             isActive={selectedFilter === 'ALL'}
-                            onPress={() => setSelectedFilter('ALL')}
+                            onPress={() => handleFilterPress('ALL')}
                             font={getFilterFont('ALL')}
                         />
                         <FilterButton
                             label="TECH"
                             isActive={selectedFilter === 'TECH'}
-                            onPress={() => setSelectedFilter('TECH')}
+                            onPress={() => handleFilterPress('TECH')}
                             font={getFilterFont('TECH')}
                         />
                     </View>
@@ -186,13 +260,13 @@ const GalleryScreen = () => {
                         <FilterButton
                             label="CULTURAL"
                             isActive={selectedFilter === 'CULTURAL'}
-                            onPress={() => setSelectedFilter('CULTURAL')}
+                            onPress={() => handleFilterPress('CULTURAL')}
                             font={getFilterFont('CULTURAL')}
                         />
                         <FilterButton
                             label="VIBES"
                             isActive={selectedFilter === 'VIBES'}
-                            onPress={() => setSelectedFilter('VIBES')}
+                            onPress={() => handleFilterPress('VIBES')}
                             font={getFilterFont('VIBES')}
                         />
                     </View>
@@ -202,12 +276,12 @@ const GalleryScreen = () => {
                         <FilterButton
                             label="BTS"
                             isActive={selectedFilter === 'BTS'}
-                            onPress={() => setSelectedFilter('BTS')}
+                            onPress={() => handleFilterPress('BTS')}
                             font={getFilterFont('BTS')}
                         />
                     </View>
                 </View>
-            </View>
+            </Animated.View>
         </View>
     );
 
@@ -226,18 +300,22 @@ const GalleryScreen = () => {
             <PageTransition style={{ flex: 1 }}>
                 <GlobalMusicButton />
                 <View className="flex-1 bg-black">
-                    <FlatList
+                    <Animated.FlatList
+                        ref={scrollRef}
+                        onScroll={scrollHandler}
+                        scrollEventThrottle={16}
                         data={filteredItems}
                         renderItem={renderItem}
-                        keyExtractor={(item) => item.id}
+                        keyExtractor={keyExtractor}
                         ListHeaderComponent={ListHeaderComponent}
                         ListFooterComponent={ListFooterComponent}
                         contentContainerStyle={{ paddingBottom: 0 }}
                         showsVerticalScrollIndicator={false}
                         removeClippedSubviews={Platform.OS === 'android'}
-                        initialNumToRender={4}
-                        maxToRenderPerBatch={4}
-                        windowSize={5}
+                        initialNumToRender={2}
+                        maxToRenderPerBatch={2}
+                        updateCellsBatchingPeriod={0}
+                        windowSize={3}
                         getItemLayout={(_, index) => ({
                             length: 450,
                             offset: 450 * index,
@@ -245,6 +323,7 @@ const GalleryScreen = () => {
                         })}
                         ItemSeparatorComponent={() => <View className="h-10" />}
                         style={{ flex: 1 }}
+                        extraData={selectedFilter}
                     />
                 </View>
             </PageTransition>
