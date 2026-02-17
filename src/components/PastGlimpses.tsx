@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
@@ -130,11 +131,14 @@ const PolaroidCard = ({ photo, index, isLeft }: { photo: { url: any }, index: nu
                                 ? { uri: photo.url }
                                 : photo.url
                         }
-                        className="w-full rounded-lg"
                         style={{
+                            width: '100%',
                             height: isSmallDevice ? 160 : 190,
+                            borderRadius: 8,
                         }}
-                        resizeMode="cover"
+                        contentFit="cover"
+                        cachePolicy="memory-disk"
+                        transition={200}
                     />
 
                     {/* Polaroid Bottom Space (simulates instant film) */}

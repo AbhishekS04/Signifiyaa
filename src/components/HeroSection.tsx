@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowDown } from 'lucide-react-native';
@@ -130,7 +131,9 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
                     <View className="absolute inset-x-0 bottom-0 items-center justify-end opacity-[0.10]" style={{ bottom: -40 }}>
                         <Image
                             source={require('../../assets/bglogo.png')}
-                            style={{ width: 600, height: 700, resizeMode: 'contain', tintColor: 'white' }}
+                            style={{ width: 600, height: 700, tintColor: 'white' }}
+                            contentFit="contain"
+                            cachePolicy="memory-disk"
                         />
                     </View>
 

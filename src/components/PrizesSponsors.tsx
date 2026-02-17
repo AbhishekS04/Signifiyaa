@@ -269,6 +269,7 @@ const PrizesSponsors = () => {
                                 }
                                 style={{ width: '100%', height: '100%' }}
                                 contentFit="contain"
+                                cachePolicy="memory-disk"
                                 transition={200}
                             />
                         </View>
@@ -287,6 +288,8 @@ const PrizesSponsors = () => {
                                     source={{ uri: sponsor.logo }}
                                     style={{ width: '100%', height: '100%' }}
                                     contentFit="contain"
+                                    cachePolicy="memory-disk"
+                                    transition={200}
                                 />
                             </View>
                         ))}

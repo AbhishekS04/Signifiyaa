@@ -1,4 +1,5 @@
-import { View, Image, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowUpRight } from 'lucide-react-native';
 
@@ -13,8 +14,10 @@ const GallerySection = () => {
             >
                 <Image
                     source={require('../../assets/Home_Screen_Images/about (1).jpg')}
-                    className="w-full h-full"
-                    resizeMode="cover"
+                    style={{ width: '100%', height: '100%' }}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={200}
                 />
             </View>
 
@@ -24,8 +27,10 @@ const GallerySection = () => {
             >
                 <Image
                     source={require('../../assets/Home_Screen_Images/soet-au.jpeg')}
-                    className="w-full h-full"
-                    resizeMode="cover"
+                    style={{ width: '100%', height: '100%' }}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={200}
                 />
             </View>
 

@@ -124,7 +124,8 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                                 style={{ width: '100%', height: '100%' }}
                                 contentFit="cover"
                                 cachePolicy="memory-disk"
-                                transition={200}
+                                transition={150}
+                                recyclingKey={item.title}
                             />
                         </View>
 
