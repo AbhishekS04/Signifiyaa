@@ -192,7 +192,7 @@ const PrizesSponsors = () => {
                                 fontFamily: 'BBHBartle',
                             }}
                         >
-                            120K+
+                            200K+
                         </Text>
                         <Text className={`leading-[50px] text-black -mt-2 ${isSmallDevice ? 'text-[30px]' : 'text-[50px]'}`}
                             style={{
