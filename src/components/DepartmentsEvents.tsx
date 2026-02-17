@@ -182,7 +182,7 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
                         <Text className="text-4xl text-black" style={{ fontFamily: 'Gilton' }}>SOET</Text>
                     </View>
                 </View>
-                <Text className="text-black text-center leading-7 text-base p-4 pl-4 text-lg" style={{ fontFamily: 'Softura' }}>
+                <Text className="text-black text-center leading-7 p-4 pl-4 text-lg" style={{ fontFamily: 'Softura' }}>
                     The School of Engineering and Technology stands as a beacon of technical excellence, fostering innovation and shaping the future engineers who will build tomorrow's world.
                 </Text>
             </View>
