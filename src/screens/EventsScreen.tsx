@@ -31,14 +31,14 @@ const EventsScreen = () => {
 
     const filters = ['ALL', 'ESPORTS', 'CSE', 'CIVIL', 'MECHANICAL', 'EEE', 'ROBOTICS', 'NON-TECH'];
 
-    // 📂 Filter Logic
+    // 📂 Filter Logic — uses the `day` property from EventsData
     const day1Events = activeFilter === 'ALL'
-        ? events.filter(e => e.date && (e.date === '13th March' || e.date.includes('13')))
-        : events.filter(e => (e.date === '13th March' || e.date?.includes('13')) && e.category === activeFilter);
+        ? events.filter(e => e.day === 1)
+        : events.filter(e => e.day === 1 && e.category === activeFilter);
 
     const day2Events = activeFilter === 'ALL'
-        ? events.filter(e => e.date && (e.date === 'Day 2' || e.date === '14th March' || e.date.includes('14')))
-        : events.filter(e => (e.date === 'Day 2' || e.date === '14th March' || e.date?.includes('14')) && e.category === activeFilter);
+        ? events.filter(e => e.day === 2)
+        : events.filter(e => e.day === 2 && e.category === activeFilter);
 
     const handleFilterChange = (filter: string) => {
         if (filter === activeFilter) return;
@@ -91,7 +91,7 @@ const EventsScreen = () => {
                                 <View className="absolute top-[5px] left-[5px] bg-black rounded-[6px] w-full h-full" />
                                 <View className="bg-[#FFEB3B] border-[2.5px] border-black px-5 py-2 rounded-[6px]">
                                     <Text className="text-sm text-black tracking-tighter font-bold" style={{ fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' }}>
-                                        13th March, 2026
+                                        27th March, 2026
                                     </Text>
                                 </View>
                             </View>
@@ -129,7 +129,7 @@ const EventsScreen = () => {
                                 <View className="absolute top-[5px] left-[5px] bg-black rounded-[6px] w-full h-full" />
                                 <View className="bg-[#4DD0E1] border-[2.5px] border-black px-5 py-2 rounded-[6px]">
                                     <Text className="text-sm text-black tracking-tighter font-bold" style={{ fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' }}>
-                                        14th March, 2026
+                                        28th March, 2026
                                     </Text>
                                 </View>
                             </View>
