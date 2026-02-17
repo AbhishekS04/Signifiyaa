@@ -1,7 +1,10 @@
-import React from 'react';
-import { View, Image } from 'react-native';
+import { View, Image, Text, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { ArrowUpRight } from 'lucide-react-native';
 
 const GallerySection = () => {
+    const navigation = useNavigation<any>();
+
     return (
         <View className="gap-6 px-4 mb-8">
             <View
@@ -9,7 +12,7 @@ const GallerySection = () => {
                 style={{ height: 250 }}
             >
                 <Image
-                    source={{ uri: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' }}
+                    source={require('../../assets/Home_Screen_Images/about (1).jpg')}
                     className="w-full h-full"
                     resizeMode="cover"
                 />
@@ -20,11 +23,12 @@ const GallerySection = () => {
                 style={{ height: 250 }}
             >
                 <Image
-                    source={{ uri: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' }}
+                    source={require('../../assets/Home_Screen_Images/soet-au.jpeg')}
                     className="w-full h-full"
                     resizeMode="cover"
                 />
             </View>
+
         </View>
     );
 };

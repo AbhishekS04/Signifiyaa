@@ -116,7 +116,11 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                         {/* Inner Image Only - No Video */}
                         <View className="w-full h-full bg-black border-[2px] border-black rounded-[10px] overflow-hidden relative">
                             <Image
-                                source={{ uri: item.imageUrl }}
+                                source={
+                                    typeof item.imageUrl === 'string' && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('https'))
+                                        ? { uri: item.imageUrl }
+                                        : item.imageUrl
+                                }
                                 style={{ width: '100%', height: '100%' }}
                                 contentFit="cover"
                                 cachePolicy="memory-disk"

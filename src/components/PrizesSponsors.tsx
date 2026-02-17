@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions, Image as RNImage } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import SmoothButton from './ui/SmoothButton';
 import SponsorModal from './SponsorModal';
 import Animated, {
@@ -151,15 +152,14 @@ const PrizesSponsors = () => {
     // 1. Upload your logo to `assets/sponsors/google.png`
     // 2. Import it: `import googleLogo from '../../assets/sponsors/google.png'`
     // 3. Or use a URL: `logo: 'https://example.com/logo.png'`
-    const SPONSORS = [
-        { name: 'RoyalEnfield', logo: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/c332f625-7ac1-46d4-9dac-c479487b1760.png' },
-        { name: 'DadaBoudi', logo: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/78ff25cb-b1a8-487e-a798-eba73a0745d9.png' },
-        { name: 'Amazon', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/2560px-Amazon_logo.svg.png' },
-        { name: 'Meta', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Meta-Logo.png/800px-Meta-Logo.png' },
-        { name: 'Spotify', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Spotify_logo_with_text.svg/2560px-Spotify_logo_with_text.svg.png' },
-        { name: 'Tesla', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tesla_logo.png/1200px-Tesla_logo.png' },
-        { name: 'DadaBoudi', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tesla_logo.png/1200px-Tesla_logo.png' },
-        { name: 'Tesla', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tesla_logo.png/1200px-Tesla_logo.png' },
+    const SPONSORS: any[] = [
+        // Royal Enfield and Dada Boudi removed
+    ];
+
+    const COMMUNITY_PARTNERS = [
+        { name: 'CSI', logo: require('../../assets/Sponsors/Spnl1.avif') },
+        { name: 'ACM', logo: require('../../assets/Sponsors/Spnl2.avif') },
+        { name: 'Cerkle', logo: require('../../assets/Sponsors/Spnl3.avif') },
     ];
 
     const [isSponsorModalVisible, setSponsorModalVisible] = useState(false);
@@ -223,12 +223,12 @@ const PrizesSponsors = () => {
             <View className="bg-white rounded-3xl p-6 border-[3px] border-black shadow-sm">
 
                 {/* Header */}
-                <View className="items-center mb-8">
+                <View className="items-center mb-4">
                     <View className="flex-row items-baseline">
                         <View className="items-center">
                             <Text className={`text-black ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`} style={{
                                 fontFamily: 'Gilton',
-                            }}>OUR</Text>
+                            }}>CURRENT</Text>
                             <Text className={`text-black -mt-2 ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`} style={{
                                 fontFamily: 'Gilton',
                             }}>SPONSORS</Text>
@@ -241,21 +241,57 @@ const PrizesSponsors = () => {
                     </Text>
                 </View>
 
-                {/* Sponsor Grid - Professional Layout */}
-                <View className="flex-row flex-wrap justify-center gap-8 mb-10 pt-4">
-                    {SPONSORS.map((sponsor, index) => (
+                {/* Horizontal Separator Line */}
+                <View className="w-full h-[3px] bg-black my-8" />
+
+                {/* COMMUNITY PARTNERS SECTION */}
+                <View className="items-center mb-10">
+                    <Text className="text-black text-4xl uppercase" style={{ fontFamily: 'Gilton' }}>
+                        COMMUNITY
+                    </Text>
+                    <Text className="text-black text-4xl uppercase -mt-2" style={{ fontFamily: 'Gilton', transform: [{ skewX: '-10deg' }] }}>
+                        PARTNERS
+                    </Text>
+                </View>
+
+                {/* Community Partner Logos - Vertical Layout as per image */}
+                <View className="items-center gap-12 mb-10">
+                    {COMMUNITY_PARTNERS.map((partner, index) => (
                         <View
                             key={index}
-                            className="w-[45%] h-32 items-center justify-center p-0"
+                            className="w-40 h-24 items-center justify-center"
                         >
-                            <Image
-                                source={{ uri: sponsor.logo }}
-                                className="w-full h-full"
-                                resizeMode="contain"
+                            <ExpoImage
+                                source={
+                                    typeof partner.logo === 'string' && (partner.logo.startsWith('http') || partner.logo.startsWith('https'))
+                                        ? { uri: partner.logo }
+                                        : partner.logo
+                                }
+                                style={{ width: '100%', height: '100%' }}
+                                contentFit="contain"
+                                transition={200}
                             />
                         </View>
                     ))}
                 </View>
+
+                {/* Original Sponsor Grid (Hidden or Empty for now as per request) */}
+                {SPONSORS.length > 0 && (
+                    <View className="flex-row flex-wrap justify-center gap-8 mb-10 pt-4">
+                        {SPONSORS.map((sponsor, index) => (
+                            <View
+                                key={index}
+                                className="w-[45%] h-32 items-center justify-center p-0"
+                            >
+                                <ExpoImage
+                                    source={{ uri: sponsor.logo }}
+                                    style={{ width: '100%', height: '100%' }}
+                                    contentFit="contain"
+                                />
+                            </View>
+                        ))}
+                    </View>
+                )}
 
                 {/* Action Button */}
                 <SmoothButton

@@ -20,49 +20,202 @@ interface Member {
     name: string;
     role: string;
     desc: string;
-    image: string;
-    socials: { instagram: string; linkedin: string; github: string };
-    category: 'CORE MEMBER';
+    image: any;
+    socials: { instagram?: string; linkedin?: string; github?: string };
+    category: 'FACULTY' | 'CORE MEMBER';
 }
 
 // ONLY CORE MEMBERS KEPT
 const TEAM_MEMBERS: Member[] = [
     {
-        id: 1,
-        name: 'Ashish Yadav',
-        role: 'BLOCKCHAIN DEV',
-        desc: 'Developing smart contracts and securing decentralized applications.',
-        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Ashish',
-        socials: { instagram: 'https://instagram.com/ashish', linkedin: 'https://linkedin.com/in/ashish', github: 'https://github.com/ashish' },
+        id: 27,
+        name: "Mr. Nisarga Chand",
+        role: "FACULTY LEAD",
+        desc: "Assistant Professor, ECE, SOET",
+        image: require('../../assets/avatar/avatar1.jpg'),
+        socials: { linkedin: "https://linkedin.com/in/hrishav-dey-2b2990291/", instagram: "https://instagram.com/hrishav.dey", github: "https://github.com/" },
+        category: 'FACULTY'
+    },
+    {
+        id: 26,
+        name: "Ms. Soodipa Chakraborty",
+        role: "FACULTY LEAD",
+        desc: "Assistant Professor, ECE, SOET",
+        image: require('../../assets/avatar/avatar2.jpg'),
+        socials: { linkedin: "https://linkedin.com/in/hrishav-dey-2b2990291/", instagram: "https://instagram.com/hrishav.dey", github: "https://github.com/" },
+        category: 'FACULTY'
+    },
+    {
+        id: 28,
+        name: "Mr. Prabhat Das",
+        role: "TECH MENTOR",
+        desc: "Assistant Professor, ECE, SOET",
+        image: require('../../assets/avatar/avatar3.jpg'),
+        socials: { linkedin: "https://linkedin.com/in/prabhatd/", instagram: "https://instagram.com/hrishav.dey", github: "https://github.com/" },
+        category: 'FACULTY'
+    },
+    {
+        id: 8,
+        name: "Hrishav Dey",
+        role: "EVENT ADVISOR",
+        desc: "The force that turns bold ideas into flawlessly executed reality.",
+        image: require('../../assets/avatar/avatar4.jpg'),
+        socials: { linkedin: "https://linkedin.com/in/hrishav-dey-2b2990291/", instagram: "https://instagram.com/hrishav.dey" },
         category: 'CORE MEMBER'
     },
     {
-        id: 2,
-        name: 'Garima Roy',
-        role: 'FRONTEND DEV',
-        desc: 'Building beautiful, responsive, and interactive user interfaces.',
+        id: 10,
+        name: "Digant Mishra",
+        role: "ON-GROUND COORDINATOR",
+        desc: "The go-to problem solver who keeps the action running seamlessly on the ground.",
+        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Digant',
+        socials: { linkedin: "https://linkedin.com/in/digant-mishra-2b2990291/", instagram: "https://instagram.com/digantt._" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 11,
+        name: "Arijit De",
+        role: "FINANCIAL LEAD",
+        desc: "Driving partnerships and managing resources to power the fest’s biggest ambitions.",
+        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Arijit',
+        socials: { linkedin: "https://linkedin.com/in/arijit-de-ba1594358", instagram: "https://instagram.com/arijit_.04" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 12,
+        name: "Snehasish Mondal",
+        role: "OPERATIONS LEAD",
+        desc: "The backbone of smooth workflows, ensuring every detail runs right on time.",
+        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Snehasish',
+        socials: { linkedin: "https://linkedin.com/in/snehasish-mondal-2b2990291/", instagram: "https://instagram.com/snehasish.mondal", github: "https://github.com/" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 18,
+        name: "Samriddhi Sinha",
+        role: "DECORATIONS LEAD",
+        desc: "Transforming spaces into immersive experiences that set the fest’s mood.",
+        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Samriddhi',
+        socials: { linkedin: "https://linkedin.com/in/samriddhi-sinha-2b2990291/", instagram: "https://instagram.com/samriddhi.sinha", github: "https://github.com/" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 25,
+        name: "Arnab Mandal",
+        role: "SOCIAL MEDIA HEAD",
+        desc: "Turning strategies into action with energy, coordination, and commitment.",
+        image: require('../../assets/avatar/avatar5.jpg'),
+        socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/arnab_mandal", github: "https://github.com/" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 20,
+        name: "Ashish R. Das",
+        role: "TECH LEAD",
+        desc: "19, full stack web3 dev, community lead @0DAY",
+        image: require('../../assets/avatar/avatar1.jpg'),
+        socials: { linkedin: "https://linkedin.com/in/arddev", instagram: "https://instagram.com/ashishh_rd_", github: "https://github.com/0day-Ashish" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 23,
+        name: "Subham Karmakar",
+        role: "TECH SUPPORT",
+        desc: "Architect of innovation, powering the fest with smart tech and seamless systems.",
+        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Subham',
+        socials: { linkedin: "https://linkedin.com/in/subham12r", instagram: "https://instagram.com/5ubhamkarmakar", github: "https://github.com/subham12r" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 24,
+        name: "Abhisekh Singh",
+        role: "APP DEVELOPMENT",
+        desc: "Turning strategies into action with energy, coordination, and commitment.",
+        image: require('../../assets/avatar/avatar6.jpg'),
+        socials: { linkedin: "https://linkedin.com/in/abhisekhsingh", instagram: "https://instagram.com/abhisekhsingh", github: "https://github.com/abhisekhsingh" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 13,
+        name: "Garima Roy",
+        role: "DOCUMENTATIONS LEAD",
+        desc: "The mind that captures every milestone and detail with clarity and precision.",
         image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Garima',
-        socials: { instagram: 'https://instagram.com/garima', linkedin: 'https://linkedin.com/in/garima', github: 'https://github.com/garima' },
+        socials: { linkedin: "https://linkedin.com/in/garima-roy-032277290", instagram: "https://instagram.com/_garimaa.07_", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
     {
-        id: 3,
-        name: 'Leeza Bhowal',
-        role: 'UI/UX DESIGNER',
-        desc: 'Crafting intuitive user experiences and stunning visual designs.',
-        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Leeza',
-        socials: { instagram: 'https://instagram.com/leeza', linkedin: 'https://linkedin.com/in/leeza', github: 'https://github.com/leeza' },
+        id: 14,
+        name: "Leeza Bhowal",
+        role: "DESIGN LEAD",
+        desc: "The creative spark behind visuals that give the fest its identity and vibe.",
+        image: require('../../assets/avatar/avatar2.jpg'),
+        socials: { linkedin: "https://linkedin.com/in/leeza-bhowal-2b2990291/", instagram: "https://instagram.com/leeza.bhowal", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
     {
-        id: 4,
-        name: 'Somnath Singha',
-        role: 'BACKEND DEV',
-        desc: 'Managing servers, APIs, and database architecture efficiency.',
+        id: 16,
+        name: "Srijita Bera",
+        role: "MARKETING LEAD",
+        desc: "The voice of the fest, turning ideas into buzz and reach into impact.",
+        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Srijita',
+        socials: { linkedin: "https://linkedin.com/in/srijita-bera-ab5578291/", instagram: "https://instagram.com/veilof_mist", github: "https://github.com/Srijiiii" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 17,
+        name: "Siddartha Chakraborty",
+        role: "ESPORTS LEAD",
+        desc: "The strategist behind high-energy battles and next-level competitive gaming.",
+        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Siddartha',
+        socials: { linkedin: "https://linkedin.com/in/siddarthachakraborty/", instagram: "https://instagram.com/siddarthachk", github: "https://github.com/siddarthachk" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 21,
+        name: "Keshav Maheshwari",
+        role: "EXECUTION CELL",
+        desc: "The hands-on executor ensuring plans come alive with precision and speed.",
+        image: require('../../assets/avatar/avatar7.jpg'),
+        socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/keshav.maheshwari", github: "https://github.com/" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 22,
+        name: "Sampad Ghosh",
+        role: "EXECUTION CELL",
+        desc: "Turning strategies into action with energy, coordination, and commitment.",
+        image: require('../../assets/avatar/avatar8.jpg'),
+        socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/sampad.ghosh", github: "https://github.com/" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 9,
+        name: "Sudipto Barman",
+        role: "EX SUPPORT",
+        desc: "Turning strategies into action with energy, coordination, and commitment.",
+        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Sudipto',
+        socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/sudipto.barman", github: "https://github.com/" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 19,
+        name: "Titas Sarkar",
+        role: "EX SUPPORT",
+        desc: "Building decentralized solutions that add a future-ready edge to the fest.",
+        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Titas',
+        socials: {},
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 15,
+        name: "Somnath Singha Roy",
+        role: "EX SUPPORT",
+        desc: "The dependable pillar ensuring help, coordination, and smooth resolutions for everyone.",
         image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Somnath',
-        socials: { instagram: 'https://instagram.com/somnath', linkedin: 'https://linkedin.com/in/somnath', github: 'https://github.com/somnath' },
+        socials: { linkedin: "https://linkedin.com/in/somnath", instagram: "https://instagram.com/somnath" },
         category: 'CORE MEMBER'
-    },
+    }
 ];
 
 const CORE_MEMBERS = TEAM_MEMBERS;
@@ -70,8 +223,8 @@ const CORE_MEMBERS = TEAM_MEMBERS;
 const TeamSection = () => {
     const [activeMember, setActiveMember] = useState<Member>(CORE_MEMBERS[0]);
 
-    const openLink = (url: string) => {
-        if (url && url !== '#') {
+    const openLink = (url?: string) => {
+        if (url && url !== '#' && url !== 'https://linkedin.com/in/' && url !== 'https://instagram.com/') {
             Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
         }
     };
@@ -101,7 +254,7 @@ const TeamSection = () => {
                     >
                         <View className="w-20 h-20 bg-black rounded-[16px] mb-3 overflow-hidden relative shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                             <Image
-                                source={{ uri: activeMember.image }}
+                                source={typeof activeMember.image === 'string' ? { uri: activeMember.image } : activeMember.image}
                                 style={{
                                     width: '100%',
                                     height: '100%',
@@ -180,7 +333,7 @@ const TeamSection = () => {
                                 }}
                             >
                                 <Image
-                                    source={{ uri: member.image }}
+                                    source={typeof member.image === 'string' ? { uri: member.image } : member.image}
                                     className="w-full h-full"
                                     resizeMode="cover"
                                 />

@@ -10,7 +10,7 @@ const isSmallDevice = width < 380;
 const FooterSection = () => {
     const [isSponsorModalVisible, setSponsorModalVisible] = useState(false);
     return (
-        <View className="bg-[#4ADE80] rounded-t-[30px] px-6 pt-5 pb-10 mt-[-30px] z-10">
+        <View className="bg-[#4ADE80] rounded-t-[30px] px-6 pt-5 pb-10 mt-6 z-10">
 
             {/* Header - Reduced size */}
             <View className="mb-6">

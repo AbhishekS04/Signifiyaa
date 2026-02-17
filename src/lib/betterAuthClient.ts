@@ -1,3 +1,4 @@
+import 'react-native-url-polyfill/auto';
 import { createAuthClient } from "better-auth/client";
 import { expoClient } from "@better-auth/expo/client";
 import { Platform } from "react-native";
@@ -10,6 +11,7 @@ const FINAL_URL = Platform.OS === 'android' && BASE_URL.includes('localhost')
   ? BASE_URL.replace('localhost', '10.0.2.2')
   : BASE_URL;
 
+console.log(`[BetterAuth] EXPO_PUBLIC_BETTER_AUTH_URL: ${process.env.EXPO_PUBLIC_BETTER_AUTH_URL}`);
 console.log(`[BetterAuth] Configured URL: ${BASE_URL}`);
 if (FINAL_URL !== BASE_URL) {
   console.log(`[BetterAuth] Android Redirect: ${FINAL_URL}`);

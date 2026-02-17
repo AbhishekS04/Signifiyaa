@@ -26,11 +26,12 @@ const FAQ_FONTS = {
 };
 
 const FAQS = [
-    { id: 1, question: 'WHAT IS SIGNIFIYA?', answer: 'Signifiya is the annual tech fest of the School of Engineering and Technology, Adamas University.' },
-    { id: 2, question: 'HOW DO I GET STARTED?', answer: 'Simply register on the app, browse events, and sign up for the ones you are interested in.' },
-    { id: 3, question: 'IS MY DATA SECURE?', answer: 'Yes, we prioritize user privacy and data security with industry-standard practices.' },
-    { id: 4, question: 'ARE THERE ANY FEES?', answer: 'Most events are free, but some flagship competitions may have a nominal registration fee.' },
-    { id: 5, question: 'HOW CAN I CONTACT SUPPORT?', answer: 'You can reach out to us via the contact section in the app or email us directly.' },
+    { id: 1, question: 'WHAT IS SIGNIFIYA?', answer: 'SIGNIFIYA 2026 is the largest student-driven Techfest of SOET, designed to give students a platform to showcase technical skills, creativity, teamwork, and leadership. It is a two-day event where students compete, collaborate, and learn beyond the classroom.' },
+    { id: 2, question: 'Why should I participate in SIGNIFIYA 2026?', answer: 'Participation in SIGNIFIYA allows students to apply theoretical knowledge in real competitive scenarios, explore interests beyond their core discipline, develop confidence, communication, and leadership skills, gain exposure to inter-college competition and peer learning. It is both a learning experience and a personal growth opportunity.' },
+    { id: 3, question: 'What kind of events can students take part in?', answer: 'Students can participate in technical events such as robotics, coding challenges, circuit design, and core engineering competitions, gaming events including BGMI and Valorant, non-technical events like dance battles, rap battles, treasure hunts, and arm wrestling. This variety ensures opportunities for students from all interests and skill levels.' },
+    { id: 4, question: 'Can students from different branches participate together?', answer: 'Yes. SIGNIFIYA actively encourages interdisciplinary participation. Many events allow or require team participation across different branches, promoting collaboration, coordination, and shared problem-solving.' },
+    { id: 5, question: 'Is SIGNIFIYA beneficial for first-year and non-technical students?', answer: 'Yes. The inclusion of non-technical and cultural events ensures that students from all years and backgrounds can participate, contribute, and feel involved in the fest.' },
+    { id: 6, question: 'Is SIGNIFIYA only for Adamas University students?', answer: 'No. While Adamas University students form the core participant group, SIGNIFIYA is also open to students from other universities, engineering colleges, polytechnics, and schools, making it a large inter-institutional event.' },
 ];
 
 const FAQSection = () => {

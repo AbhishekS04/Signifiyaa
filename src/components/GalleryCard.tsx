@@ -72,7 +72,7 @@ interface GalleryItemProps {
     item: {
         id: string;
         title: string;
-        image: string;
+        image: any;
         tag: string;
         filename: string;
         titleFont?: string;
@@ -139,7 +139,7 @@ const GalleryCard = memo(({ item, isActive, onToggle }: GalleryItemProps) => {
                         <Svg width="100%" height="100%">
                             {grayscaleFilter}
                             <SvgImage
-                                href={{ uri: item.image }}
+                                href={typeof item.image === 'string' && (item.image.startsWith('http') || item.image.startsWith('https')) ? { uri: item.image } : item.image}
                                 width="100%"
                                 height="100%"
                                 preserveAspectRatio="xMidYMid slice"
@@ -152,7 +152,7 @@ const GalleryCard = memo(({ item, isActive, onToggle }: GalleryItemProps) => {
                     <Animated.View style={[imageAnimatedStyle, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }]}>
                         <Svg width="100%" height="100%">
                             <SvgImage
-                                href={{ uri: item.image }}
+                                href={typeof item.image === 'string' && (item.image.startsWith('http') || item.image.startsWith('https')) ? { uri: item.image } : item.image}
                                 width="100%"
                                 height="100%"
                                 preserveAspectRatio="xMidYMid slice"

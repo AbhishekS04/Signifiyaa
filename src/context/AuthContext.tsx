@@ -66,8 +66,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     setProfile(null);
                 }
             } catch (e: any) {
-                console.error('Auth Init Error:', e);
-                console.error('Error Details:', e.message, e.stack);
+                console.error('=== Auth Init Error ===');
+                console.error('Message:', e.message);
+                console.error('Type:', e.name);
+                if (e.message === 'Network request failed') {
+                    const BASE_URL = process.env.EXPO_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
+                    console.error('Network failure while hitting:', `${BASE_URL}/api/auth/get-session`);
+                    console.error('Please verify if the server is up and reachable from this device.');
+                }
+                console.error('Stack Trace:', e.stack);
                 setSession(null);
                 setUser(null);
                 setProfile(null);

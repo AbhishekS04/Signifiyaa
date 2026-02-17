@@ -367,7 +367,17 @@ const EventCard = React.memo(({ title, date, category, description, prizePool, i
                             </View>
                         ) : imageUrl ? (
                             <View className="w-full h-full">
-                                <Image source={{ uri: imageUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={200} cachePolicy="memory-disk" />
+                                <Image
+                                    source={
+                                        typeof imageUrl === 'string' && (imageUrl.startsWith('http') || imageUrl.startsWith('https'))
+                                            ? { uri: imageUrl }
+                                            : imageUrl
+                                    }
+                                    style={{ width: '100%', height: '100%' }}
+                                    contentFit="cover"
+                                    transition={200}
+                                    cachePolicy="memory-disk"
+                                />
                             </View>
                         ) : (
                             <View className="w-full h-full items-center justify-center" style={{ backgroundColor: imageColor }}><Text className="text-black font-bold opacity-20">POSTER GOES HERE</Text></View>

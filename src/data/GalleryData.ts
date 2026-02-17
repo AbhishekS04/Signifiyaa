@@ -7,7 +7,7 @@
 export interface GalleryItem {
     id: string;
     title: string;
-    image: string;
+    image: any;
     tag: string;
     filename: string;
     desc?: string; // Optional description if needed later
@@ -27,55 +27,201 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     {
         id: '1',
         title: 'THE OPENING CEREMONY',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/4e39142d-227f-4b50-bbf1-5bbbfb0d0d5b.jpg',
+        image: require('../../assets/Gallery/gall1.jpg'),
         tag: 'CULTURAL',
-        filename: 'IMG_1_2026.png',
-        desc: 'Signifiya 26 Inauguration',
+        filename: 'gall1.jpg',
         titleFont: 'Gilton'
     },
     {
         id: '2',
         title: 'HACKATHON GRIND',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
+        image: require('../../assets/Gallery/gall2.jpg'),
         tag: 'TECH',
-        filename: 'IMG_2_2026.png',
-        desc: '36 Hours Hackathon',
+        filename: 'gall2.jpg',
         titleFont: 'Gilton'
     },
     {
         id: '3',
         title: 'ROBO WARS ARENA',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
+        image: require('../../assets/Gallery/gall3.jpg'),
         tag: 'TECH',
-        filename: 'IMG_3_2026.png',
-        desc: 'Battle of the bots',
+        filename: 'gall3.jpg',
         titleFont: 'Gilton'
     },
     {
         id: '4',
-        title: 'DJ NIGHT MADNESS',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
+        title: 'VIBES UNLIMITED',
+        image: require('../../assets/Gallery/gall4.jpg'),
         tag: 'VIBES',
-        filename: 'IMG_4_2026.png',
-        desc: 'Pure energy on the floor',
+        filename: 'gall4.jpg',
         titleFont: 'Gilton'
     },
     {
         id: '5',
         title: 'BEHIND THE SCENES',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/4e39142d-227f-4b50-bbf1-5bbbfb0d0d5b.jpg',
+        image: require('../../assets/Gallery/gall5.jpg'),
         tag: 'BTS',
-        filename: 'IMG_5_2026.png',
-        desc: 'Magic in the making',
+        filename: 'gall5.jpg',
         titleFont: 'Gilton'
     },
     {
         id: '6',
-        title: 'PRIZE DISTRIBUTION',
-        image: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg',
+        title: 'CULTURAL NIGHT',
+        image: require('../../assets/Gallery/gall6.jpg'),
         tag: 'CULTURAL',
-        filename: 'IMG_6_2026.png',
-        desc: 'Celebrating success',
+        filename: 'gall6.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '7',
+        title: 'TECH EXHIBITION',
+        image: require('../../assets/Gallery/gall7.jpg'),
+        tag: 'TECH',
+        filename: 'gall7.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '8',
+        title: 'FESTIVAL VIBES',
+        image: require('../../assets/Gallery/gall8.jpg'),
+        tag: 'VIBES',
+        filename: 'gall8.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '9',
+        title: 'TEAM MOMENTS',
+        image: require('../../assets/Gallery/gall9.jpg'),
+        tag: 'BTS',
+        filename: 'gall9.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '10',
+        title: 'INNOVATION HUB',
+        image: require('../../assets/Gallery/gall10.jpg'),
+        tag: 'TECH',
+        filename: 'gall10.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '11',
+        title: 'GRAND PERFORMANCE',
+        image: require('../../assets/Gallery/gall11.jpg'),
+        tag: 'CULTURAL',
+        filename: 'gall11.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '12',
+        title: 'EVENT HIGHLIGHTS',
+        image: require('../../assets/Gallery/gall12.jpg'),
+        tag: 'VIBES',
+        filename: 'gall12.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '13',
+        title: 'THE PREPARATION',
+        image: require('../../assets/Gallery/gall13.jpg'),
+        tag: 'BTS',
+        filename: 'gall13.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '14',
+        title: 'STAGE READINESS',
+        image: require('../../assets/Gallery/gall14.jpg'),
+        tag: 'BTS',
+        filename: 'gall14.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '15',
+        title: 'CELEBRATIONS',
+        image: require('../../assets/Gallery/gall15.jpg'),
+        tag: 'VIBES',
+        filename: 'gall15.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '16',
+        title: 'CODING BATTLE',
+        image: require('../../assets/Gallery/gall16.jpg'),
+        tag: 'TECH',
+        filename: 'gall16.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '17',
+        title: 'BACKSTAGE CHAOS',
+        image: require('../../assets/Gallery/gall17.jpg'),
+        tag: 'BTS',
+        filename: 'gall17.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '18',
+        title: 'ARTISTIC EXPRESSION',
+        image: require('../../assets/Gallery/gall18.jpg'),
+        tag: 'CULTURAL',
+        filename: 'gall18.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '19',
+        title: 'CROWD ENERGY',
+        image: require('../../assets/Gallery/gall19.jpg'),
+        tag: 'VIBES',
+        filename: 'gall19.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '20',
+        title: 'FINAL TOUCHES',
+        image: require('../../assets/Gallery/gall20.jpg'),
+        tag: 'BTS',
+        filename: 'gall20.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '21',
+        title: 'PROJECT DEMO',
+        image: require('../../assets/Gallery/gall21.jpg'),
+        tag: 'TECH',
+        filename: 'gall21.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '22',
+        title: 'MUSICAL NIGHT',
+        image: require('../../assets/Gallery/gall22.jpg'),
+        tag: 'CULTURAL',
+        filename: 'gall22.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '23',
+        title: 'FESTIVE MOOD',
+        image: require('../../assets/Gallery/gall23.jpg'),
+        tag: 'VIBES',
+        filename: 'gall23.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '24',
+        title: 'ORGANIZING TEAM',
+        image: require('../../assets/Gallery/gall24.jpg'),
+        tag: 'BTS',
+        filename: 'gall24.jpg',
+        titleFont: 'Gilton'
+    },
+    {
+        id: '25',
+        title: 'CLOSING MOMENTS',
+        image: require('../../assets/Gallery/gall25.jpg'),
+        tag: 'VIBES',
+        filename: 'gall25.jpg',
         titleFont: 'Gilton'
     }
 ];

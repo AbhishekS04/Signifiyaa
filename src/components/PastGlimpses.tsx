@@ -1,16 +1,18 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
 const PastGlimpses = () => {
+    const navigation = useNavigation<any>();
     const photos = [
-        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' },
-        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' },
-        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' },
-        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' },
-        { url: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/df3cf166-3366-45c3-907f-218183b63d3e.jpg' },
+        { url: require('../../assets/Gallery/gall1.jpg') },
+        { url: require('../../assets/Gallery/gall2.jpg') },
+        { url: require('../../assets/Gallery/gall3.jpg') },
+        { url: require('../../assets/Gallery/gall4.jpg') },
+        { url: require('../../assets/Gallery/gall5.jpg') },
     ];
 
     return (
@@ -56,6 +58,7 @@ const PastGlimpses = () => {
                 <TouchableOpacity
                     className="bg-black px-12 py-5 rounded-full shadow-xl border-2 border-black"
                     activeOpacity={0.85}
+                    onPress={() => navigation.navigate('Gallery')}
                 >
                     <Text className="text-white text-base uppercase tracking-[2px]"
                         style={{
@@ -70,7 +73,7 @@ const PastGlimpses = () => {
 };
 
 // Polaroid Card Component with Tape
-const PolaroidCard = ({ photo, index, isLeft }: { photo: { url: string }, index: number, isLeft: boolean }) => {
+const PolaroidCard = ({ photo, index, isLeft }: { photo: { url: any }, index: number, isLeft: boolean }) => {
     // Enhanced rotation angles for more impact
     const rotations = ['-6deg', '5deg', '-4deg', '6deg', '-5deg'];
     const rotation = rotations[index];
@@ -122,7 +125,11 @@ const PolaroidCard = ({ photo, index, isLeft }: { photo: { url: string }, index:
                 >
                     {/* Photo */}
                     <Image
-                        source={{ uri: photo.url }}
+                        source={
+                            typeof photo.url === 'string' && (photo.url.startsWith('http') || photo.url.startsWith('https'))
+                                ? { uri: photo.url }
+                                : photo.url
+                        }
                         className="w-full rounded-lg"
                         style={{
                             height: isSmallDevice ? 160 : 190,

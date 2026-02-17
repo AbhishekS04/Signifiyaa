@@ -13,7 +13,7 @@ import Animated, {
 const SocialConnect = () => {
     return (
         <Animated.View
-            className="px-6 pb-6 pt-4 bg-black"
+            className="px-6 pb-12 pt-4 bg-black"
         >
 
             {/* --- Row 1 --- */}
