@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, Image as RNImage } from 'react-native';
+import { View, Text, Dimensions } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-
 import SmoothButton from './ui/SmoothButton';
 import SponsorModal from './SponsorModal';
 import Animated, {
@@ -12,22 +11,19 @@ import Animated, {
     withDelay,
     withSequence,
     Easing,
-    interpolate,
     FadeInDown
 } from 'react-native-reanimated';
 
 const { height, width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
-// Realistic Paper Money with Curved Bend and Natural Physics
+// Falling money bill animation
 const MoneyBill = React.memo(({
     delay,
     startX,
     drift,
     size,
     opacity,
-    swaySpeed,
-    turbulence
 }: {
     delay: number;
     startX: number;
@@ -39,15 +35,14 @@ const MoneyBill = React.memo(({
 }) => {
     const translateY = useSharedValue(-100);
     const translateX = useSharedValue(0);
-    const rotateZ = useSharedValue(0); // Only gentle flutter
+    const rotateZ = useSharedValue(0);
 
     useEffect(() => {
-        // Faster falling for smooth flow effect
         translateY.value = withDelay(
             delay,
             withRepeat(
                 withTiming(height + 150, {
-                    duration: 4000 + Math.random() * 2000, // 4-6 seconds (much faster)
+                    duration: 4000 + Math.random() * 2000,
                     easing: Easing.bezier(0.42, 0, 0.58, 1),
                 }),
                 -1,
@@ -55,38 +50,24 @@ const MoneyBill = React.memo(({
             )
         );
 
-        // Gentle horizontal drift (minimal)
         translateX.value = withDelay(
             delay,
             withRepeat(
                 withSequence(
-                    withTiming(drift * 0.3, {
-                        duration: 1500,
-                        easing: Easing.inOut(Easing.ease),
-                    }),
-                    withTiming(-drift * 0.3, {
-                        duration: 1500,
-                        easing: Easing.inOut(Easing.ease),
-                    })
+                    withTiming(drift * 0.3, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+                    withTiming(-drift * 0.3, { duration: 1500, easing: Easing.inOut(Easing.ease) })
                 ),
                 -1,
                 true
             )
         );
 
-        // Subtle flutter only (no complex 3D rotations)
         rotateZ.value = withDelay(
             delay,
             withRepeat(
                 withSequence(
-                    withTiming(8, {
-                        duration: 1200,
-                        easing: Easing.inOut(Easing.sin),
-                    }),
-                    withTiming(-8, {
-                        duration: 1200,
-                        easing: Easing.inOut(Easing.sin),
-                    })
+                    withTiming(8, { duration: 1200, easing: Easing.inOut(Easing.sin) }),
+                    withTiming(-8, { duration: 1200, easing: Easing.inOut(Easing.sin) })
                 ),
                 -1,
                 true
@@ -94,15 +75,13 @@ const MoneyBill = React.memo(({
         );
     }, []);
 
-    const animatedStyle = useAnimatedStyle(() => {
-        return {
-            transform: [
-                { translateY: translateY.value },
-                { translateX: translateX.value },
-                { rotateZ: `${rotateZ.value}deg` }, // Only subtle flutter
-            ],
-        };
-    });
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [
+            { translateY: translateY.value },
+            { translateX: translateX.value },
+            { rotateZ: `${rotateZ.value}deg` },
+        ],
+    }));
 
     return (
         <Animated.View
@@ -114,16 +93,11 @@ const MoneyBill = React.memo(({
                     width: 44 * size,
                     height: 22 * size,
                     opacity: opacity,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 3 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 5,
                 }
             ]}
             className="bg-[#4CAF50] rounded-sm"
         >
-            {/* Rupee note with detail */}
-            <View className="w-full h-full border-2 border-[#2E7D32] items-center justify-center bg-gradient-to-br from-[#66BB6A] to-[#4CAF50]">
+            <View className="w-full h-full border-2 border-[#2E7D32] items-center justify-center">
                 <Text style={{ fontSize: 12 * size }} className="font-bold text-white">₹</Text>
             </View>
         </Animated.View>
@@ -131,29 +105,9 @@ const MoneyBill = React.memo(({
 });
 
 const PrizesSponsors = () => {
-    // Shared value for pulsing decoration in Buddy card
-    const buddyPulse = useSharedValue(1);
-
-    useEffect(() => {
-        buddyPulse.value = withRepeat(
-            withSequence(
-                withTiming(1.1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
-                withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) })
-            ),
-            -1,
-            true
-        );
-    }, []);
-
-    const buddyPulseStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: buddyPulse.value }],
-    }));
-
-    // Reduced from 25 to 12 bills — imperceptible visual difference, halves animation load
     const moneyBills = React.useMemo(() => Array.from({ length: 12 }, (_, i) => {
-        const wave = Math.floor(i / 4); // Smaller waves of 4 bills
+        const wave = Math.floor(i / 4);
         const positionInWave = i % 4;
-
         return {
             delay: wave * 3000 + positionInWave * 200,
             startX: (Math.random() * (width - 60)),
@@ -166,24 +120,31 @@ const PrizesSponsors = () => {
     }), []);
 
     // ============================================
-    // SPONSORS DATA (Easy to update)
+    // SPONSORS DATA — images from assets/Sponsers
     // ============================================
-    const SPONSORS: any[] = [];
+    const SPONSORS = [
+        { name: 'Arun Ice Creams', logo: require('../../assets/Sponsers/arun.avif') },
+        { name: 'Axis Bank', logo: require('../../assets/Sponsers/axis.avif') },
+        { name: 'Burger King', logo: require('../../assets/Sponsers/burgerking.avif') },
+        { name: "Domino's", logo: require('../../assets/Sponsers/Domino.avif') },
+        { name: 'Jawa Yezdi', logo: require('../../assets/Sponsers/jawa.avif') },
+        { name: 'Nikon', logo: require('../../assets/Sponsers/nikon.avif') },
+        { name: 'Red Bull', logo: require('../../assets/Sponsers/Redbull.avif') },
+    ];
 
     const COMMUNITY_PARTNERS = [
-        { name: 'CSI', logo: require('../../assets/Sponsors/Spnl1.avif') },
-        { name: 'ACM', logo: require('../../assets/Sponsors/Spnl2.avif') },
-        { name: 'Cerkle', logo: require('../../assets/Sponsors/Spnl3.avif') },
+        { name: 'CSI', logo: require('../../assets/Community_Partners/Spnl1.avif') },
+        { name: 'ACM', logo: require('../../assets/Community_Partners/Spnl2.avif') },
+        { name: 'Cerkle', logo: require('../../assets/Community_Partners/Spnl3.avif') },
     ];
 
     const [isSponsorModalVisible, setSponsorModalVisible] = useState(false);
 
     return (
         <View className="w-full pb-8">
-            {/* Section A: Prize Pool Card with Floating Money */}
-            <View className="bg-[#E8EAF6] rounded-3xl p-8 items-center relative overflow-hidden border-[3px] border-black shadow-sm mb-6">
 
-                {/* ULTRA-LIGHT FLOATING MONEY ANIMATION */}
+            {/* ── Section A: Prize Pool Card ── */}
+            <View className="bg-[#E8EAF6] rounded-3xl p-8 items-center relative overflow-hidden border-[3px] border-black shadow-sm mb-6">
                 {moneyBills.map((bill, index) => (
                     <MoneyBill
                         key={index}
@@ -197,136 +158,131 @@ const PrizesSponsors = () => {
                     />
                 ))}
 
-                {/* Content (Above the money rain) */}
                 <View className="z-10">
                     <View className="items-center mb-4">
-                        <Text className={`leading-[50px] text-black ${isSmallDevice ? 'text-[30px]' : 'text-[50px]'}`}
+                        <Text
+                            className={`leading-[50px] text-black ${isSmallDevice ? 'text-[30px]' : 'text-[50px]'}`}
                             style={{ fontFamily: 'BBHBartle' }}
                         >
                             200K+
                         </Text>
-                        <Text className={`leading-[50px] text-black -mt-2 ${isSmallDevice ? 'text-[30px]' : 'text-[50px]'}`}
+                        <Text
+                            className={`leading-[50px] text-black -mt-2 ${isSmallDevice ? 'text-[30px]' : 'text-[50px]'}`}
                             style={{ fontFamily: 'BBHBartle' }}
                         >
                             INR
                         </Text>
-                        <Text className="text-xl text-black mt-1 tracking-widest uppercase"
-                            style={{ fontFamily: 'Gilton' }}>
+                        <Text
+                            className="text-xl text-black mt-1 tracking-widest uppercase"
+                            style={{ fontFamily: 'Gilton' }}
+                        >
                             IN PRIZE POOL
                         </Text>
                     </View>
-
-                    <Text className="text-gray-800 text-center uppercase text-sm tracking-wide"
-                        style={{ fontFamily: 'Softura' }}>
+                    <Text
+                        className="text-gray-800 text-center uppercase text-sm tracking-wide"
+                        style={{ fontFamily: 'Softura' }}
+                    >
                         GOODIES, MERCHES &{'\n'}MANY MORE...
                     </Text>
                 </View>
             </View>
 
-            {/* Section A.5: SIGNIFIYA BUDDY CARD (New) */}
-            <View className="bg-[#D1FAE5] rounded-3xl pt-10 pb-8 px-8 items-center justify-center relative overflow-hidden border-[3px] border-black mb-8"
-                style={{ shadowColor: '#000', shadowOffset: { width: 6, height: 6 }, shadowOpacity: 1, shadowRadius: 0, elevation: 0 }}
+            {/* ── Section A.5: Signifiya Buddy Card ── */}
+            <View
+                className="bg-[#D1FAE5] rounded-3xl pt-10 pb-8 px-8 items-center justify-center relative overflow-hidden border-[3px] border-black mb-8"
+                style={{ shadowColor: '#000', shadowOffset: { width: 6, height: 6 }, shadowOpacity: 1, shadowRadius: 0 }}
             >
-                {/* Content Container */}
                 <Animated.View entering={FadeInDown.delay(200).springify()} className="items-center w-full z-10">
-                    {/* Title Section */}
+
+                    {/* Title */}
                     <View className="items-center mb-10">
-                        <Text style={{ fontFamily: 'Gilton' }} className={`text-black uppercase tracking-tight ${isSmallDevice ? 'text-4xl' : 'text-6xl'}`}>
+                        <Text
+                            style={{ fontFamily: 'Gilton' }}
+                            className={`text-black uppercase tracking-tight ${isSmallDevice ? 'text-4xl' : 'text-6xl'}`}
+                        >
                             Signifiya
                         </Text>
-                        <Text style={{ fontFamily: 'Gilton' }} className={`text-black uppercase -mt-2 ${isSmallDevice ? 'text-4xl' : 'text-6xl'}`}>
+                        <Text
+                            style={{ fontFamily: 'Gilton' }}
+                            className={`text-black uppercase -mt-2 ${isSmallDevice ? 'text-4xl' : 'text-6xl'}`}
+                        >
                             Buddy
                         </Text>
                     </View>
 
-                    {/* Prizes Display */}
+                    {/* Prize boxes */}
                     <View className="w-full items-center gap-6">
-                        {/* First Prize - Top Card (3D Tactile) */}
-                        <View style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0, shadowRadius: 0 }}>
-                            {/* Shadow layer */}
+
+                        {/* 1st Prize — 3D tactile */}
+                        <View>
                             <View style={{
-                                position: 'absolute',
-                                top: 7,
-                                left: 7,
+                                position: 'absolute', top: 7, left: 7,
                                 width: isSmallDevice ? 160 : 190,
                                 height: isSmallDevice ? 160 : 190,
-                                backgroundColor: '#000',
-                                borderRadius: 28,
+                                backgroundColor: '#000', borderRadius: 28,
                             }} />
-                            {/* Card */}
-                            <View className="bg-white border-[3px] border-black items-center justify-center"
-                                style={{
-                                    width: isSmallDevice ? 160 : 190,
-                                    height: isSmallDevice ? 160 : 190,
-                                    borderRadius: 28,
-                                }}
+                            <View
+                                className="bg-white border-[3px] border-black items-center justify-center"
+                                style={{ width: isSmallDevice ? 160 : 190, height: isSmallDevice ? 160 : 190, borderRadius: 28 }}
                             >
                                 <ExpoImage
                                     source={require('../../assets/Prizes/1st.avif')}
                                     style={{ width: isSmallDevice ? 90 : 110, height: isSmallDevice ? 90 : 110 }}
                                     contentFit="contain"
                                 />
-                                <Text style={{ fontFamily: 'Softura' }} className="text-sm font-bold text-black uppercase mt-2">1st Prize</Text>
+                                <Text style={{ fontFamily: 'Softura' }} className="text-sm font-bold text-black uppercase mt-2">
+                                    1st Prize
+                                </Text>
                             </View>
                         </View>
 
-                        {/* Second and Third Prizes - Row */}
+                        {/* 2nd & 3rd Prize row */}
                         <View className="flex-row gap-6 w-full justify-center">
-                            {/* Second Prize (3D Tactile) */}
+
+                            {/* 2nd Prize — 3D tactile */}
                             <View>
-                                {/* Shadow layer */}
                                 <View style={{
-                                    position: 'absolute',
-                                    top: 6,
-                                    left: 6,
+                                    position: 'absolute', top: 6, left: 6,
                                     width: isSmallDevice ? 120 : 140,
                                     height: isSmallDevice ? 120 : 140,
-                                    backgroundColor: '#000',
-                                    borderRadius: 22,
+                                    backgroundColor: '#000', borderRadius: 22,
                                 }} />
-                                {/* Card */}
-                                <View className="bg-white border-[3px] border-black items-center justify-center"
-                                    style={{
-                                        width: isSmallDevice ? 120 : 140,
-                                        height: isSmallDevice ? 120 : 140,
-                                        borderRadius: 22,
-                                    }}
+                                <View
+                                    className="bg-white border-[3px] border-black items-center justify-center"
+                                    style={{ width: isSmallDevice ? 120 : 140, height: isSmallDevice ? 120 : 140, borderRadius: 22 }}
                                 >
                                     <ExpoImage
                                         source={require('../../assets/Prizes/2nd.avif')}
                                         style={{ width: isSmallDevice ? 60 : 75, height: isSmallDevice ? 60 : 75 }}
                                         contentFit="contain"
                                     />
-                                    <Text style={{ fontFamily: 'Softura' }} className="text-xs font-bold text-black uppercase mt-1">2nd Prize</Text>
+                                    <Text style={{ fontFamily: 'Softura' }} className="text-xs font-bold text-black uppercase mt-1">
+                                        2nd Prize
+                                    </Text>
                                 </View>
                             </View>
 
-                            {/* Third Prize (3D Tactile) */}
+                            {/* 3rd Prize — 3D tactile */}
                             <View>
-                                {/* Shadow layer */}
                                 <View style={{
-                                    position: 'absolute',
-                                    top: 6,
-                                    left: 6,
+                                    position: 'absolute', top: 6, left: 6,
                                     width: isSmallDevice ? 120 : 140,
                                     height: isSmallDevice ? 120 : 140,
-                                    backgroundColor: '#000',
-                                    borderRadius: 22,
+                                    backgroundColor: '#000', borderRadius: 22,
                                 }} />
-                                {/* Card */}
-                                <View className="bg-white border-[3px] border-black items-center justify-center"
-                                    style={{
-                                        width: isSmallDevice ? 120 : 140,
-                                        height: isSmallDevice ? 120 : 140,
-                                        borderRadius: 22,
-                                    }}
+                                <View
+                                    className="bg-white border-[3px] border-black items-center justify-center"
+                                    style={{ width: isSmallDevice ? 120 : 140, height: isSmallDevice ? 120 : 140, borderRadius: 22 }}
                                 >
                                     <ExpoImage
                                         source={require('../../assets/Prizes/3rd.avif')}
                                         style={{ width: isSmallDevice ? 60 : 75, height: isSmallDevice ? 60 : 75 }}
                                         contentFit="contain"
                                     />
-                                    <Text style={{ fontFamily: 'Softura' }} className="text-xs font-bold text-black uppercase mt-1">3rd Prize</Text>
+                                    <Text style={{ fontFamily: 'Softura' }} className="text-xs font-bold text-black uppercase mt-1">
+                                        3rd Prize
+                                    </Text>
                                 </View>
                             </View>
                         </View>
@@ -334,29 +290,75 @@ const PrizesSponsors = () => {
                 </Animated.View>
             </View>
 
-            {/* Section B: Our Sponsors Card */}
+            {/* ── Section B: Sponsors Card ── */}
             <View className="bg-white rounded-3xl p-6 border-[3px] border-black shadow-sm">
 
                 {/* Header */}
-                <View className="items-center mb-4">
-                    <View className="flex-row items-baseline">
-                        <View className="items-center">
-                            <Text className={`text-black ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`} style={{ fontFamily: 'Gilton' }}>CURRENT</Text>
-                            <Text className={`text-black -mt-2 ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`} style={{ fontFamily: 'Gilton' }}>SPONSORS</Text>
-                        </View>
+                <View className="items-center mb-6">
+                    <View className="items-center">
+                        <Text
+                            className={`text-black ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}
+                            style={{ fontFamily: 'Gilton' }}
+                        >
+                            CURRENT
+                        </Text>
+                        <Text
+                            className={`text-black -mt-2 ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}
+                            style={{ fontFamily: 'Gilton' }}
+                        >
+                            SPONSORS
+                        </Text>
                     </View>
                     <Text className="text-gray-500 text-lg mt-1 text-center" style={{ fontFamily: 'Softura' }}>
                         Powered by the best in the industry
                     </Text>
                 </View>
 
-                <View className="w-full h-[3px] bg-black my-8" />
+                {/* ── Sponsor Logo Grid (before separator) ── */}
+                <View className="flex-row flex-wrap justify-center mb-8" style={{ gap: 12 }}>
+                    {SPONSORS.map((sponsor, index) => (
+                        <View key={index} style={{ position: 'relative', marginBottom: 4 }}>
+                            {/* 3D shadow layer */}
+                            <View style={{
+                                position: 'absolute', top: 5, left: 5,
+                                width: (width - 72) / 2,
+                                height: 76,
+                                backgroundColor: '#000',
+                                borderRadius: 16,
+                            }} />
+                            {/* Card */}
+                            <View
+                                className="bg-white border-[2px] border-black items-center justify-center"
+                                style={{
+                                    width: (width - 72) / 2,
+                                    height: 76,
+                                    borderRadius: 16,
+                                }}
+                            >
+                                <ExpoImage
+                                    source={sponsor.logo}
+                                    style={{ width: '78%', height: '68%' }}
+                                    contentFit="contain"
+                                    cachePolicy="memory-disk"
+                                    transition={200}
+                                />
+                            </View>
+                        </View>
+                    ))}
+                </View>
 
+                {/* Horizontal separator */}
+                <View className="w-full h-[3px] bg-black mb-8" />
+
+                {/* Community Partners */}
                 <View className="items-center mb-10">
                     <Text className="text-black text-4xl uppercase" style={{ fontFamily: 'Gilton' }}>
                         COMMUNITY
                     </Text>
-                    <Text className="text-black text-4xl uppercase -mt-2" style={{ fontFamily: 'Gilton', transform: [{ skewX: '-10deg' }] }}>
+                    <Text
+                        className="text-black text-4xl uppercase -mt-2"
+                        style={{ fontFamily: 'Gilton', transform: [{ skewX: '-10deg' }] }}
+                    >
                         PARTNERS
                     </Text>
                 </View>
@@ -365,11 +367,7 @@ const PrizesSponsors = () => {
                     {COMMUNITY_PARTNERS.map((partner, index) => (
                         <View key={index} className="w-40 h-24 items-center justify-center">
                             <ExpoImage
-                                source={
-                                    typeof partner.logo === 'string' && (partner.logo.startsWith('http') || partner.logo.startsWith('https'))
-                                        ? { uri: partner.logo }
-                                        : partner.logo
-                                }
+                                source={partner.logo}
                                 style={{ width: '100%', height: '100%' }}
                                 contentFit="contain"
                                 cachePolicy="memory-disk"
@@ -379,6 +377,7 @@ const PrizesSponsors = () => {
                     ))}
                 </View>
 
+                {/* CTA Button */}
                 <SmoothButton
                     onPress={() => setSponsorModalVisible(true)}
                     containerStyle={{ width: '100%' }}
