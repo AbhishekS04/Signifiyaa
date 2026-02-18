@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Linking, Dimensions } from 'react-native';
-import { Image } from 'expo-image';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, Image, ScrollView, Linking, Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
@@ -221,19 +220,19 @@ const TEAM_MEMBERS: Member[] = [
 
 const CORE_MEMBERS = TEAM_MEMBERS;
 
-const TeamSection = React.memo(() => {
+const TeamSection = () => {
     const [activeMember, setActiveMember] = useState<Member>(CORE_MEMBERS[0]);
 
-    const openLink = useCallback((url?: string) => {
+    const openLink = (url?: string) => {
         if (url && url !== '#' && url !== 'https://linkedin.com/in/' && url !== 'https://instagram.com/') {
             Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
         }
-    }, []);
+    };
 
-    const handleMemberSelect = useCallback((member: Member) => {
+    const handleMemberSelect = (member: Member) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setActiveMember(member);
-    }, []);
+    };
 
     return (
         <View className={`bg-[#F3E5F5] rounded-[32px] mb-4 mx-2 border-2 border-black ${isSmallDevice ? 'px-3 py-5' : 'px-5 py-6'}`}>
@@ -260,10 +259,7 @@ const TeamSection = React.memo(() => {
                                     width: '100%',
                                     height: '100%',
                                 }}
-                                contentFit="cover"
-                                cachePolicy="memory-disk"
-                                transition={150}
-                                recyclingKey={`member-main-${activeMember.id}`}
+                                resizeMode="cover"
                             />
                             <View
                                 style={{ position: 'absolute', inset: 0, borderWidth: 2, borderColor: 'black', borderRadius: 16 }}
@@ -338,10 +334,8 @@ const TeamSection = React.memo(() => {
                             >
                                 <Image
                                     source={typeof member.image === 'string' ? { uri: member.image } : member.image}
-                                    style={{ width: '100%', height: '100%' }}
-                                    contentFit="cover"
-                                    cachePolicy="memory-disk"
-                                    recyclingKey={`member-thumb-${member.id}`}
+                                    className="w-full h-full"
+                                    resizeMode="cover"
                                 />
                             </TouchableOpacity>
                         ))}
@@ -350,7 +344,7 @@ const TeamSection = React.memo(() => {
             </View>
         </View>
     );
-});
+};
 
 // Extracted Social Button
 const SocialButton = ({ children, onPress }: { children: React.ReactNode, onPress: () => void }) => (
@@ -366,4 +360,3 @@ const SocialButton = ({ children, onPress }: { children: React.ReactNode, onPres
 );
 
 export default TeamSection;
-

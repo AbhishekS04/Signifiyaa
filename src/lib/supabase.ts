@@ -11,4 +11,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         persistSession: false,
         autoRefreshToken: false,
     },
+    realtime: {
+        // Explicitly using global WebSocket to avoid 'ws' dependency issues
+        headers: {
+            'User-Agent': 'supabase-js-react-native',
+        }
+    }
 })

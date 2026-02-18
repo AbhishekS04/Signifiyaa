@@ -17,15 +17,6 @@
       "android": {
         "buildType": "apk"
       },
-      "env": {
-        "EXPO_PUBLIC_RAZORPAY_KEY_ID": "rzp_test_S8rSjrgYttq3i7",
-        "RAZORPAY_KEY_ID": "rzp_test_S8rSjrgYttq3i7",
-        "EXPO_PUBLIC_SUPABASE_URL": "https://emqfusplwhykbsvuudie.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY": "sb_publishable_osHB8XQ5f2N1lkiXBScNgw_2qgD7GvF",
-        "EXPO_PUBLIC_BETTER_AUTH_URL": "https://signifiya.in",
-        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "484238697781-01sscga1lc7naifa3cj5n6cnfcjg68c2.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GITHUB_CLIENT_ID": "Ov23liCsx7HSPdIa87oL"
-      }
     },
     "production": {
       "autoIncrement": true,
