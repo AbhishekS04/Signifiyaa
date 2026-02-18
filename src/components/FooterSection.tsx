@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Dimensions } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { Image } from 'expo-image';
 import Svg, { Path, G } from 'react-native-svg';
 import SmoothButton from './ui/SmoothButton';
 import SponsorModal from './SponsorModal';
@@ -7,8 +8,9 @@ import SponsorModal from './SponsorModal';
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
-const FooterSection = () => {
+const FooterSection = React.memo(() => {
     const [isSponsorModalVisible, setSponsorModalVisible] = useState(false);
+    const handleCloseSponsorModal = useCallback(() => setSponsorModalVisible(false), []);
     return (
         <View className="bg-[#4ADE80] rounded-t-[30px] px-6 pt-5 pb-10 mt-6 z-10">
 
@@ -79,7 +81,7 @@ const FooterSection = () => {
                 ))}
             </View>
 
-            <SponsorModal visible={isSponsorModalVisible} onClose={() => setSponsorModalVisible(false)} />
+            <SponsorModal visible={isSponsorModalVisible} onClose={handleCloseSponsorModal} />
 
             {/* Footer Area */}
             <View className="relative">
@@ -113,13 +115,7 @@ const FooterSection = () => {
 
                 {/* Decorations */}
                 {/* Cartoon Pencil - Positioned */}
-                <View className={`absolute right-[-10px] bottom-0 ${isSmallDevice ? 'w-20 h-40' : 'w-24 h-48'} pointer-events-none`}>
-                    <Image
-                        source={{ uri: '.../assets/original/VikfqxN0JL.lottie' }}
-                        className="w-full h-full"
-                        resizeMode="contain"
-                    />
-                </View>
+                {/* Decorative element removed — invalid URI was causing failed network requests */}
 
                 {/* Scroll To Top Removed as requested */}
 
@@ -127,7 +123,7 @@ const FooterSection = () => {
 
         </View>
     );
-};
+});
 
 // --- Subcomponents ---
 
@@ -162,7 +158,8 @@ const PlayStoreIcon = () => (
     <Image
         source={{ uri: 'https://cdn-icons-png.flaticon.com/512/888/888857.png' }}
         style={{ width: 32, height: 32 }}
-        resizeMode="contain"
+        contentFit="contain"
+        cachePolicy="memory-disk"
     />
 );
 

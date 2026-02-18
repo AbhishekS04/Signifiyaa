@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, Linking, Dimensions } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Linking, Dimensions } from 'react-native';
+import { Image } from 'expo-image';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
@@ -220,19 +221,19 @@ const TEAM_MEMBERS: Member[] = [
 
 const CORE_MEMBERS = TEAM_MEMBERS;
 
-const TeamSection = () => {
+const TeamSection = React.memo(() => {
     const [activeMember, setActiveMember] = useState<Member>(CORE_MEMBERS[0]);
 
-    const openLink = (url?: string) => {
+    const openLink = useCallback((url?: string) => {
         if (url && url !== '#' && url !== 'https://linkedin.com/in/' && url !== 'https://instagram.com/') {
             Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
         }
-    };
+    }, []);
 
-    const handleMemberSelect = (member: Member) => {
+    const handleMemberSelect = useCallback((member: Member) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setActiveMember(member);
-    };
+    }, []);
 
     return (
         <View className={`bg-[#F3E5F5] rounded-[32px] mb-4 mx-2 border-2 border-black ${isSmallDevice ? 'px-3 py-5' : 'px-5 py-6'}`}>
@@ -259,7 +260,10 @@ const TeamSection = () => {
                                     width: '100%',
                                     height: '100%',
                                 }}
-                                resizeMode="cover"
+                                contentFit="cover"
+                                cachePolicy="memory-disk"
+                                transition={150}
+                                recyclingKey={`member-main-${activeMember.id}`}
                             />
                             <View
                                 style={{ position: 'absolute', inset: 0, borderWidth: 2, borderColor: 'black', borderRadius: 16 }}
@@ -334,8 +338,10 @@ const TeamSection = () => {
                             >
                                 <Image
                                     source={typeof member.image === 'string' ? { uri: member.image } : member.image}
-                                    className="w-full h-full"
-                                    resizeMode="cover"
+                                    style={{ width: '100%', height: '100%' }}
+                                    contentFit="cover"
+                                    cachePolicy="memory-disk"
+                                    recyclingKey={`member-thumb-${member.id}`}
                                 />
                             </TouchableOpacity>
                         ))}
@@ -344,7 +350,7 @@ const TeamSection = () => {
             </View>
         </View>
     );
-};
+});
 
 // Extracted Social Button
 const SocialButton = ({ children, onPress }: { children: React.ReactNode, onPress: () => void }) => (
@@ -360,3 +366,4 @@ const SocialButton = ({ children, onPress }: { children: React.ReactNode, onPres
 );
 
 export default TeamSection;
+

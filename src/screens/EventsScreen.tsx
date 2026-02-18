@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import { View, Text, LayoutAnimation, Platform, UIManager, FlatList } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
@@ -23,6 +23,15 @@ const SECTION_FONTS = {
     DAY_HEADER: 'Gilton',
 };
 
+// Stable header component extracted outside render to prevent recreation
+const EventsListHeader = memo(() => (
+    <View className="px-4">
+        <View className="mt-4 mb-8">
+            <EventsHeader />
+        </View>
+    </View>
+));
+
 const EventsScreen = () => {
     // State
     const navigation = useNavigation();
@@ -31,31 +40,37 @@ const EventsScreen = () => {
 
     const filters = ['ALL', 'ESPORTS', 'CSE', 'CIVIL', 'MECHANICAL', 'EEE', 'ROBOTICS', 'NON-TECH'];
 
-    // 📂 Filter Logic — uses the `day` property from EventsData
-    const day1Events = activeFilter === 'ALL'
-        ? events.filter(e => e.day === 1)
-        : events.filter(e => e.day === 1 && e.category === activeFilter);
+    // Memoize filtered events to avoid recomputation on every render
+    const day1Events = useMemo(() => 
+        activeFilter === 'ALL'
+            ? events.filter(e => e.day === 1)
+            : events.filter(e => e.day === 1 && e.category === activeFilter),
+        [events, activeFilter]
+    );
 
-    const day2Events = activeFilter === 'ALL'
-        ? events.filter(e => e.day === 2)
-        : events.filter(e => e.day === 2 && e.category === activeFilter);
+    const day2Events = useMemo(() => 
+        activeFilter === 'ALL'
+            ? events.filter(e => e.day === 2)
+            : events.filter(e => e.day === 2 && e.category === activeFilter),
+        [events, activeFilter]
+    );
 
-    const handleFilterChange = (filter: string) => {
+    const handleFilterChange = useCallback((filter: string) => {
         if (filter === activeFilter) return;
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         setActiveFilter(filter);
-    };
+    }, [activeFilter]);
 
-    const handleDetailPress = (event: any) => {
+    const handleDetailPress = useCallback((event: any) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    };
+    }, []);
 
-    const handleRegisterPress = (event: any) => {
+    const handleRegisterPress = useCallback((event: any) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         (navigation as any).navigate('EventRegistration');
-    };
+    }, [navigation]);
 
-    const renderEvent = (event: any, index: number) => (
+    const renderEvent = useCallback((event: any, index: number) => (
         <SketchyEventCard
             key={`${event.title}-${index}`}
             item={event}
@@ -63,21 +78,15 @@ const EventsScreen = () => {
             onPressRegister={() => handleRegisterPress(event)}
             onPressDetails={() => handleDetailPress(event)}
         />
-    );
+    ), [handleRegisterPress, handleDetailPress]);
 
-    const ListHeader = () => (
-        <View className="px-4">
-            <View className="mt-4 mb-8">
-                <EventsHeader />
-            </View>
-        </View>
-    );
+    const ListHeader = EventsListHeader;
 
-    const data = [
+    const data = useMemo(() => [
         { id: 'header' },
         { id: 'day1' },
         { id: 'day2' }
-    ];
+    ], []);
 
     const renderItem = ({ item }: { item: any }) => {
         if (item.id === 'header') return <ListHeader />;
@@ -161,16 +170,19 @@ const EventsScreen = () => {
         return null;
     };
 
+    const keyExtractor = useCallback((item: any) => item.id, []);
+
     return (
         <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
             <PageTransition style={{ flex: 1 }}>
                 <FlatList
                     data={data}
                     renderItem={renderItem}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={keyExtractor}
                     showsVerticalScrollIndicator={false}
                     removeClippedSubviews={Platform.OS === 'android'}
                     contentContainerStyle={{ paddingBottom: 0 }}
+                    extraData={activeFilter}
                 />
             </PageTransition>
         </SafeAreaView>

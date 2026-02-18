@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Platform, StyleSheet, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Platform, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import SmoothButton from '../components/ui/SmoothButton';
 import Animated, { FadeIn, Easing, useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS, cancelAnimation } from 'react-native-reanimated';
 import { PageTransition } from '../components/navigation/PageTransition';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import AvatarChooserModal, { AVATAR_MAP } from '../components/ui/AvatarChooserModal';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
@@ -124,13 +125,13 @@ const ProfileScreen = () => {
 
     // ... existing code ...
 
-    const handleCopyBookingId = async () => {
+    const handleCopyBookingId = useCallback(async () => {
         if (bookingId) {
             await Clipboard.setStringAsync(bookingId);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); // Haptic Feedback
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             setShowCopyToast(true);
         }
-    };
+    }, [bookingId]);
     const avatarToastY = useSharedValue(-100);
     const copyToastY = useSharedValue(-100);
 
@@ -161,7 +162,7 @@ const ProfileScreen = () => {
         transform: [{ translateY: copyToastY.value }],
     }));
 
-    const handleLogoutPressIn = () => {
+    const handleLogoutPressIn = useCallback(() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         setIsHolding(true);
         holdProgress.value = withTiming(1, { duration: 2000, easing: Easing.linear }, (finished) => {
@@ -169,19 +170,19 @@ const ProfileScreen = () => {
                 runOnJS(triggerLogout)();
             }
         });
-    };
+    }, [holdProgress]);
 
-    const handleLogoutPressOut = () => {
+    const handleLogoutPressOut = useCallback(() => {
         setIsHolding(false);
         cancelAnimation(holdProgress);
         holdProgress.value = withTiming(0, { duration: 300 });
-    };
+    }, [holdProgress]);
 
-    const triggerLogout = () => {
+    const triggerLogout = useCallback(() => {
         // Strong feedback on completion as requested
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         signOut();
-    };
+    }, [signOut]);
 
     const holdProgressStyle = useAnimatedStyle(() => ({
         width: `${holdProgress.value * 100}%`,
@@ -208,12 +209,9 @@ const ProfileScreen = () => {
         transform: [{ translateY: avatarToastY.value }],
     }));
 
+    // Removed artificial 800ms loading delay — wastes startup time with no functional purpose
     React.useEffect(() => {
-        // Simulate loading to give the "app feel"
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 800);
-        return () => clearTimeout(timer);
+        setIsLoading(false);
     }, []);
 
     // Button flip animation
@@ -232,11 +230,9 @@ const ProfileScreen = () => {
         transform: [{ rotateX: `${flipRotation.value}deg` }],
     }));
 
-    const onRefresh = async () => {
+    const onRefresh = useCallback(async () => {
         setRefreshing(true);
         try {
-            // Import supabase at the top if needed, but we can use it directly here
-            const { supabase } = await import('../lib/supabase');
             const { data: freshProfile, error } = await supabase
                 .from('user')
                 .select('bookingId, mobileNo, collegeName, gender, name, image')
@@ -255,9 +251,9 @@ const ProfileScreen = () => {
         } finally {
             setRefreshing(false);
         }
-    };
+    }, [user?.email, user?.name]);
 
-    const handleAvatarSelect = async (avatarId: string) => {
+    const handleAvatarSelect = useCallback(async (avatarId: string) => {
         try {
             // Update immediately in UI
             await updateProfile({
@@ -269,9 +265,9 @@ const ProfileScreen = () => {
         } catch (error) {
             Alert.alert("Error", "Failed to update avatar");
         }
-    };
+    }, [updateProfile]);
 
-    const handleSave = async () => {
+    const handleSave = useCallback(async () => {
         setIsSaving(true);
         try {
             await updateProfile({
@@ -286,7 +282,7 @@ const ProfileScreen = () => {
             setIsSaving(false);
             Alert.alert('Error', 'Failed to update profile');
         }
-    };
+    }, [name, mobile, college, gender, updateProfile]);
 
     if (isLoading) {
         return (

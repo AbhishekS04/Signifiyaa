@@ -7,7 +7,7 @@ const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 import { ArrowUpRight } from 'lucide-react-native';
 
-const NewsletterSupport = () => {
+const NewsletterSupport = React.memo(() => {
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
     const [agreed, setAgreed] = useState(false);
@@ -166,6 +166,6 @@ const NewsletterSupport = () => {
 
         </Animated.View>
     );
-};
+});
 
 export default NewsletterSupport;

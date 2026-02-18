@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PreloaderScreen from '../screens/PreloaderScreen';
 import MusicPromptModal from '../components/MusicPromptModal';
 import MusicService from '../services/MusicService';
@@ -26,23 +26,25 @@ export default function AppContent() {
         preloadMusic();
     }, []);
 
-    const handlePreloaderFinish = () => {
+    const handlePreloaderFinish = useCallback(() => {
         setShowPreloader(false);
         setShowMusicPrompt(true);
-    };
+    }, []);
 
-    const handleMusicSelection = async (withMusic: boolean) => {
+    const handleMusicSelection = useCallback(async (withMusic: boolean) => {
         setShowMusicPrompt(false);
 
         if (withMusic) {
-            // 🚀 STEP 2: Instant Play (Music is already loaded!)
             setIsPlaying(true);
-            MusicService.resumeMusic(); // Just resume, it's sitting at 0:00
+            MusicService.resumeMusic();
         } else {
-            // User chose "No Music", but it's loaded and ready if they change their mind
             setIsPlaying(false);
         }
-    };
+    }, [setIsPlaying]);
+
+    const handleWelcomeToastComplete = useCallback(() => {
+        setWelcomeToastVisible(false);
+    }, [setWelcomeToastVisible]);
 
     return (
         <>
@@ -52,7 +54,7 @@ export default function AppContent() {
 
             {/* Global Welcome Toast */}
             {welcomeToastVisible && (
-                <WelcomeToast onComplete={() => setWelcomeToastVisible(false)} />
+                <WelcomeToast onComplete={handleWelcomeToastComplete} />
             )}
         </>
     );

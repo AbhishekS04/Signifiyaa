@@ -5,13 +5,8 @@ import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withSpring,
-    withTiming,
-    interpolate,
-    Extrapolation,
     FadeIn,
-    measure,
-    runOnUI,
-    useAnimatedRef,
+    FadeOut,
     interpolateColor
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
@@ -64,19 +59,15 @@ const FAQSection = () => {
             <Animated.View
                 className="gap-4"
             >
-                {FAQS.map((faq, index) => (
-                    <Animated.View
-                        key={faq.id}
-                    >
-                        <AccordionItem question={faq.question} answer={faq.answer} />
-                    </Animated.View>
+                {FAQS.map((faq) => (
+                    <AccordionItem key={faq.id} question={faq.question} answer={faq.answer} />
                 ))}
             </Animated.View>
         </Animated.View>
     );
 };
 
-const AccordionItem = ({ question, answer }: { question: string, answer: string }) => {
+const AccordionItem = React.memo(({ question, answer }: { question: string, answer: string }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     // Animation Values
@@ -115,9 +106,6 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
     const cardStyle = useAnimatedStyle(() => ({
         transform: [{ translateY: buttonOffset.value }]
     }));
-
-    // CHILD PHYSICS: Fast and Crisp (Stiffness 250, Damping 30)
-    // Ensures child shrinks BEFORE parent collapses to prevent clipping, but with minimal bounce.
 
     return (
         // OUTER CONTAINER (Shadow)
@@ -162,7 +150,7 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
                 {isOpen && (
                     <Animated.View
                         entering={FadeIn.duration(150).delay(50)}
-                        exiting={FadeIn.duration(0)}
+                        exiting={FadeOut.duration(150)}
                         style={{ overflow: 'hidden' }}
                     >
                         <View className="px-5 pb-5 pt-0">
@@ -180,6 +168,6 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
             </Animated.View>
         </Animated.View>
     );
-};
+});
 
-export default FAQSection;
+export default React.memo(FAQSection);

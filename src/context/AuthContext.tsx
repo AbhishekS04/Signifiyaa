@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { Alert } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
@@ -49,11 +49,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const initAuth = async () => {
             try {
-                console.log('Initializing BetterAuth...');
                 const { data, error } = await authClient.getSession();
                 if (data?.user) {
-                    console.log('Session restored for:', data.user.email);
-                    console.log('Full User Object:', JSON.stringify(data.user, null, 2));
 
                     const fullUser = await syncUserProfile(data.user);
 
@@ -66,15 +63,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     setProfile(null);
                 }
             } catch (e: any) {
-                console.error('=== Auth Init Error ===');
-                console.error('Message:', e.message);
-                console.error('Type:', e.name);
-                if (e.message === 'Network request failed') {
-                    const BASE_URL = process.env.EXPO_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
-                    console.error('Network failure while hitting:', `${BASE_URL}/api/auth/get-session`);
-                    console.error('Please verify if the server is up and reachable from this device.');
+                if (__DEV__) {
+                    console.error('Auth Init Error:', e.message);
                 }
-                console.error('Stack Trace:', e.stack);
                 setSession(null);
                 setUser(null);
                 setProfile(null);
@@ -88,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Listen for deep link callbacks (OAuth)
     useEffect(() => {
         const handleDeepLink = async ({ url }: { url: string }) => {
-            console.log('Deep link received:', url);
+            // Deep link received
             // Handle OAuth callback - refresh session
             if (url.includes('callback') || url.includes('signifiya://')) {
                 try {
@@ -96,7 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     await new Promise(resolve => setTimeout(resolve, 500));
                     const { data } = await authClient.getSession();
                     if (data?.user) {
-                        console.log('OAuth session established for:', data.user.email);
+                        // OAuth session established
                         setSession(data.session);
                         setUser(data.user);
                         setProfile(data.user);
@@ -121,13 +112,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Helper to sync extra profile data from Supabase
     const syncUserProfile = async (baseUser: any) => {
-        console.log('=== syncUserProfile called ===');
         let finalUser: User = { ...baseUser };
-        console.log('Initial bookingId:', finalUser.bookingId);
 
         // Always fetch from Supabase to ensure we have the latest profile data (image, mobile, etc.)
         try {
-            console.log('Fetching latest profile from Supabase...');
+            // Fetch latest profile from Supabase
             const { data: sbUser, error } = await supabase
                 .from('user')
                 .select('bookingId, mobileNo, collegeName, gender, image')
@@ -139,25 +128,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             if (sbUser) {
-                console.log('SB User:', JSON.stringify(sbUser, null, 2));
-                console.log('Base User Image:', finalUser.image);
-
                 finalUser = {
                     ...finalUser,
                     bookingId: sbUser.bookingId || finalUser.bookingId,
                     mobileNo: sbUser.mobileNo || finalUser.mobileNo,
                     collegeName: sbUser.collegeName || finalUser.collegeName,
                     gender: sbUser.gender || finalUser.gender,
-                    // Prioritize DB image if it exists, else use base (OAuth) image
-                    image: sbUser.image || finalUser.image, // If sbUser.image is null, valid OAuth URL persists
+                    image: sbUser.image || finalUser.image,
                 };
-                console.log('Final Merged Image:', finalUser.image);
             }
         } catch (err) {
             console.error('Supabase sync exception:', err);
         }
 
-        console.log('=== syncUserProfile completed ===');
         return finalUser;
     };
 
@@ -429,7 +412,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const value = {
+    const value = useMemo(() => ({
         session,
         user,
         profile,
@@ -443,7 +426,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         welcomeToastVisible,
         setWelcomeToastVisible,
         triggerWelcomeToast,
-    };
+    }), [session, user, profile, isLoading, welcomeToastVisible]);
 
     return (
         <AuthContext.Provider value={value}>

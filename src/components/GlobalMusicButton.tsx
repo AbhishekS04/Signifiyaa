@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { Play, Pause } from 'lucide-react-native';
 import SmoothButton from './ui/SmoothButton';
@@ -10,10 +10,10 @@ interface GlobalMusicButtonProps {
     style?: any;
 }
 
-export default function GlobalMusicButton({ style }: GlobalMusicButtonProps) {
+export default React.memo(function GlobalMusicButton({ style }: GlobalMusicButtonProps) {
     const { isPlaying, setIsPlaying } = useMusicContext();
 
-    const toggleMusic = () => {
+    const toggleMusic = useCallback(() => {
         // OPTIMISTIC UPDATE: Update UI immediately ⚡
         const nextState = !isPlaying;
         setIsPlaying(nextState);
@@ -24,7 +24,7 @@ export default function GlobalMusicButton({ style }: GlobalMusicButtonProps) {
         } else {
             MusicService.pauseMusic();
         }
-    };
+    }, [isPlaying, setIsPlaying]);
 
     return (
         <Animated.View style={[{
@@ -48,4 +48,4 @@ export default function GlobalMusicButton({ style }: GlobalMusicButtonProps) {
             </SmoothButton>
         </Animated.View>
     );
-}
+});

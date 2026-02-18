@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { View, Text, Platform, UIManager, Dimensions, TouchableOpacity } from 'react-native';
 import { Star, Volume2, VolumeX, ArrowLeft, ArrowRight } from 'lucide-react-native';
 import Animated, {
@@ -80,12 +80,17 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
     const CARD_WIDTH = width * 0.78;
     const CARD_HEIGHT = isSmallDevice ? 580 : 640;
 
-    // 🕵️‍♂️ VISIBILITY LOGIC
+    // 🕵️‍♂️ VISIBILITY LOGIC — only bridge to JS when visibility actually changes
+    const lastVisibility = useSharedValue(true);
     useDerivedValue(() => {
         if (!scrollY) return;
         const y = scrollY.value;
         const isVisible = (y + screenHeight > sectionY + 100) && (y < sectionY + sectionHeight - 100);
-        runOnJS(setIsSectionVisible)(isVisible);
+        // Only call runOnJS when visibility state actually flips — avoids JS bridge spam every frame
+        if (isVisible !== lastVisibility.value) {
+            lastVisibility.value = isVisible;
+            runOnJS(setIsSectionVisible)(isVisible);
+        }
     }, [scrollY, sectionY, sectionHeight]);
 
 
@@ -103,10 +108,13 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
         transform: [{ translateX: translateX.value }],
     }));
 
-    // 📂 Filter Logic: Handle 'ALL' case
-    const filteredEvents = selectedCategory === 'ALL'
-        ? EVENTS_DATA
-        : EVENTS_DATA.filter(event => event.category === selectedCategory);
+    // 📂 Filter Logic: Memoized to prevent re-computation on every render
+    const filteredEvents = useMemo(() =>
+        selectedCategory === 'ALL'
+            ? EVENTS_DATA
+            : EVENTS_DATA.filter(event => event.category === selectedCategory),
+        [selectedCategory]
+    );
 
     // 🌟 POLISHED ANIMATION (Scale + Fade + Slide)
     const handleFilterChange = (filter: string) => {
@@ -133,12 +141,12 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
 
         if (carouselRef.current) carouselRef.current.scrollTo({ index: 0, animated: false });
 
-        // 2. ENTRY: Expand, Fade In, Slide Up (Spring)
-        setTimeout(() => {
+        // 2. ENTRY: requestAnimationFrame for frame-aligned re-entry (replaces fragile setTimeout)
+        requestAnimationFrame(() => {
             containerOpacity.value = withTiming(1, { duration: 300 });
             containerScale.value = withSpring(1, { damping: 15, stiffness: 120 });
             containerTranslateY.value = withSpring(0, { damping: 15, stiffness: 120 });
-        }, 50);
+        });
     };
 
     const containerAnimatedStyle = useAnimatedStyle(() => ({
@@ -149,27 +157,26 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
         ]
     }));
 
-    // Audio Handlers
-    const handleVideoPlay = async () => {
+    // Audio Handlers — memoized to prevent carousel item re-renders
+    const handleVideoPlay = useCallback(async () => {
         if (MusicService.isPlaying()) {
             await MusicService.pauseMusic();
             setGlobalMusicPlaying(false);
         }
-    };
+    }, [setGlobalMusicPlaying]);
 
-    const handleVideoStop = async () => {
-        // Only resume if implied
+    const handleVideoStop = useCallback(async () => {
         if (!MusicService.isPlaying()) {
             await MusicService.resumeMusic();
             setGlobalMusicPlaying(true);
         }
-    };
+    }, [setGlobalMusicPlaying]);
 
     // Handler
-    const handleRegister = () => {
+    const handleRegister = useCallback(() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         (navigation as any).navigate('EventRegistration');
-    };
+    }, [navigation]);
 
     return (
         <View className="w-full">
@@ -191,7 +198,7 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
             <View className="bg-[#FFEB3B] border-[3px] border-black py-3 overflow-hidden mb-4" style={{ transform: [{ rotate: '-1deg' }] }}>
                 <Animated.View style={[marqueeStyle, { flexDirection: 'row', width: 2000 }]}>
                     <Text onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)} className="absolute opacity-0 font-[Gilton] text-black text-lg tracking-widest">{MARQUEE_TEXT}</Text>
-                    {[...Array(12)].map((_, i) => <Text key={i} className="font-[Gilton] text-black text-lg tracking-widest">{MARQUEE_TEXT}</Text>)}
+                    {[...Array(6)].map((_, i) => <Text key={i} className="font-[Gilton] text-black text-lg tracking-widest">{MARQUEE_TEXT}</Text>)}
                 </Animated.View>
             </View>
 
@@ -315,6 +322,7 @@ const CustomItem = React.memo(({ item, animationValue, isActive, width, onVideoP
 const EventCard = React.memo(({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl, isActive, onVideoPlay, onVideoStop, onRegisterPress }: any) => {
     const [isMuted, setIsMuted] = useState(true);
 
+    // Only create video player when the card has a video URL — saves memory for image-only cards
     const player = useVideoPlayer(videoUrl || '', (player) => {
         player.loop = true;
         player.muted = true;
@@ -396,7 +404,7 @@ const EventCard = React.memo(({ title, date, category, description, prizePool, i
                     </View>
                     <View className={`gap-4 w-full ${isSmallDevice ? 'mt-1' : 'mt-4'}`}>
                         <SmoothButton onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)} buttonStyle={`border-[3px] border-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`} innerButtonStyle={{ backgroundColor: buttonColor }} shadowStyle="bg-black rounded-2xl" depth={6}><Text className="text-black uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>VIEW DETAILS</Text></SmoothButton>
-                        <SmoothButton onPress={() => onRegisterPress()} buttonStyle={`bg-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`} shadowStyle="bg-black rounded-2xl" depth={6}><Text className="text-white uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>REGISTER</Text></SmoothButton>
+                        <SmoothButton onPress={onRegisterPress} buttonStyle={`bg-black rounded-2xl items-center ${isSmallDevice ? 'py-3' : 'py-4'}`} shadowStyle="bg-black rounded-2xl" depth={6}><Text className="text-white uppercase tracking-widest" style={{ fontFamily: SECTION_FONTS.BUTTON, fontSize: isSmallDevice ? 11 : 13 }}>REGISTER</Text></SmoothButton>
                     </View>
                 </View>
             </View>

@@ -10,7 +10,6 @@ import Animated, {
     withSequence,
     runOnJS,
     Easing,
-    WithTimingConfig
 } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 
@@ -108,10 +107,10 @@ function AnimatedChar({ char, index }: { char: string, index: number }) {
                 withTiming(startAngle, { duration: 80 }),
                 withTiming(index % 2 === 0 ? '-2deg' : '2deg', { duration: 80 }),
                 withTiming('0deg', { duration: 80 }),
-                withDelay(50, withTiming('0deg', { duration: 0 })) // Brief pause between shivers? No, continuous is more "thrill"
+                withDelay(50, withTiming('0deg', { duration: 0 }))
             ),
-            -1, // Infinite repeat
-            true // Reverse: true
+            20, // Limited repeats — preloader only visible ~5s, no need for infinite
+            true
         ));
 
     }, []);

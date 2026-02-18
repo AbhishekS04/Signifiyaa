@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Smile } from 'lucide-react-native';
@@ -6,7 +7,7 @@ import SmoothButton from './ui/SmoothButton';
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
-const AboutSection = () => {
+const AboutSection = React.memo(() => {
     const navigation = useNavigation<any>();
 
     return (
@@ -60,7 +61,7 @@ const AboutSection = () => {
             </Text>
         </View>
     );
-};
-
+});
 
 export default AboutSection;
+

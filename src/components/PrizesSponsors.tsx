@@ -129,18 +129,19 @@ const MoneyBill = React.memo(({
 });
 
 const PrizesSponsors = () => {
-    // LOTS of money flowing in waves/bursts
-    const moneyBills = React.useMemo(() => Array.from({ length: 25 }, (_, i) => {
-        const wave = Math.floor(i / 8); // Group into waves of 8 bills
-        const positionInWave = i % 8;
+    // Reduced from 25 to 12 bills — imperceptible visual difference, halves animation load
+    // 75 shared values → 36 shared values = 52% less UI thread work
+    const moneyBills = React.useMemo(() => Array.from({ length: 12 }, (_, i) => {
+        const wave = Math.floor(i / 4); // Smaller waves of 4 bills
+        const positionInWave = i % 4;
 
         return {
-            delay: wave * 3000 + positionInWave * 150, // Waves every 3s, bills 150ms apart
+            delay: wave * 3000 + positionInWave * 200,
             startX: (Math.random() * (width - 60)),
             drift: 40 + Math.random() * 50,
             size: 0.7 + Math.random() * 0.4,
             opacity: 0.4 + Math.random() * 0.35,
-            swaySpeed: 3000 + Math.random() * 2000, // 3-5 seconds (faster)
+            swaySpeed: 3000 + Math.random() * 2000,
             turbulence: 10 + Math.random() * 20,
         };
     }), []);

@@ -1,9 +1,10 @@
+import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowUpRight } from 'lucide-react-native';
 
-const GallerySection = () => {
+const GallerySection = React.memo(() => {
     const navigation = useNavigation<any>();
 
     return (
@@ -36,6 +37,6 @@ const GallerySection = () => {
 
         </View>
     );
-};
+});
 
 export default GallerySection;

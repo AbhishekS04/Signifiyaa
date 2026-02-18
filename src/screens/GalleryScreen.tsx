@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useMemo, useCallback, memo } from 'react';
-import { View, Text, FlatList, Dimensions, Platform } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
@@ -13,22 +13,24 @@ import Animated, {
     useAnimatedRef
 } from 'react-native-reanimated';
 
-// Import footer components as requested
+// Components
 import SmoothButton from '../components/ui/SmoothButton';
 import SocialConnect from '../components/SocialConnect';
 import NewsletterSupport from '../components/NewsletterSupport';
 import FooterSection from '../components/FooterSection';
 import { PageTransition } from '../components/navigation/PageTransition';
 import GlobalMusicButton from '../components/GlobalMusicButton';
-
-// Mock Data matching the reference image
-import { GALLERY_ITEMS, GALLERY_FILTERS } from '../data/GalleryData';
 import GalleryCard from '../components/GalleryCard';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+// Data
+import { GALLERY_ITEMS, GALLERY_FILTERS } from '../data/GalleryData';
 
-// Extracted Filter Button with Tactile Click (Font Configurable)
-// Extracted Filter Button with Tactile Click (Font Configurable)
+// --- Sub-Components ---
+
+// filter font helper
+const getFilterFont = (label: string) => {
+    return GALLERY_FILTERS.find(f => f.label === label)?.font || 'Gilton';
+};
 
 const FilterButton = memo(({ label, isActive, onPress, font }: { label: string, isActive: boolean, onPress: () => void, font: string }) => {
     // Smooth press effect: scale down on press, instant scale up on filter switch
@@ -77,32 +79,27 @@ const FilterButton = memo(({ label, isActive, onPress, font }: { label: string, 
     );
 });
 
-const GalleryScreen: React.FC = () => {
-    // --- Animated FlatList and Elastic Overscroll ---
-    const scrollRef = useAnimatedRef<Animated.FlatList<any>>();
-    const scrollY = useSharedValue(0);
+const ItemSeparator = memo(() => <View className="h-10" />);
 
-    // 60fps-optimized scroll handler
-    const scrollHandler = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            scrollY.value = event.contentOffset.y;
-        },
-    }, []);
+const ListFooterComponent = memo(() => (
+    <View className="mt-8">
+        <View className="px-4 gap-4">
+            <NewsletterSupport />
+        </View>
+        <SocialConnect />
+        <FooterSection />
+        {/* Padding for Floating Filter */}
+        <View className="h-48" />
+    </View>
+));
 
-    // Elastic filter card transform (only on negative overscroll)
-    const elasticStyle = useAnimatedStyle(() => {
-        'worklet';
-        const y = scrollY.value < 0 ? -scrollY.value * 0.6 : 0;
-        return { transform: [{ translateY: y }] };
-    }, [scrollY]);
+interface ListHeaderProps {
+    selectedFilter: string;
+    onFilterPress: (label: string) => void;
+    elasticStyle: any;
+}
 
-    const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
-
-    // Immediate filter switch: update state only, no scroll or delay
-    const handleFilterPress = useCallback((label: string) => {
-        setSelectedFilter(label);
-    }, []);
-
+const ListHeaderComponent = memo(({ selectedFilter, onFilterPress, elasticStyle }: ListHeaderProps) => {
     // Marquee State
     const [textWidth, setTextWidth] = useState(0);
     const translateX = useSharedValue(0);
@@ -127,46 +124,7 @@ const GalleryScreen: React.FC = () => {
         };
     });
 
-    // Single Active Image State
-    const [activeImageId, setActiveImageId] = useState<string | null>(null);
-
-    const handleCardToggle = (id: string) => {
-        setActiveImageId(id);
-    };
-
-    const itemsByFilter = useMemo(() => {
-        const grouped: Record<string, typeof GALLERY_ITEMS> = { ALL: GALLERY_ITEMS };
-
-        GALLERY_ITEMS.forEach((item) => {
-            if (!grouped[item.tag]) {
-                grouped[item.tag] = [] as typeof GALLERY_ITEMS;
-            }
-            grouped[item.tag].push(item as (typeof GALLERY_ITEMS)[number]);
-        });
-
-        return grouped;
-    }, []);
-
-    const filteredItems = itemsByFilter[selectedFilter] || GALLERY_ITEMS;
-
-    // Helper to get font for a specific filter label
-    const getFilterFont = (label: string) => {
-        return GALLERY_FILTERS.find(f => f.label === label)?.font || 'Gilton';
-    }
-
-    const renderItem = useCallback(({ item }: { item: typeof GALLERY_ITEMS[0] }) => (
-        <View className="px-4">
-            <GalleryCard
-                item={item}
-                isActive={activeImageId === item.id}
-                onToggle={() => handleCardToggle(item.id)}
-            />
-        </View>
-    ), [activeImageId]);
-
-    const keyExtractor = useCallback((item: typeof GALLERY_ITEMS[0]) => item.id, []);
-
-    const ListHeaderComponent = () => (
+    return (
         <View>
             {/* Main Purple Block Header */}
             <LinearGradient
@@ -214,7 +172,7 @@ const GalleryScreen: React.FC = () => {
             </LinearGradient>
 
             {/* Mannequin Section (Yellow Tilted Marquee) */}
-            <View className="mt-8 px-4">
+            <View className="mt-8 px-4 mb-4">
                 <View
                     className="bg-[#FFEB3B] border-[3px] border-black py-3 overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                     style={{ transform: [{ rotate: '-1.5deg' }] }}
@@ -236,7 +194,7 @@ const GalleryScreen: React.FC = () => {
                 </View>
             </View>
 
-            {/* Filter Container Start */}
+            {/* Filter Container */}
             <Animated.View style={elasticStyle} className="mx-4 mt-8 bg-white border-[3px] border-black rounded-[30px] p-6 pb-0">
                 <View className="items-center mb-6">
                     {/* Row 1: ALL, TECH */}
@@ -244,13 +202,13 @@ const GalleryScreen: React.FC = () => {
                         <FilterButton
                             label="ALL"
                             isActive={selectedFilter === 'ALL'}
-                            onPress={() => handleFilterPress('ALL')}
+                            onPress={() => onFilterPress('ALL')}
                             font={getFilterFont('ALL')}
                         />
                         <FilterButton
                             label="TECH"
                             isActive={selectedFilter === 'TECH'}
-                            onPress={() => handleFilterPress('TECH')}
+                            onPress={() => onFilterPress('TECH')}
                             font={getFilterFont('TECH')}
                         />
                     </View>
@@ -260,13 +218,13 @@ const GalleryScreen: React.FC = () => {
                         <FilterButton
                             label="CULTURAL"
                             isActive={selectedFilter === 'CULTURAL'}
-                            onPress={() => handleFilterPress('CULTURAL')}
+                            onPress={() => onFilterPress('CULTURAL')}
                             font={getFilterFont('CULTURAL')}
                         />
                         <FilterButton
                             label="VIBES"
                             isActive={selectedFilter === 'VIBES'}
-                            onPress={() => handleFilterPress('VIBES')}
+                            onPress={() => onFilterPress('VIBES')}
                             font={getFilterFont('VIBES')}
                         />
                     </View>
@@ -276,7 +234,7 @@ const GalleryScreen: React.FC = () => {
                         <FilterButton
                             label="BTS"
                             isActive={selectedFilter === 'BTS'}
-                            onPress={() => handleFilterPress('BTS')}
+                            onPress={() => onFilterPress('BTS')}
                             font={getFilterFont('BTS')}
                         />
                     </View>
@@ -284,16 +242,80 @@ const GalleryScreen: React.FC = () => {
             </Animated.View>
         </View>
     );
+});
 
-    const ListFooterComponent = () => (
-        <View className="mt-8">
-            <View className="px-4 gap-4">
-                <NewsletterSupport />
-            </View>
-            <SocialConnect />
-            <FooterSection />
+// --- Main Screen ---
+
+const GalleryScreen: React.FC = () => {
+    // --- Animated FlatList and Elastic Overscroll ---
+    const scrollRef = useAnimatedRef<Animated.FlatList<any>>();
+    const scrollY = useSharedValue(0);
+
+    // 60fps-optimized scroll handler
+    const scrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            scrollY.value = event.contentOffset.y;
+        },
+    }, []);
+
+    // Elastic filter card transform (only on negative overscroll)
+    const elasticStyle = useAnimatedStyle(() => {
+        'worklet';
+        // Only animate when pulling DOWN (negative scrollY)
+        const y = scrollY.value < 0 ? -scrollY.value * 0.6 : 0;
+        return { transform: [{ translateY: y }] };
+    }, []);
+
+    const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
+    const [activeImageId, setActiveImageId] = useState<string | null>(null);
+
+    // Immediate filter switch: update state only, no scroll or delay
+    const handleFilterPress = useCallback((label: string) => {
+        setSelectedFilter(label);
+    }, []);
+
+    const handleCardToggle = useCallback((id: string) => {
+        setActiveImageId(id);
+    }, []);
+
+    // Filter Logic
+    const itemsByFilter = useMemo(() => {
+        const grouped: Record<string, typeof GALLERY_ITEMS> = { ALL: GALLERY_ITEMS };
+
+        GALLERY_ITEMS.forEach((item) => {
+            if (!grouped[item.tag]) {
+                grouped[item.tag] = [] as typeof GALLERY_ITEMS;
+            }
+            grouped[item.tag].push(item as (typeof GALLERY_ITEMS)[number]);
+        });
+
+        return grouped;
+    }, []);
+
+    const filteredItems = itemsByFilter[selectedFilter] || GALLERY_ITEMS;
+
+    // Render Items
+    const renderItem = useCallback(({ item }: { item: typeof GALLERY_ITEMS[0] }) => (
+        <View className="px-4">
+            <GalleryCard
+                item={item}
+                isActive={activeImageId === item.id}
+                onToggle={() => handleCardToggle(item.id)}
+            />
         </View>
-    );
+    ), [activeImageId, handleCardToggle]);
+
+    const keyExtractor = useCallback((item: typeof GALLERY_ITEMS[0]) => item.id, []);
+
+    // Memoize the Header render function to pass down to FlatList
+    // Note: We use a render function that returns the memoized component
+    const renderHeader = useCallback(() => (
+        <ListHeaderComponent
+            selectedFilter={selectedFilter}
+            onFilterPress={handleFilterPress}
+            elasticStyle={elasticStyle}
+        />
+    ), [selectedFilter, handleFilterPress, elasticStyle]); // elasticStyle is stable from useAnimatedStyle
 
     return (
         <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
@@ -307,22 +329,24 @@ const GalleryScreen: React.FC = () => {
                         data={filteredItems}
                         renderItem={renderItem}
                         keyExtractor={keyExtractor}
-                        ListHeaderComponent={ListHeaderComponent}
+                        ListHeaderComponent={renderHeader}
                         ListFooterComponent={ListFooterComponent}
                         contentContainerStyle={{ paddingBottom: 0 }}
                         showsVerticalScrollIndicator={false}
                         removeClippedSubviews={Platform.OS === 'android'}
                         initialNumToRender={2}
                         maxToRenderPerBatch={2}
-                        updateCellsBatchingPeriod={0}
-                        windowSize={3}
+                        updateCellsBatchingPeriod={50}
+                        windowSize={5}
                         getItemLayout={(_, index) => ({
-                            length: 450,
+                            length: 450, // Approximate height
                             offset: 450 * index,
                             index,
                         })}
-                        ItemSeparatorComponent={() => <View className="h-10" />}
+                        ItemSeparatorComponent={ItemSeparator}
                         style={{ flex: 1 }}
+                        // Crucial: extraData ensures list updates when selectedFilter changes
+                        // even if data reference remains same (though here data changes so it's fine)
                         extraData={selectedFilter}
                     />
                 </View>

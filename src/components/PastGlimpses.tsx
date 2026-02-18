@@ -6,15 +6,16 @@ import { useNavigation } from '@react-navigation/native';
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
-const PastGlimpses = () => {
+const PHOTOS = [
+    { url: require('../../assets/Gallery/gall1.jpg') },
+    { url: require('../../assets/Gallery/gall2.jpg') },
+    { url: require('../../assets/Gallery/gall3.jpg') },
+    { url: require('../../assets/Gallery/gall4.jpg') },
+    { url: require('../../assets/Gallery/gall5.jpg') },
+];
+
+const PastGlimpses = React.memo(() => {
     const navigation = useNavigation<any>();
-    const photos = [
-        { url: require('../../assets/Gallery/gall1.jpg') },
-        { url: require('../../assets/Gallery/gall2.jpg') },
-        { url: require('../../assets/Gallery/gall3.jpg') },
-        { url: require('../../assets/Gallery/gall4.jpg') },
-        { url: require('../../assets/Gallery/gall5.jpg') },
-    ];
 
     return (
         <View className="bg-[#FFF0F5] py-12 w-full items-center rounded-[30px] mb-6 overflow-hidden">
@@ -43,7 +44,7 @@ const PastGlimpses = () => {
 
                 {/* Photos in Zigzag Pattern */}
                 <View className="w-full px-4">
-                    {photos.map((photo, index) => (
+                    {PHOTOS.map((photo, index) => (
                         <PolaroidCard
                             key={index}
                             photo={photo}
@@ -71,13 +72,13 @@ const PastGlimpses = () => {
             </View>
         </View>
     );
-};
+});
 
 // Polaroid Card Component with Tape
-const PolaroidCard = ({ photo, index, isLeft }: { photo: { url: any }, index: number, isLeft: boolean }) => {
+const PolaroidCard = React.memo(({ photo, index, isLeft }: { photo: { url: any }, index: number, isLeft: boolean }) => {
     // Enhanced rotation angles for more impact
     const rotations = ['-6deg', '5deg', '-4deg', '6deg', '-5deg'];
-    const rotation = rotations[index];
+    const rotation = rotations[index % rotations.length];
 
     return (
         <View style={{ marginBottom: 50, position: 'relative' }}>
@@ -147,6 +148,6 @@ const PolaroidCard = ({ photo, index, isLeft }: { photo: { url: any }, index: nu
             </View>
         </View>
     );
-};
+});
 
 export default PastGlimpses;

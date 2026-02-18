@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useMemo } from 'react';
 import { View, Text, RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -12,9 +12,7 @@ import Animated, {
 import HeroSection from '../components/HeroSection';
 import AboutSection from '../components/AboutSection';
 import GallerySection from '../components/GallerySection';
-
 import DepartmentsEvents from '../components/DepartmentsEvents';
-
 import PrizesSponsors from '../components/PrizesSponsors';
 import PastGlimpses from '../components/PastGlimpses';
 import TeamSection from '../components/TeamSection';
@@ -26,112 +24,94 @@ import { PageTransition } from '../components/navigation/PageTransition';
 import { StaggerEntrance } from '../components/animations/StaggerEntrance';
 import GlobalMusicButton from '../components/GlobalMusicButton';
 
+// Stable style objects hoisted outside render — avoids new object allocation every frame
+const SAFE_AREA_EDGES = ['top', 'left', 'right'] as const;
+const CONTENT_CONTAINER_STYLE = { paddingBottom: 0, minHeight: '100%' as const };
+const MUSIC_BUTTON_POSITION = { position: 'absolute' as const, zIndex: 50, right: 20, top: 20 };
+const REFRESH_COLORS = ['#ffffff'];
 
 export default function HomeScreen() {
-    // 🔑 Use Reanimated Ref for Animated Components
     const scrollRef = useAnimatedRef<ScrollView>();
-    const scrollY = useSharedValue(0); // 1. Shared Value for scroll position
+    const scrollY = useSharedValue(0);
     const navigation = useNavigation();
     const route = useRoute();
     const [refreshing, setRefreshing] = useState(false);
-    const [refreshKey, setRefreshKey] = useState(0);
 
-    // ⬆️ Scroll Logic (2 Taps)
+    // Stable callback ref — prevents HeroSection re-render from prop change
+    const handleSignInPress = useCallback(() => {
+        (navigation as any).navigate('Auth');
+    }, [navigation]);
+
     const handleScrollToTop = useCallback(() => {
-        // Use optional chaining for safety - standard way to scroll from JS
         scrollRef.current?.scrollTo({ y: 0, animated: true });
     }, []);
 
-    // 🔄 Pull to Refresh Logic
     const onRefresh = useCallback(() => {
         setRefreshing(true);
-
-        // Simulate a network request or data reload
         setTimeout(() => {
             setRefreshing(false);
         }, 2000);
     }, []);
 
-    // 🚀 Listen for Double-Click (params passed from TabNavigator)
     useEffect(() => {
         const params = route.params as any;
         if (params?.scrollToTop) {
             handleScrollToTop();
-            // Reset param
             navigation.setParams({ scrollToTop: undefined } as any);
         }
     }, [(route.params as any)?.scrollToTop]);
 
-    // 🌀 Scroll Handler for Animations
+    // 60fps scroll handler — runs on UI thread via Reanimated
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
             scrollY.value = event.contentOffset.y;
         },
     });
 
-    // 🎬 Animated Style for Global Music Button (Fixed normally, moves on Refresh)
-    // Also fades out when Sign In Modal is open
-    const musicButtonOpacity = useSharedValue(1);
+    // Music button follows overscroll — pure UI thread, no JS re-renders
+    const musicButtonStyle = useAnimatedStyle(() => ({
+        transform: [
+            { translateY: scrollY.value < 0 ? -scrollY.value : 0 }
+        ]
+    }));
 
-    useEffect(() => {
-        musicButtonOpacity.value = withTiming(1, { duration: 300 });
-    }, []);
-
-    const musicButtonStyle = useAnimatedStyle(() => {
-        return {
-            opacity: musicButtonOpacity.value,
-            transform: [
-                { translateY: scrollY.value < 0 ? -scrollY.value : 0 }
-            ]
-        };
-    });
+    // Memoize RefreshControl to prevent re-creation on every render
+    const refreshControl = useMemo(() => (
+        <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#ffffff"
+            colors={REFRESH_COLORS}
+            progressBackgroundColor="#171717"
+        />
+    ), [refreshing, onRefresh]);
 
     return (
-        <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
+        <SafeAreaView className="flex-1 bg-black pt-3" edges={SAFE_AREA_EDGES}>
             <PageTransition style={{ flex: 1 }}>
-                {/* 🎵 Global Music Button - Fixed but moves with Refresh */}
-                <Animated.View style={[musicButtonStyle, { position: 'absolute', zIndex: 50, right: 20, top: 20 }]}>
+                {/* Music Button — UI-thread animated, no JS re-renders */}
+                <Animated.View style={[musicButtonStyle, MUSIC_BUTTON_POSITION]}>
                     <GlobalMusicButton />
                 </Animated.View>
 
-                {/* Main Scroll Content */}
                 <Animated.ScrollView
                     ref={scrollRef as any}
-                    onScroll={scrollHandler} // Attach Handler
+                    onScroll={scrollHandler}
                     className="flex-1"
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{
-                        paddingBottom: 0,
-                        minHeight: '100%'
-                    }}
+                    contentContainerStyle={CONTENT_CONTAINER_STYLE}
                     scrollEventThrottle={16}
-
-                    // Native elastic bounce
                     bounces={true}
                     overScrollMode="always"
-
-                    // Performance Props
                     removeClippedSubviews={true}
                     decelerationRate="normal"
                     keyboardShouldPersistTaps="handled"
                     nestedScrollEnabled={true}
-
-                    // 🔄 Native Refresh Control
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={onRefresh}
-                            tintColor="#ffffff" // iOS
-                            colors={['#ffffff']} // Android
-                            progressBackgroundColor="#171717" // Android
-                        />
-                    }
+                    refreshControl={refreshControl}
                 >
-                    {/* Fixed: Removed duplicate Music Button from here */}
-
                     <StaggerEntrance>
                         <View className="mb-4">
-                            <HeroSection onSignInPress={() => (navigation as any).navigate('Auth')} />
+                            <HeroSection onSignInPress={handleSignInPress} />
                         </View>
                         <View className="px-4 gap-4 pb-4">
                             <AboutSection />
@@ -152,12 +132,8 @@ export default function HomeScreen() {
                         <SocialConnect />
                         <FooterSection />
                     </StaggerEntrance>
-
-                    {/* Fixed: Removed duplicate Music Button from here */}
                 </Animated.ScrollView>
-
-
             </PageTransition>
-        </SafeAreaView >
+        </SafeAreaView>
     );
 }

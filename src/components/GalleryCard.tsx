@@ -1,6 +1,6 @@
 import React, { useState, useCallback, memo, useMemo, useRef } from 'react';
 import { View, Text, Pressable, Dimensions } from 'react-native';
-import { Svg, Image as SvgImage, Defs, Filter, FeColorMatrix } from 'react-native-svg';
+import { Image } from 'expo-image';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -109,8 +109,8 @@ const GalleryCard = memo(({ item, isActive, onToggle }: GalleryItemProps) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         onToggle();
 
-        // Fewer particles = faster render (8 instead of 16)
-        const batch = Array.from({ length: 8 }, () => ++particleCounter.current);
+        // Fewer particles (5 instead of 8) = faster render
+        const batch = Array.from({ length: 5 }, () => ++particleCounter.current);
         setParticles(prev => [...prev, ...batch]);
     }, [onToggle]);
 
@@ -122,6 +122,11 @@ const GalleryCard = memo(({ item, isActive, onToggle }: GalleryItemProps) => {
         opacity: colorOpacity.value
     }));
 
+    // Grayscale overlay fades OUT when active (opacity goes 1 → 0)
+    const grayscaleOverlayStyle = useAnimatedStyle(() => ({
+        opacity: 1 - colorOpacity.value
+    }));
+
     const heartButtonStyle = useAnimatedStyle(() => ({
         transform: [
             { translateX: buttonOffset.value },
@@ -130,13 +135,11 @@ const GalleryCard = memo(({ item, isActive, onToggle }: GalleryItemProps) => {
         ]
     }));
 
-    const grayscaleFilter = useMemo(() => (
-        <Defs>
-            <Filter id={`grayscale_${item.id}`}>
-                <FeColorMatrix type="saturate" values="0" />
-            </Filter>
-        </Defs>
-    ), [item.id]);
+    const imageSource = useMemo(() => 
+        typeof item.image === 'string' && (item.image.startsWith('http') || item.image.startsWith('https'))
+            ? { uri: item.image }
+            : item.image
+    , [item.image]);
 
     return (
         <View className="relative">
@@ -146,34 +149,32 @@ const GalleryCard = memo(({ item, isActive, onToggle }: GalleryItemProps) => {
             {/* The Polaroid Card */}
             <View className="bg-white border-[3px] border-black rounded-[32px] p-4 overflow-hidden">
 
-                {/* Image Container */}
+                {/* Image Container — Single image with grayscale overlay */}
                 <View className="w-full h-80 rounded-[20px] border-[3px] border-black overflow-hidden relative bg-gray-100">
 
-                    {/* Layer 1: Base Grayscale Image (Always Visible) */}
-                    <View className="absolute inset-0">
-                        <Svg width="100%" height="100%">
-                            {grayscaleFilter}
-                            <SvgImage
-                                href={typeof item.image === 'string' && (item.image.startsWith('http') || item.image.startsWith('https')) ? { uri: item.image } : item.image}
-                                width="100%"
-                                height="100%"
-                                preserveAspectRatio="xMidYMid slice"
-                                filter={`url(#grayscale_${item.id})`}
-                            />
-                        </Svg>
-                    </View>
+                    {/* Single expo-image (color) — always rendered */}
+                    <Image
+                        source={imageSource}
+                        style={{ width: '100%', height: '100%' }}
+                        contentFit="cover"
+                        cachePolicy="memory-disk"
+                        recyclingKey={`gallery-${item.id}`}
+                        transition={200}
+                    />
 
-                    {/* Layer 2: Color Image (Animated Opacity) */}
-                    <Animated.View style={[imageAnimatedStyle, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }]}>
-                        <Svg width="100%" height="100%">
-                            <SvgImage
-                                href={typeof item.image === 'string' && (item.image.startsWith('http') || item.image.startsWith('https')) ? { uri: item.image } : item.image}
-                                width="100%"
-                                height="100%"
-                                preserveAspectRatio="xMidYMid slice"
-                            />
-                        </Svg>
-                    </Animated.View>
+                    {/* Grayscale overlay — fades OUT when active (revealing color underneath) */}
+                    <Animated.View
+                        style={[
+                            grayscaleOverlayStyle,
+                            {
+                                position: 'absolute',
+                                top: 0, left: 0, right: 0, bottom: 0,
+                                backgroundColor: 'rgba(128, 128, 128, 0.6)',
+                                // Mix blend mode not available in RN, so we use a semi-transparent gray overlay
+                                // that fades out to reveal the color image
+                            }
+                        ]}
+                    />
                 </View>
 
                 {/* Content Block */}

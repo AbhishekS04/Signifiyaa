@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useMemo } from 'react';
 import { AppState } from 'react-native';
 import MusicService from '../services/MusicService';
 
@@ -26,8 +26,10 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         };
     }, [isPlaying]);
 
+    const value = useMemo(() => ({ isPlaying, setIsPlaying }), [isPlaying]);
+
     return (
-        <MusicContext.Provider value={{ isPlaying, setIsPlaying }}>
+        <MusicContext.Provider value={value}>
             {children}
         </MusicContext.Provider>
     );
