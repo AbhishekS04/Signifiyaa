@@ -13,7 +13,7 @@ const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
 // Hoist constants outside component — avoids re-creation every render
-const TARGET_DATE_MS = new Date('2026-03-13T00:00:00').getTime();
+const TARGET_DATE_MS = new Date('2026-03-27T00:00:00').getTime();
 const MARQUEE_TEXT = "SIGNIFIYA'26 IS HERE. REGISTRATIONS ARE LIVE.   ";
 
 // --- Isolated Countdown Component ---
