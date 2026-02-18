@@ -41,14 +41,11 @@
       "expo-web-browser",
       "expo-updates"
     ],
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "owner": "tushardevx01",
     "extra": {
       "eas": {
-        "projectId": "11b761ae-92fa-4b25-830a-1f29fe2651d2"
+        "projectId": "0d16532d-08f7-4ab7-abbf-ce89633560b3"
       }
-    },
-    "owner": "abhishek2304"
+    }
   }
 }
