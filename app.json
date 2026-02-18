@@ -16,7 +16,8 @@
       "infoPlist": {
         "CADisableMinimumFrameDurationOnPhone": true,
         "UIViewControllerBasedStatusBarAppearance": false
-      }
+      },
+      "bundleIdentifier": "com.abhishek2304.signifiya"
     },
     "android": {
       "adaptiveIcon": {

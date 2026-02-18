@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Check, AlertCircle, X } from 'lucide-react-native';
+import { Check, AlertCircle, X } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
 import Animated, {
     FadeInDown, Layout, FadeIn,

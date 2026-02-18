@@ -4,133 +4,159 @@ import Animated, {
     useSharedValue,
     useAnimatedStyle,
     withTiming,
-    withSpring,
     withDelay,
     withRepeat,
-    withSequence,
+    interpolate,
+    cancelAnimation,
     runOnJS,
     Easing,
+    Extrapolation,
+    type SharedValue,
 } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 
 const { height } = Dimensions.get('window');
 
-// 🎬 Text Content
+/* ── constants ─────────────────────────────────────────────── */
 const BRAND_TEXT = "SIGNIFIYA'26";
 const CHARS = BRAND_TEXT.split('');
+const CHAR_COUNT = CHARS.length; // 12
 
-// ⏱️ Timing Configuration
-const LETTER_DURATION = 800;      // How long one letter takes to fully fade/slide in
-const STAGGER_DELAY = 300;        // Delay between each letter (Controls the "typing" speed)
-// Total Text Time = (CHARS.length * STAGGER_DELAY) + LETTER_DURATION approx
-// 12 chars * 300 = 3600ms + 800ms = 4400ms
-
-const HOLD_DURATION = 1500;       // How long to stare at the full text
-const TOTAL_SEQ_TIME = (CHARS.length * STAGGER_DELAY) + HOLD_DURATION;
-
+const LETTER_DURATION = 800;
+const STAGGER_DELAY = 300;
+const HOLD_DURATION = 1500;
 const SHUTTER_DURATION = 1200;
 
+/** Total time for all characters to finish their entrance animation */
+const TOTAL_ENTRANCE_MS = (CHAR_COUNT - 1) * STAGGER_DELAY + LETTER_DURATION; // 4100
+/** Delay before shutter begins sliding up */
+const TOTAL_SEQ_TIME = CHAR_COUNT * STAGGER_DELAY + HOLD_DURATION;
+
+const SHAKE_HALF_CYCLE_MS = 300;
+const SHAKE_AMPLITUDE_DEG = 2;
+
+/* ── types ─────────────────────────────────────────────────── */
 interface PreloaderScreenProps {
     onFinish: () => void;
 }
 
-export default function PreloaderScreen({ onFinish }: PreloaderScreenProps) {
-    const shutterProgress = useSharedValue(0);
+interface AnimatedCharProps {
+    char: string;
+    index: number;
+    entrance: SharedValue<number>;
+    shake: SharedValue<number>;
+}
 
-    // Array of shared values for each character
-    // We create an array of hooks? No, hooks rules.
-    // We can use a single progress value and interpolate, OR an array of values initialized once.
-    // Better: Render AnimatedChar components to keep cleaner state.
+/* ── main component ────────────────────────────────────────── */
+export default function PreloaderScreen({ onFinish }: PreloaderScreenProps) {
+    const entrance = useSharedValue(0);        // 0→1 over entrance duration
+    const shake = useSharedValue(0);           // 0→1 repeating oscillation
+    const shutterProgress = useSharedValue(0); // 0→1 shutter slide-up
 
     useEffect(() => {
-        // Start the shutter exit AFTER the text sequence
-        shutterProgress.value = withDelay(TOTAL_SEQ_TIME, withTiming(1, {
-            duration: SHUTTER_DURATION,
-            easing: Easing.bezier(0.65, 0, 0.35, 1)
-        }, (finished) => {
-            if (finished) {
-                runOnJS(onFinish)();
-            }
-        }));
+        // 1. Drive all character entrances via a single linear ramp
+        entrance.value = withTiming(1, {
+            duration: TOTAL_ENTRANCE_MS,
+            easing: Easing.linear,
+        });
+
+        // 2. Shared shake oscillation — reversed loop (0→1→0→1…)
+        shake.value = withRepeat(
+            withTiming(1, { duration: SHAKE_HALF_CYCLE_MS, easing: Easing.linear }),
+            -1,
+            true,
+        );
+
+        // 3. Shutter exit after text sequence + hold
+        shutterProgress.value = withDelay(
+            TOTAL_SEQ_TIME,
+            withTiming(1, {
+                duration: SHUTTER_DURATION,
+                easing: Easing.bezier(0.65, 0, 0.35, 1),
+            }, (finished) => {
+                if (finished) {
+                    runOnJS(onFinish)();
+                }
+            }),
+        );
+
+        return () => {
+            cancelAnimation(entrance);
+            cancelAnimation(shake);
+            cancelAnimation(shutterProgress);
+        };
     }, []);
 
     const shutterStyle = useAnimatedStyle(() => ({
-        transform: [{ translateY: -shutterProgress.value * height }]
+        transform: [{ translateY: -shutterProgress.value * height }],
     }));
 
     return (
         <View style={StyleSheet.absoluteFill} pointerEvents="auto">
             <StatusBar style="light" />
 
-            {/* Shutter Panel */}
             <Animated.View style={[styles.shutter, shutterStyle]}>
                 <View style={styles.textContainer}>
                     <View style={styles.row}>
                         {CHARS.map((char, index) => (
-                            <AnimatedChar key={`${char}-${index}`} char={char} index={index} />
+                            <AnimatedChar
+                                key={`${char}-${index}`}
+                                char={char}
+                                index={index}
+                                entrance={entrance}
+                                shake={shake}
+                            />
                         ))}
                     </View>
                 </View>
-            </Animated.View >
-        </View >
+            </Animated.View>
+        </View>
     );
 }
 
-// 🔤 Individual Character Component
-function AnimatedChar({ char, index }: { char: string, index: number }) {
-    const opacity = useSharedValue(0);
-    const translateY = useSharedValue(40);
-    const scale = useSharedValue(0.5);
-    const rotate = useSharedValue('0deg'); // 🔄 Rotation for shake
+/* ── per-character component (memoized, zero own shared values) ── */
+const AnimatedChar = React.memo(function AnimatedChar({
+    char,
+    index,
+    entrance,
+    shake,
+}: AnimatedCharProps) {
+    // Normalised window for this character within the entrance ramp
+    const charStart = (index * STAGGER_DELAY) / TOTAL_ENTRANCE_MS;
+    const charEnd = Math.min((index * STAGGER_DELAY + LETTER_DURATION) / TOTAL_ENTRANCE_MS, 1);
 
-    useEffect(() => {
-        const delay = index * STAGGER_DELAY;
+    // Alternating shake direction per character for organic feel
+    const shakeDir = index % 2 === 0 ? 1 : -1;
 
-        const springConfig = {
-            damping: 18,
-            stiffness: 70,
-            mass: 1
+    const style = useAnimatedStyle(() => {
+        const t = entrance.value;
+
+        const opacity = interpolate(t, [charStart, charEnd], [0, 1], Extrapolation.CLAMP);
+        const translateY = interpolate(t, [charStart, charEnd], [40, 0], Extrapolation.CLAMP);
+        const scale = interpolate(t, [charStart, charEnd], [0.5, 1], Extrapolation.CLAMP);
+
+        // Sine-like shake: only active once character is mostly visible
+        const shakeFactor = opacity > 0.8 ? 1 : 0;
+        const rotation =
+            shakeFactor *
+            SHAKE_AMPLITUDE_DEG *
+            shakeDir *
+            interpolate(shake.value, [0, 0.25, 0.5, 0.75, 1], [0, 1, 0, -1, 0], Extrapolation.CLAMP);
+
+        return {
+            opacity,
+            transform: [
+                { translateY },
+                { scale },
+                { rotate: `${rotation}deg` },
+            ],
         };
+    });
 
-        // 1. Entrance
-        opacity.value = withDelay(delay, withTiming(1, { duration: 1000 }));
-        translateY.value = withDelay(delay, withSpring(0, springConfig));
-        scale.value = withDelay(delay, withSpring(1, springConfig));
+    return <Animated.Text style={[styles.text, style]}>{char}</Animated.Text>;
+});
 
-        // 2. 🫨 SHAKE / THRILL ANIMATION
-        // Starts slightly after appearance to separate "arrival" from "shaking"
-        // Random start direction for organic feel
-        const startAngle = index % 2 === 0 ? '2deg' : '-2deg';
-
-        rotate.value = withDelay(delay + 200, withRepeat(
-            withSequence(
-                withTiming(startAngle, { duration: 80 }),
-                withTiming(index % 2 === 0 ? '-2deg' : '2deg', { duration: 80 }),
-                withTiming('0deg', { duration: 80 }),
-                withDelay(50, withTiming('0deg', { duration: 0 }))
-            ),
-            20, // Limited repeats — preloader only visible ~5s, no need for infinite
-            true
-        ));
-
-    }, []);
-
-    const style = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-        transform: [
-            { translateY: translateY.value },
-            { scale: scale.value },
-            { rotate: rotate.value } // Apply shake
-        ]
-    }));
-
-    return (
-        <Animated.Text style={[styles.text, style]}>
-            {char}
-        </Animated.Text>
-    );
-}
-
+/* ── styles ────────────────────────────────────────────────── */
 const styles = StyleSheet.create({
     shutter: {
         position: 'absolute',
@@ -148,22 +174,21 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 20, // Ensure no edge touching
+        paddingHorizontal: 20,
     },
     row: {
         flexDirection: 'row',
         alignItems: 'center',
-        flexWrap: 'nowrap', // Force single line
+        flexWrap: 'nowrap',
     },
     text: {
-        fontSize: 20, // Reduced from 48 to fit spacing
+        fontSize: 20,
         fontFamily: 'BBHBartle',
-        letterSpacing: 6, // Increased spacing
+        letterSpacing: 6,
         textAlign: 'center',
         color: '#FFFFFF',
-        // 🌟 PREMIUM GLOW EFFECT
         textShadowColor: 'rgba(255, 255, 255, 0.75)',
         textShadowOffset: { width: 0, height: 0 },
         textShadowRadius: 18,
-    }
+    },
 });

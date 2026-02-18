@@ -1,11 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Platform, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Copy, Check, ChevronDown, Calendar, Ticket, Lock, User } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
-import Animated, { FadeIn, Easing, useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS, cancelAnimation } from 'react-native-reanimated';
+import Animated, { FadeIn, Easing, useSharedValue, useAnimatedStyle, withTiming, runOnJS, cancelAnimation } from 'react-native-reanimated';
 import { PageTransition } from '../components/navigation/PageTransition';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -142,6 +142,11 @@ const ProfileScreen = () => {
     const flipRotation = useSharedValue(0);
     const { updateProfile } = useAuth();
 
+    // Ref-managed timers — prevents leaks from nested timeouts
+    const copyTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const avatarTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const flipTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
     // Copy Toast Animation
     React.useEffect(() => {
         if (showCopyToast) {
@@ -150,11 +155,17 @@ const ProfileScreen = () => {
                 easing: Easing.out(Easing.poly(4))
             });
 
-            const timer = setTimeout(() => {
+            const t1 = setTimeout(() => {
                 copyToastY.value = withTiming(-100, { duration: 300 });
-                setTimeout(() => setShowCopyToast(false), 300);
+                const t2 = setTimeout(() => setShowCopyToast(false), 300);
+                copyTimers.current.push(t2);
             }, 2000);
-            return () => clearTimeout(timer);
+            copyTimers.current.push(t1);
+
+            return () => {
+                copyTimers.current.forEach(clearTimeout);
+                copyTimers.current = [];
+            };
         }
     }, [showCopyToast]);
 
@@ -191,17 +202,22 @@ const ProfileScreen = () => {
     // Avatar Toast Animation
     React.useEffect(() => {
         if (showAvatarToast) {
-            // Smooth slide in (no bounce)
             avatarToastY.value = withTiming(Platform.OS === 'ios' ? 60 : 40, {
                 duration: 400,
                 easing: Easing.out(Easing.poly(4))
             });
 
-            const timer = setTimeout(() => {
+            const t1 = setTimeout(() => {
                 avatarToastY.value = withTiming(-100, { duration: 300 });
-                setTimeout(() => setShowAvatarToast(false), 300);
+                const t2 = setTimeout(() => setShowAvatarToast(false), 300);
+                avatarTimers.current.push(t2);
             }, 2000);
-            return () => clearTimeout(timer);
+            avatarTimers.current.push(t1);
+
+            return () => {
+                avatarTimers.current.forEach(clearTimeout);
+                avatarTimers.current = [];
+            };
         }
     }, [showAvatarToast]);
 
@@ -218,11 +234,17 @@ const ProfileScreen = () => {
     React.useEffect(() => {
         if (showSuccess) {
             flipRotation.value = withTiming(180, { duration: 400, easing: Easing.inOut(Easing.ease) });
-            const timer = setTimeout(() => {
+            const t1 = setTimeout(() => {
                 flipRotation.value = withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) });
-                setTimeout(() => setShowSuccess(false), 400);
+                const t2 = setTimeout(() => setShowSuccess(false), 400);
+                flipTimers.current.push(t2);
             }, 2000);
-            return () => clearTimeout(timer);
+            flipTimers.current.push(t1);
+
+            return () => {
+                flipTimers.current.forEach(clearTimeout);
+                flipTimers.current = [];
+            };
         }
     }, [showSuccess]);
 

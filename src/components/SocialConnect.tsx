@@ -7,11 +7,27 @@ import Animated, {
     useAnimatedStyle,
     withRepeat,
     withTiming,
+    withSpring,
+    cancelAnimation,
     Easing
 } from 'react-native-reanimated';
 
 const SocialConnect = () => {
+    const enterOpacity = useSharedValue(0);
+    const enterTranslateY = useSharedValue(30);
+
+    useEffect(() => {
+        enterOpacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
+        enterTranslateY.value = withSpring(0, { damping: 14, stiffness: 100 });
+    }, []);
+
+    const entranceStyle = useAnimatedStyle(() => ({
+        opacity: enterOpacity.value,
+        transform: [{ translateY: enterTranslateY.value }],
+    }));
+
     return (
+        <Animated.View style={entranceStyle}>
         <Animated.View
             className="px-6 pb-12 pt-4 bg-black"
         >
@@ -40,6 +56,7 @@ const SocialConnect = () => {
             </View>
 
         </Animated.View>
+        </Animated.View>
     );
 };
 
@@ -67,7 +84,7 @@ const XLink = React.memo(() => (
     </Svg>
 ));
 
-// --- Animated Hazard Divider --- memoized (self-contained animation)
+// --- Animated Hazard Divider --- memoized, cancels animation on unmount
 const HazardDivider = React.memo(() => {
     const translateX = useSharedValue(0);
 
@@ -81,6 +98,7 @@ const HazardDivider = React.memo(() => {
             -1, // Infinite loop
             false
         );
+        return () => cancelAnimation(translateX);
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => {

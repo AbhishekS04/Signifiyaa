@@ -29,9 +29,6 @@ const OptimizedImage = React.memo(({ source, style, contentFit = 'cover', ...res
             {...rest}
         />
     );
-}, (prevProps, nextProps) => {
-    return prevProps.source === nextProps.source &&
-        prevProps.style === nextProps.style;
 });
 
 OptimizedImage.displayName = 'OptimizedImage';

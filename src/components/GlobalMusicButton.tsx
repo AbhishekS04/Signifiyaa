@@ -15,16 +15,17 @@ export default React.memo(function GlobalMusicButton({ style }: GlobalMusicButto
 
     const toggleMusic = useCallback(() => {
         // OPTIMISTIC UPDATE: Update UI immediately ⚡
-        const nextState = !isPlaying;
-        setIsPlaying(nextState);
-
-        // Fire and forget audio logic
-        if (nextState) {
-            MusicService.resumeMusic();
-        } else {
-            MusicService.pauseMusic();
-        }
-    }, [isPlaying, setIsPlaying]);
+        setIsPlaying((prev: boolean) => {
+            const nextState = !prev;
+            // Fire and forget audio logic
+            if (nextState) {
+                MusicService.resumeMusic();
+            } else {
+                MusicService.pauseMusic();
+            }
+            return nextState;
+        });
+    }, [setIsPlaying]);
 
     return (
         <Animated.View style={[{

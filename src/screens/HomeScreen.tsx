@@ -1,13 +1,11 @@
-import React, { useEffect, useCallback, useState, useMemo } from 'react';
-import { View, Text, RefreshControl, ScrollView } from 'react-native';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
+import { View, RefreshControl, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Animated, {
-    useAnimatedRef,
     useSharedValue,
     useAnimatedScrollHandler,
     useAnimatedStyle,
-    withTiming,
 } from 'react-native-reanimated';
 import HeroSection from '../components/HeroSection';
 import AboutSection from '../components/AboutSection';
@@ -21,38 +19,61 @@ import NewsletterSupport from '../components/NewsletterSupport';
 import SocialConnect from '../components/SocialConnect';
 import FooterSection from '../components/FooterSection';
 import { PageTransition } from '../components/navigation/PageTransition';
-import { StaggerEntrance } from '../components/animations/StaggerEntrance';
 import GlobalMusicButton from '../components/GlobalMusicButton';
 
-// Stable style objects hoisted outside render — avoids new object allocation every frame
+// ─── Stable constants hoisted outside render ───────────────────────────────────
 const SAFE_AREA_EDGES = ['top', 'left', 'right'] as const;
-const CONTENT_CONTAINER_STYLE = { paddingBottom: 0, minHeight: '100%' as const };
+const FLATLIST_CONTENT_STYLE = { paddingBottom: 0 };
 const MUSIC_BUTTON_POSITION = { position: 'absolute' as const, zIndex: 50, right: 20, top: 20 };
 const REFRESH_COLORS = ['#ffffff'];
 
+// ─── Section data (static — never changes, never re-created) ──────────────────
+type SectionKey =
+    | 'hero' | 'about' | 'gallery' | 'departmentsEvents'
+    | 'prizesSponsors' | 'pastGlimpses' | 'teamSection'
+    | 'faqSection' | 'newsletterSupport' | 'socialConnect' | 'footerSection';
+
+interface SectionItem {
+    key: SectionKey;
+}
+
+const SECTIONS: SectionItem[] = [
+    { key: 'hero' },
+    { key: 'about' },
+    { key: 'gallery' },
+    { key: 'departmentsEvents' },
+    { key: 'prizesSponsors' },
+    { key: 'pastGlimpses' },
+    { key: 'teamSection' },
+    { key: 'faqSection' },
+    { key: 'newsletterSupport' },
+    { key: 'socialConnect' },
+    { key: 'footerSection' },
+];
+
+// ─── Home Screen ───────────────────────────────────────────────────────────────
 export default function HomeScreen() {
-    const scrollRef = useAnimatedRef<ScrollView>();
+    const flatListRef = useRef<FlatList>(null);
     const scrollY = useSharedValue(0);
     const navigation = useNavigation();
     const route = useRoute();
     const [refreshing, setRefreshing] = useState(false);
 
-    // Stable callback ref — prevents HeroSection re-render from prop change
+    // Stable callbacks
     const handleSignInPress = useCallback(() => {
         (navigation as any).navigate('Auth');
     }, [navigation]);
 
     const handleScrollToTop = useCallback(() => {
-        scrollRef.current?.scrollTo({ y: 0, animated: true });
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     }, []);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
-        setTimeout(() => {
-            setRefreshing(false);
-        }, 2000);
+        setTimeout(() => setRefreshing(false), 2000);
     }, []);
 
+    // Scroll-to-top on tab re-press
     useEffect(() => {
         const params = route.params as any;
         if (params?.scrollToTop) {
@@ -61,30 +82,96 @@ export default function HomeScreen() {
         }
     }, [(route.params as any)?.scrollToTop]);
 
-    // 60fps scroll handler — runs on UI thread via Reanimated
+    // 60fps scroll tracking — runs on UI thread via Reanimated
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
             scrollY.value = event.contentOffset.y;
         },
     });
 
-    // Music button follows overscroll — pure UI thread, no JS re-renders
+    // Music button follows overscroll — pure UI thread
     const musicButtonStyle = useAnimatedStyle(() => ({
-        transform: [
-            { translateY: scrollY.value < 0 ? -scrollY.value : 0 }
-        ]
+        transform: [{ translateY: scrollY.value < 0 ? -scrollY.value : 0 }],
     }));
 
-    // Memoize RefreshControl to prevent re-creation on every render
-    const refreshControl = useMemo(() => (
-        <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#ffffff"
-            colors={REFRESH_COLORS}
-            progressBackgroundColor="#171717"
-        />
-    ), [refreshing, onRefresh]);
+    // ─── Section renderer (memoized, keyed by section key) ─────────────────────
+    const renderSection = useCallback(({ item, index }: { item: SectionItem; index: number }) => {
+        let content: React.ReactNode;
+
+        switch (item.key) {
+            case 'hero':
+                content = (
+                    <View className="mb-4">
+                        <HeroSection onSignInPress={handleSignInPress} />
+                    </View>
+                );
+                break;
+            case 'about':
+                content = (
+                    <View className="px-4 gap-4 pb-4">
+                        <AboutSection />
+                    </View>
+                );
+                break;
+            case 'gallery':
+                content = <GallerySection />;
+                break;
+            case 'departmentsEvents':
+                content = (
+                    <View className="px-4 gap-4">
+                        <DepartmentsEvents scrollY={scrollY} />
+                    </View>
+                );
+                break;
+            case 'prizesSponsors':
+                content = (
+                    <View className="px-4 gap-4">
+                        <PrizesSponsors />
+                    </View>
+                );
+                break;
+            case 'pastGlimpses':
+                content = (
+                    <View className="px-4 gap-4">
+                        <PastGlimpses />
+                    </View>
+                );
+                break;
+            case 'teamSection':
+                content = (
+                    <View className="px-4 gap-4">
+                        <TeamSection />
+                    </View>
+                );
+                break;
+            case 'faqSection':
+                content = (
+                    <View className="px-4 gap-4">
+                        <FAQSection />
+                    </View>
+                );
+                break;
+            case 'newsletterSupport':
+                content = (
+                    <View className="px-4 gap-4">
+                        <NewsletterSupport />
+                    </View>
+                );
+                break;
+            case 'socialConnect':
+                content = <SocialConnect />;
+                break;
+            case 'footerSection':
+                content = <FooterSection />;
+                break;
+            default:
+                content = null;
+        }
+
+        return content;
+    }, [handleSignInPress, scrollY]);
+
+    const keyExtractor = useCallback((item: SectionItem) => item.key, []);
 
     return (
         <SafeAreaView className="flex-1 bg-black pt-3" edges={SAFE_AREA_EDGES}>
@@ -94,45 +181,36 @@ export default function HomeScreen() {
                     <GlobalMusicButton />
                 </Animated.View>
 
-                <Animated.ScrollView
-                    ref={scrollRef as any}
+                <Animated.FlatList
+                    ref={flatListRef as any}
+                    data={SECTIONS}
+                    renderItem={renderSection}
+                    keyExtractor={keyExtractor}
                     onScroll={scrollHandler}
-                    className="flex-1"
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={CONTENT_CONTAINER_STYLE}
                     scrollEventThrottle={16}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={FLATLIST_CONTENT_STYLE}
                     bounces={true}
                     overScrollMode="always"
                     removeClippedSubviews={true}
                     decelerationRate="normal"
                     keyboardShouldPersistTaps="handled"
                     nestedScrollEnabled={true}
-                    refreshControl={refreshControl}
-                >
-                    <StaggerEntrance>
-                        <View className="mb-4">
-                            <HeroSection onSignInPress={handleSignInPress} />
-                        </View>
-                        <View className="px-4 gap-4 pb-4">
-                            <AboutSection />
-                        </View>
-
-                        <View className="mb-0">
-                            <GallerySection />
-                        </View>
-
-                        <View className="px-4 gap-4">
-                            <DepartmentsEvents scrollY={scrollY} />
-                            <PrizesSponsors />
-                            <PastGlimpses />
-                            <TeamSection />
-                            <FAQSection />
-                            <NewsletterSupport />
-                        </View>
-                        <SocialConnect />
-                        <FooterSection />
-                    </StaggerEntrance>
-                </Animated.ScrollView>
+                    // Virtualization tuning — mount only nearby sections
+                    initialNumToRender={3}
+                    maxToRenderPerBatch={2}
+                    windowSize={5}
+                    updateCellsBatchingPeriod={50}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor="#ffffff"
+                            colors={REFRESH_COLORS}
+                            progressBackgroundColor="#171717"
+                        />
+                    }
+                />
             </PageTransition>
         </SafeAreaView>
     );

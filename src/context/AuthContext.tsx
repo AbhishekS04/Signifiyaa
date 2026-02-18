@@ -1,10 +1,9 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode, useMemo, useCallback } from 'react';
+import { createContext, useState, useContext, useEffect, ReactNode, useMemo } from 'react';
 import { Alert } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { authClient } from '../lib/betterAuthClient';
 import { supabase } from '../lib/supabase';
-import MusicService from '../services/MusicService';
 
 // Ensure web browser sessions are completed properly
 WebBrowser.maybeCompleteAuthSession();

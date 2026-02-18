@@ -2,9 +2,8 @@ import React from 'react';
 import { View, Text, Dimensions, Platform } from 'react-native';
 import { Image } from 'expo-image';
 // Video removed as per request
-import { ArrowUpRight, MapPin, Clock, Star } from 'lucide-react-native';
-import Svg, { Line, G } from 'react-native-svg';
-import SmoothButton from './SmoothButton';
+import { MapPin, Clock, Star } from 'lucide-react-native';
+import Svg, { Line } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
 

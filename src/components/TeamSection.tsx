@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, Linking, Dimensions } from 'react-native';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, FlatList, Linking, Dimensions, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing } from 'react-native-reanimated';
 
-const { width } = Dimensions.get('window');
-const isSmallDevice = width < 380;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const IS_SMALL = SCREEN_WIDTH < 380;
 import { Instagram, Linkedin, Github } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import SmoothButton from './ui/SmoothButton';
 
-const SECTION_FONTS = {
+// ─── Static font map ───────────────────────────────────────────────────────────
+const FONTS = {
     NAME: 'Gilton',
     ROLE: 'Gilton',
-    DESCRIPTION: 'Softura',
-    MEMBER_LIST: 'Softura',
-    SECTION_HEADER: 'Gilton',
-};
+    DESC: 'Softura',
+    HEADER: 'Gilton',
+} as const;
 
 interface Member {
     id: number;
@@ -25,7 +27,7 @@ interface Member {
     category: 'FACULTY' | 'CORE MEMBER';
 }
 
-// ONLY CORE MEMBERS KEPT
+// ─── Static data (module scope — stable reference forever) ─────────────────────
 const TEAM_MEMBERS: Member[] = [
     {
         id: 27,
@@ -76,7 +78,7 @@ const TEAM_MEMBERS: Member[] = [
         id: 11,
         name: "Arijit De",
         role: "FINANCIAL LEAD",
-        desc: "Driving partnerships and managing resources to power the fest’s biggest ambitions.",
+        desc: "Driving partnerships and managing resources to power the fest's biggest ambitions.",
         image: require('../../assets/team/Arijit.webp'),
         socials: { linkedin: "https://linkedin.com/in/arijit-de-ba1594358", instagram: "https://instagram.com/arijit_.04" },
         category: 'CORE MEMBER'
@@ -94,7 +96,7 @@ const TEAM_MEMBERS: Member[] = [
         id: 18,
         name: "Samriddhi Sinha",
         role: "DECORATIONS LEAD",
-        desc: "Transforming spaces into immersive experiences that set the fest’s mood.",
+        desc: "Transforming spaces into immersive experiences that set the fest's mood.",
         image: require('../../assets/team/Samriddhi.webp'),
         socials: { linkedin: "https://linkedin.com/in/samriddhi-sinha-2b2990291/", instagram: "https://instagram.com/samriddhi.sinha", github: "https://github.com/" },
         category: 'CORE MEMBER'
@@ -218,59 +220,164 @@ const TEAM_MEMBERS: Member[] = [
     }
 ];
 
-const CORE_MEMBERS = TEAM_MEMBERS;
+// ─── StyleSheet (module scope — zero per-render cost) ──────────────────────────
+const S = StyleSheet.create({
+    fontName: { fontFamily: FONTS.NAME },
+    fontRole: { fontFamily: FONTS.ROLE },
+    fontDesc: { fontFamily: FONTS.DESC },
+    fontHeader: { fontFamily: FONTS.HEADER },
+    // Main card
+    mainCardMinH: { minHeight: 280 },
+    // Avatar
+    avatarImg: { width: '100%', height: '100%' },
+    avatarBorder: { position: 'absolute', inset: 0, borderWidth: 2, borderColor: 'black', borderRadius: 16 },
+    // Name row
+    nameRow: { height: 28, justifyContent: 'center', marginBottom: 2, width: '100%' },
+    // Role row
+    roleRow: { height: 16, justifyContent: 'center', marginBottom: 8 },
+    // Desc row
+    descRow: { height: 36, marginBottom: 12, width: '100%' },
+    // Thumbnail list
+    thumbListH: { height: 65 },
+    // Thumbnail base
+    thumbActive: { width: 54, height: 54, borderWidth: 2, borderColor: '#000', opacity: 1 },
+    thumbInactive: { width: 54, height: 54, borderWidth: 1, borderColor: 'rgba(0,0,0,0.3)', opacity: 0.7 },
+    thumbImg: { width: '100%', height: '100%' },
+    // Social button
+    socialBtn: { width: 36, height: 36 },
+    // FlatList content
+    flatListContent: { paddingHorizontal: 4, gap: 8 },
+});
 
-const TeamSection = () => {
-    const [activeMember, setActiveMember] = useState<Member>(CORE_MEMBERS[0]);
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+const PLACEHOLDER_URLS = new Set([
+    '#', 'https://linkedin.com/in/', 'https://instagram.com/',
+]);
 
-    const openLink = (url?: string) => {
-        if (url && url !== '#' && url !== 'https://linkedin.com/in/' && url !== 'https://instagram.com/') {
-            Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
-        }
-    };
+const openLink = (url?: string) => {
+    if (url && !PLACEHOLDER_URLS.has(url)) {
+        Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+    }
+};
 
-    const handleMemberSelect = (member: Member) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        setActiveMember(member);
-    };
+const resolveImageSource = (image: any) =>
+    typeof image === 'string' && (image.startsWith('http') || image.startsWith('https'))
+        ? { uri: image }
+        : image;
+
+const keyExtractor = (item: Member) => String(item.id);
+
+// ─── SocialButton (static, memoized) ──────────────────────────────────────────
+const SocialButton = React.memo(({ children, onPress }: { children: React.ReactNode; onPress: () => void }) => (
+    <SmoothButton
+        onPress={onPress}
+        containerStyle={S.socialBtn}
+        buttonStyle="w-full h-full bg-white border-[2px] border-black rounded-lg items-center justify-center"
+        shadowStyle="bg-black rounded-lg"
+        depth={2}
+    >
+        {children}
+    </SmoothButton>
+));
+
+// ─── ThumbnailItem (memoized — only re-renders when isActive flips) ────────────
+const ThumbnailItem = React.memo(({ member, isActive, onSelect }: {
+    member: Member; isActive: boolean; onSelect: (m: Member) => void;
+}) => {
+    const handlePress = useCallback(() => onSelect(member), [member, onSelect]);
+    const source = useMemo(() => resolveImageSource(member.image), [member.image]);
 
     return (
-        <View className={`bg-[#F3E5F5] rounded-[32px] mb-4 mx-2 border-2 border-black ${isSmallDevice ? 'px-3 py-5' : 'px-5 py-6'}`}>
+        <TouchableOpacity
+            onPress={handlePress}
+            activeOpacity={0.7}
+            className="rounded-xl overflow-hidden bg-black relative"
+            style={isActive ? S.thumbActive : S.thumbInactive}
+        >
+            <Image
+                source={source}
+                style={S.thumbImg}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={150}
+                recyclingKey={`team-thumb-${member.id}`}
+            />
+        </TouchableOpacity>
+    );
+});
+
+// ─── Main Component ────────────────────────────────────────────────────────────
+const TeamSection = React.memo(() => {
+    const [activeMember, setActiveMember] = useState<Member>(TEAM_MEMBERS[0]);
+
+    const enterOpacity = useSharedValue(0);
+    const enterTranslateY = useSharedValue(30);
+
+    useEffect(() => {
+        enterOpacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
+        enterTranslateY.value = withSpring(0, { damping: 14, stiffness: 100 });
+    }, []);
+
+    const entranceStyle = useAnimatedStyle(() => ({
+        opacity: enterOpacity.value,
+        transform: [{ translateY: enterTranslateY.value }],
+    }));
+
+    const handleMemberSelect = useCallback((member: Member) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setActiveMember(member);
+    }, []);
+
+    // Stable social link callbacks derived from active member
+    const openInstagram = useCallback(() => openLink(activeMember.socials.instagram), [activeMember.socials.instagram]);
+    const openLinkedin = useCallback(() => openLink(activeMember.socials.linkedin), [activeMember.socials.linkedin]);
+    const openGithub = useCallback(() => openLink(activeMember.socials.github), [activeMember.socials.github]);
+
+    // Resolve main avatar source (memoized — only recalculates on member change)
+    const avatarSource = useMemo(() => resolveImageSource(activeMember.image), [activeMember.image]);
+
+    // FlatList renderItem (stable ref — ThumbnailItem handles its own memoization)
+    const renderThumbnail = useCallback(({ item }: { item: Member }) => (
+        <ThumbnailItem
+            member={item}
+            isActive={item.id === activeMember.id}
+            onSelect={handleMemberSelect}
+        />
+    ), [activeMember.id, handleMemberSelect]);
+
+    return (
+        <Animated.View style={entranceStyle}>
+        <View className={`bg-[#F3E5F5] rounded-[32px] mb-4 mx-2 border-2 border-black ${IS_SMALL ? 'px-3 py-5' : 'px-5 py-6'}`}>
 
             <View className="items-center mb-4">
-                <Text className="text-2xl text-black uppercase" style={{ fontFamily: SECTION_FONTS.SECTION_HEADER }}>
-                    MEET THE TEAM
-                </Text>
+                <Text className="text-2xl text-black uppercase" style={S.fontHeader}>MEET THE TEAM</Text>
                 <View className="h-1 w-16 bg-black mt-1 rounded-full" />
             </View>
 
-            {/* COMPACT MAIN CARD */}
+            {/* MAIN CARD */}
             <View className="items-center mb-6">
-                <View className="relative w-full" style={{ minHeight: 280 }}>
+                <View className="relative w-full" style={S.mainCardMinH}>
                     <View className="absolute top-2 left-2 w-full h-full bg-black rounded-[24px]" />
                     <View
                         className="bg-white border-[3px] border-black rounded-[24px] p-4 w-full items-center relative overflow-hidden"
-                        style={{ minHeight: 280 }}
+                        style={S.mainCardMinH}
                     >
                         <View className="w-20 h-20 bg-black rounded-[16px] mb-3 overflow-hidden relative shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                             <Image
-                                source={typeof activeMember.image === 'string' ? { uri: activeMember.image } : activeMember.image}
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                }}
-                                resizeMode="cover"
+                                source={avatarSource}
+                                style={S.avatarImg}
+                                contentFit="cover"
+                                cachePolicy="memory-disk"
+                                transition={200}
+                                recyclingKey={`team-avatar-${activeMember.id}`}
                             />
-                            <View
-                                style={{ position: 'absolute', inset: 0, borderWidth: 2, borderColor: 'black', borderRadius: 16 }}
-                                pointerEvents="none"
-                            />
+                            <View style={S.avatarBorder} pointerEvents="none" />
                         </View>
 
-                        <View style={{ height: 28, justifyContent: 'center', marginBottom: 2, width: '100%' }}>
+                        <View style={S.nameRow}>
                             <Text
-                                className={`text-black text-center uppercase text-lg`}
-                                style={{ fontFamily: SECTION_FONTS.NAME }}
+                                className="text-black text-center uppercase text-lg"
+                                style={S.fontName}
                                 numberOfLines={1}
                                 adjustsFontSizeToFit
                             >
@@ -278,16 +385,16 @@ const TeamSection = () => {
                             </Text>
                         </View>
 
-                        <View style={{ height: 16, justifyContent: 'center', marginBottom: 8 }}>
-                            <Text className="text-[#8e99af] text-[10px] tracking-[0.1em] uppercase text-center" style={{ fontFamily: SECTION_FONTS.ROLE }}>
+                        <View style={S.roleRow}>
+                            <Text className="text-[#8e99af] text-[10px] tracking-[0.1em] uppercase text-center" style={S.fontRole}>
                                 {activeMember.role}
                             </Text>
                         </View>
 
-                        <View style={{ height: 36, marginBottom: 12, width: '100%' }}>
+                        <View style={S.descRow}>
                             <Text
                                 className="text-black text-center text-xs leading-4 px-1"
-                                style={{ fontFamily: SECTION_FONTS.DESCRIPTION }}
+                                style={S.fontDesc}
                                 numberOfLines={2}
                             >
                                 {activeMember.desc}
@@ -295,13 +402,13 @@ const TeamSection = () => {
                         </View>
 
                         <View className="flex-row gap-4 mt-auto">
-                            <SocialButton onPress={() => openLink(activeMember.socials.instagram)}>
+                            <SocialButton onPress={openInstagram}>
                                 <Instagram size={16} color="black" strokeWidth={2} />
                             </SocialButton>
-                            <SocialButton onPress={() => openLink(activeMember.socials.linkedin)}>
+                            <SocialButton onPress={openLinkedin}>
                                 <Linkedin size={16} color="black" strokeWidth={2} />
                             </SocialButton>
-                            <SocialButton onPress={() => openLink(activeMember.socials.github)}>
+                            <SocialButton onPress={openGithub}>
                                 <Github size={16} color="black" strokeWidth={2} />
                             </SocialButton>
                         </View>
@@ -309,54 +416,24 @@ const TeamSection = () => {
                 </View>
             </View>
 
-            {/* CORE TEAM LIST ONLY */}
-            <View>
-                {/* No Text Header needed since it's the only team */}
-                <View style={{ height: 65 }}>
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerClassName="px-1 gap-2"
-                    >
-                        {CORE_MEMBERS.map((member) => (
-                            <TouchableOpacity
-                                key={member.id}
-                                onPress={() => handleMemberSelect(member)}
-                                activeOpacity={0.7}
-                                className="rounded-xl overflow-hidden bg-black relative"
-                                style={{
-                                    width: 54, // Slightly larger as requested "bit big"
-                                    height: 54,
-                                    borderWidth: activeMember.id === member.id ? 2 : 1,
-                                    borderColor: activeMember.id === member.id ? '#000' : 'rgba(0,0,0,0.3)',
-                                    opacity: activeMember.id === member.id ? 1 : 0.7,
-                                }}
-                            >
-                                <Image
-                                    source={typeof member.image === 'string' ? { uri: member.image } : member.image}
-                                    className="w-full h-full"
-                                    resizeMode="cover"
-                                />
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
+            {/* VIRTUALIZED THUMBNAIL LIST */}
+            <View style={S.thumbListH}>
+                <FlatList
+                    data={TEAM_MEMBERS}
+                    horizontal
+                    keyExtractor={keyExtractor}
+                    renderItem={renderThumbnail}
+                    initialNumToRender={6}
+                    maxToRenderPerBatch={5}
+                    windowSize={5}
+                    removeClippedSubviews
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={S.flatListContent}
+                />
             </View>
         </View>
+        </Animated.View>
     );
-};
-
-// Extracted Social Button
-const SocialButton = ({ children, onPress }: { children: React.ReactNode, onPress: () => void }) => (
-    <SmoothButton
-        onPress={onPress}
-        containerStyle={{ width: 36, height: 36 }} // w-9 = 36px
-        buttonStyle="w-full h-full bg-white border-[2px] border-black rounded-lg items-center justify-center"
-        shadowStyle="bg-black rounded-lg"
-        depth={2}
-    >
-        {children}
-    </SmoothButton>
-);
+});
 
 export default TeamSection;

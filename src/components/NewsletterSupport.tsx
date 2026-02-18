@@ -1,21 +1,42 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Dimensions, Linking } from 'react-native';
-import Animated, { Layout } from 'react-native-reanimated';
+import React, { useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, Dimensions, Linking, StyleSheet } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 import { ArrowUpRight } from 'lucide-react-native';
 
+const S = StyleSheet.create({
+    fontGilton: { fontFamily: 'Gilton' },
+    fontSoftura: { fontFamily: 'Softura' },
+});
+
+const CERKLE_URL = 'https://vybecerkle.com/';
+
 const NewsletterSupport = React.memo(() => {
     const navigation = useNavigation();
-    const [email, setEmail] = useState('');
-    const [agreed, setAgreed] = useState(false);
+
+    const enterOpacity = useSharedValue(0);
+    const enterTranslateY = useSharedValue(30);
+
+    useEffect(() => {
+        enterOpacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
+        enterTranslateY.value = withSpring(0, { damping: 14, stiffness: 100 });
+    }, []);
+
+    const entranceStyle = useAnimatedStyle(() => ({
+        opacity: enterOpacity.value,
+        transform: [{ translateY: enterTranslateY.value }],
+    }));
+
+    const handleOpenCerkle = useCallback(() => Linking.openURL(CERKLE_URL), []);
+    const handleGetSupport = useCallback(() => navigation.navigate('ContactSupport' as never), [navigation]);
 
     return (
-        <Animated.View
+        <Animated.View style={entranceStyle}>
+        <View
             className="px-2 mb-10 gap-6"
-            layout={Layout.springify().damping(20).stiffness(100).mass(1)} // SYNC with FAQ Parent
         >
 
             {/* --- Card 1: Newsletter (Purple) --- */}
@@ -24,38 +45,20 @@ const NewsletterSupport = React.memo(() => {
                 {/* Header Typography Mix */}
                 <View className="mb-4">
                     <Text className={`text-black leading-[0.9] ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
-                        <Text className=""
-                            style={{
-                                fontFamily: 'Gilton',
-                            }}
-                        >OUR </Text>
-                        <Text className=" "
-                            style={{
-                                fontFamily: 'Gilton',
-                            }}
-                        >OFFICIAL</Text>
+                        <Text style={S.fontGilton}>OUR </Text>
+                        <Text style={S.fontGilton}>OFFICIAL</Text>
                     </Text>
                     <Text className={`text-black leading-[0.9] ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
-                        <Text className=""
-                            style={{
-                                fontFamily: 'Gilton',
-                            }}
-                        >COMMUNITY</Text>
+                        <Text style={S.fontGilton}>COMMUNITY</Text>
                     </Text>
                     <Text className={`text-black leading-[0.9] -mt-1 ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
-                        <Text className=""
-                            style={{
-                                fontFamily: 'Gilton',
-                            }}
-                        >PARTNER </Text>
+                        <Text style={S.fontGilton}>PARTNER </Text>
                     </Text>
                 </View>
 
                 {/* Subtext */}
                 <Text className="font-[Inter_500Medium] text-black text-base mb-8 leading-5"
-                    style={{
-                        fontFamily: 'Softura',
-                    }}
+                    style={S.fontSoftura}
                 >
                     Join our community partner Cerkle to connect with fellow attendees and stay updated!
                 </Text>
@@ -79,12 +82,10 @@ const NewsletterSupport = React.memo(() => {
                 <TouchableOpacity
                     className="bg-black rounded-full h-14 flex-row justify-center items-center gap-2 mb-3/"
                     activeOpacity={0.8}
-                    onPress={() => Linking.openURL('https://vybecerkle.com/')}
+                    onPress={handleOpenCerkle}
                 >
                     <Text className="text-white text-lg tracking-widest uppercase"
-                        style={{
-                            fontFamily: 'Softura',
-                        }}
+                        style={S.fontSoftura}
                     >
                         JOIN CERKLE
                     </Text>
@@ -118,30 +119,22 @@ const NewsletterSupport = React.memo(() => {
                 <View className="mb-10">
                     <Text className={`text-black leading-[0.9] ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
                         <Text className="font-[ArchivoBlack_400Regular]"
-                            style={{
-                                fontFamily: 'Gilton',
-                            }}
+                            style={S.fontGilton}
                         >ALWAYS HERE</Text>
                     </Text>
                     <Text className={`text-black leading-[0.9] ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
                         <Text className="font-[ArchivoBlack_400Regular]"
-                            style={{
-                                fontFamily: 'Gilton',
-                            }}
+                            style={S.fontGilton}
                         >TO </Text>
                         <Text className="font-[Inter_900Black] "
-                            style={{
-                                fontFamily: 'Gilton',
-                            }}
+                            style={S.fontGilton}
                         >HELP</Text>
                     </Text>
                 </View>
 
                 {/* Body Text */}
                 <Text className="font-[Inter_600SemiBold] text-black text-xl mb-12 leading-7"
-                    style={{
-                        fontFamily: 'Softura',
-                    }}
+                    style={S.fontSoftura}
                 >
                     Got questions ? Our Support Team is here to help 24*7!
                 </Text>
@@ -150,12 +143,10 @@ const NewsletterSupport = React.memo(() => {
                 <TouchableOpacity
                     className="bg-black rounded-full px-8 h-14 flex-row items-center self-start gap-2"
                     activeOpacity={0.8}
-                    onPress={() => navigation.navigate('ContactSupport' as never)}
+                    onPress={handleGetSupport}
                 >
                     <Text className="text-white font-[Inter_700Bold] text-lg uppercase"
-                        style={{
-                            fontFamily: 'Softura',
-                        }}
+                        style={S.fontSoftura}
                     >
                         GET SUPPORT
                     </Text>
@@ -164,6 +155,7 @@ const NewsletterSupport = React.memo(() => {
 
             </View>
 
+        </View>
         </Animated.View>
     );
 });

@@ -1,4 +1,4 @@
-import { Audio } from 'expo-av';
+import { Audio, AVPlaybackStatus } from 'expo-av';
 
 class MusicService {
     private sound: Audio.Sound | null = null;
@@ -13,53 +13,56 @@ class MusicService {
         try {
             await Audio.setAudioModeAsync({
                 allowsRecordingIOS: false,
-                staysActiveInBackground: true, // Keep active so we can manually pause without thread crash
+                staysActiveInBackground: true,
                 playsInSilentModeIOS: true,
                 shouldDuckAndroid: true,
                 playThroughEarpieceAndroid: false,
             });
-        } catch (e) {
+        } catch {
             // Silent fail - audio mode will use defaults
         }
     }
 
+    /** Sync internal boolean from actual player status */
+    private onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+        if (status.isLoaded) {
+            this.isCurrentlyPlaying = status.isPlaying;
+        } else {
+            this.isCurrentlyPlaying = false;
+        }
+    };
+
     async loadMusic(musicSource: any) {
-        if (this.isLoaded) return; // Already loaded
+        if (this.isLoaded) return;
 
         try {
-            // Unload previous sound if exists
             if (this.sound) {
                 await this.sound.unloadAsync();
             }
 
-            // Create and load new sound with shouldPlay: FALSE
             const { sound } = await Audio.Sound.createAsync(
                 musicSource,
-                { shouldPlay: false, isLooping: true, volume: 0.5 }
+                { shouldPlay: false, isLooping: true, volume: 0.5 },
             );
 
+            sound.setOnPlaybackStatusUpdate(this.onPlaybackStatusUpdate);
             this.sound = sound;
             this.isLoaded = true;
-
-        } catch (error) {
+        } catch {
             // Silent fail - music will not play
         }
     }
 
     async playMusic(musicSource: any, shouldPlay: boolean = true) {
         if (!this.sound) {
-            // If not preloaded, load it now
             await this.loadMusic(musicSource);
         }
 
-        if (this.sound) {
-            if (shouldPlay) {
-                try {
-                    await this.sound.playAsync();
-                    this.isCurrentlyPlaying = true;
-                } catch (error) {
-                    // Silent fail
-                }
+        if (this.sound && shouldPlay) {
+            try {
+                await this.sound.playAsync();
+            } catch {
+                this.isCurrentlyPlaying = false;
             }
         }
     }
@@ -68,43 +71,71 @@ class MusicService {
         if (this.sound && this.isCurrentlyPlaying) {
             try {
                 await this.sound.pauseAsync();
-                this.isCurrentlyPlaying = false;
-            } catch (error) {
-                // Silent fail
+            } catch {
+                // State corrected by onPlaybackStatusUpdate
             }
         }
     }
 
     async resumeMusic() {
-        if (this.sound && !this.isCurrentlyPlaying) {
-            this.sound.playAsync();
-            this.isCurrentlyPlaying = true;
+        if (!this.sound || this.isCurrentlyPlaying) return;
+
+        try {
+            await this.sound.playAsync();
+        } catch {
+            this.isCurrentlyPlaying = false;
         }
     }
 
     async stopMusic() {
-        if (this.sound) {
-            try {
-                // Check status first to avoid stopping if already stopped/unloaded
-                const status = await this.sound.getStatusAsync();
-                if (status.isLoaded) {
-                    await this.sound.stopAsync();
-                    await this.sound.unloadAsync();
-                }
-            } catch (error) {
-                // Silent fail
-            } finally {
-                // Always reset state to ensure clean slate
-                this.sound = null;
-                this.isCurrentlyPlaying = false;
-                this.isLoaded = false;
+        if (!this.sound) return;
+
+        try {
+            const status = await this.sound.getStatusAsync();
+            if (status.isLoaded) {
+                await this.sound.stopAsync();
+                await this.sound.unloadAsync();
             }
+        } catch {
+            // Silent fail
+        } finally {
+            this.sound = null;
+            this.isCurrentlyPlaying = false;
+            this.isLoaded = false;
+        }
+    }
+
+    /**
+     * Fully release the Sound instance.
+     * Call from provider unmount / app termination to prevent resource leaks.
+     */
+    async unloadMusic() {
+        if (!this.sound) return;
+
+        try {
+            await this.sound.stopAsync();
+        } catch {
+            // May already be stopped
+        }
+
+        try {
+            await this.sound.unloadAsync();
+        } catch {
+            // May already be unloaded
+        } finally {
+            this.sound = null;
+            this.isCurrentlyPlaying = false;
+            this.isLoaded = false;
         }
     }
 
     async setVolume(volume: number) {
-        if (this.sound) {
+        if (!this.sound) return;
+
+        try {
             await this.sound.setVolumeAsync(volume);
+        } catch {
+            // Silent fail - volume change not critical
         }
     }
 

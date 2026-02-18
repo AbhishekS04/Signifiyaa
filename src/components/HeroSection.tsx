@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowDown } from 'lucide-react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSpring, Easing } from 'react-native-reanimated';
 import SmoothButton from './ui/SmoothButton';
 import { useAuth } from '../context/AuthContext';
 
@@ -84,6 +84,10 @@ interface HeroSectionProps {
 }
 
 const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
+    // Entrance animation
+    const enterOpacity = useSharedValue(0);
+    const enterTranslateY = useSharedValue(30);
+
     // Marquee Animation
     const [textWidth, setTextWidth] = useState(0);
     const translateX = useSharedValue(0);
@@ -131,7 +135,18 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
     const handleNavigatePayments = useCallback(() => navigation.navigate('Main', { screen: 'Payments' }), [navigation]);
     const handleTextLayout = useCallback((e: any) => setTextWidth(e.nativeEvent.layout.width), []);
 
+    useEffect(() => {
+        enterOpacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
+        enterTranslateY.value = withSpring(0, { damping: 14, stiffness: 100 });
+    }, []);
+
+    const entranceStyle = useAnimatedStyle(() => ({
+        opacity: enterOpacity.value,
+        transform: [{ translateY: enterTranslateY.value }],
+    }));
+
     return (
+        <Animated.View style={entranceStyle}>
         <View className="mb-4">
 
             {/* --- 1. Top Marquee Strip (Outside Card) --- */}
@@ -255,6 +270,7 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
                 </LinearGradient>
             </View>
         </View>
+        </Animated.View>
     );
 };
 
