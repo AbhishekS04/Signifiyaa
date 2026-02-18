@@ -1,67 +1,88 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-// @ts-ignore
-import RazorpayCheckout from 'react-native-razorpay';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Dimensions, KeyboardAvoidingView, Platform, Pressable, BackHandler, Modal, StyleSheet } from 'react-native';
+import {
+    View, Text, TextInput, TouchableOpacity, ScrollView,
+    KeyboardAvoidingView, Platform,
+    BackHandler, Modal, StyleSheet, Image, ActivityIndicator
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Check, AlertCircle, X } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
-import Animated, { FadeInDown, Layout, FadeIn, useSharedValue, useAnimatedStyle, withTiming, Easing, withRepeat } from 'react-native-reanimated';
+import Animated, {
+    FadeInDown, Layout, FadeIn,
+    useSharedValue, useAnimatedStyle, withTiming, Easing, withRepeat
+} from 'react-native-reanimated';
 import { useAuth } from '../context/AuthContext';
 
-const { width } = Dimensions.get('window');
 
-// Mock Data for Step 2
+// ─── Event Data ────────────────────────────────────────────────────────────────
 const AVAILABLE_EVENTS = [
-    { id: 1, name: 'CODING PREMIER LEAGUE', teamSize: 'Team (1-3)', price: 150 },
-    { id: 2, name: 'HACKATHON 2026', teamSize: 'Team (2-4)', price: 300 },
-    { id: 3, name: 'ROBO WARS', teamSize: 'Team (2-5)', price: 200 },
-    { id: 4, name: 'DIL SE DESIGN', teamSize: 'Solo', price: 100 },
-    { id: 5, name: 'VALORANT TOURNAMENT', teamSize: 'Team (5)', price: 500 },
-    { id: 6, name: 'TECH QUIZ', teamSize: 'Team (2)', price: 50 },
+    { id: 1, name: 'CODING PREMIER LEAGUE', date: 'March 27-28', teamSize: 'Team (1-3)', price: 150 },
+    { id: 2, name: 'HACKATHON 2026', date: 'March 27-28', teamSize: 'Team (2-4)', price: 300 },
+    { id: 3, name: 'ROBO WARS', date: 'March 27-28', teamSize: 'Team (2-5)', price: 200 },
+    { id: 4, name: 'DIL SE DESIGN', date: 'March 27-28', teamSize: 'Solo', price: 100 },
+    { id: 5, name: 'VALORANT TOURNAMENT', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
+    { id: 6, name: 'TECH QUIZ', date: 'March 27-28', teamSize: 'Team (2)', price: 50 },
 ];
+
+// UPI QR placeholder (replace with your actual UPI QR image)
+const UPI_QR_PLACEHOLDER = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=8942837703@ikwik&pn=Signifiya&am=';
+const UPI_ID = '8942837703@ikwik';
+
+// ─── Fonts ─────────────────────────────────────────────────────────────────────
+const FONT_HEADING = 'BBHBartle';
+const FONT_BODY = 'Gilton';
+const FONT_SUB = 'Softura';
+
+// ─── Main Component ────────────────────────────────────────────────────────────
+interface ReceiptData {
+    utrId: string;
+    amount: number;
+    date: string;
+    syncError: boolean;
+}
 
 const EventRegistrationScreen = () => {
     const navigation = useNavigation();
     const { user } = useAuth();
-    const [currentStep, setCurrentStep] = useState(1);
+    const [currentStep, setCurrentStep] = useState(1); // 1=Leader, 2=Events, 3=Team, 4=Payment
 
-    // --- Alert State ---
-    const [alertConfig, setAlertConfig] = useState<{ visible: boolean; title: string; message: string; type?: 'error' | 'success' | 'info' }>({
-        visible: false,
-        title: '',
-        message: '',
-        type: 'info'
-    });
+    // ── Alert State ──
+    const [alertConfig, setAlertConfig] = useState<{
+        visible: boolean; title: string; message: string; type?: 'error' | 'success' | 'info'
+    }>({ visible: false, title: '', message: '', type: 'info' });
 
     const showAlert = (title: string, message: string, type: 'error' | 'success' | 'info' = 'error') => {
         setAlertConfig({ visible: true, title, message, type });
     };
+    const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
-    const hideAlert = () => {
-        setAlertConfig(prev => ({ ...prev, visible: false }));
-    };
-
-    // --- Receipt Modal State ---
-    const [showReceipt, setShowReceipt] = useState(false);
-    const [receiptData, setReceiptData] = useState<any>(null);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
 
-    const handleCloseReceipt = () => {
-        setShowReceipt(false);
+    const handleGoToProfile = () => {
         setIsTransitioning(true);
-
-        // Instant navigation start
         (navigation as any).navigate('Main', { screen: 'Profile' });
-
-        // Keep skeleton for a short, crisp duration while profile loads in background
-        setTimeout(() => {
-            setIsTransitioning(false);
-        }, 600);
+        setTimeout(() => setIsTransitioning(false), 600);
     };
 
-    // --- Step 1 State ---
+    const handleRegisterAnother = () => {
+        setCurrentStep(1);
+        setTeamName('');
+        setLeaderName(user?.name || '');
+        setCollege(user?.collegeName || '');
+        setEmail(user?.email || '');
+        setPhone(user?.mobileNo || '');
+        setBookingId(user?.bookingId || '');
+        setSelectedEvents([]);
+        setTeamMembers([{ id: Date.now(), name: '', college: '', phone: '', email: '' }]);
+        setUtrId('');
+        setShowSuccess(false);
+    };
+
+    // ── Step 1: Leader Details ──
     const [teamName, setTeamName] = useState('');
     const [leaderName, setLeaderName] = useState('');
     const [college, setCollege] = useState('');
@@ -69,31 +90,22 @@ const EventRegistrationScreen = () => {
     const [phone, setPhone] = useState('');
     const [bookingId, setBookingId] = useState('');
 
-    // Pre-fill user data if available
     useEffect(() => {
         if (user) {
             if (user.name) setLeaderName(user.name);
             if (user.email) setEmail(user.email);
             if (user.mobileNo) setPhone(user.mobileNo);
             if (user.collegeName) setCollege(user.collegeName);
-            // We intentionally DO NOT pre-fill Booking ID to force them to look it up/enter it, 
-            // OR we can pre-fill it but the user requirement implies manual entry/verification.
-            // Let's autofill it for convenience but VALIDATE it on next.
-            // Actually, user said: "verify... if its different... tell them to use own"
-            // So we can leave it empty to force them to type it, or autofill it. 
-            // Let's leave it empty as per "ghost text" request implies manual input.
         }
     }, [user]);
 
-    // --- Step 2 State ---
+    // ── Step 2: Select Events ──
     const [selectedEvents, setSelectedEvents] = useState<number[]>([]);
 
     const toggleEvent = (id: number) => {
-        if (selectedEvents.includes(id)) {
-            setSelectedEvents(selectedEvents.filter(e => e !== id));
-        } else {
-            setSelectedEvents([...selectedEvents, id]);
-        }
+        setSelectedEvents(prev =>
+            prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id]
+        );
     };
 
     const totalPrice = selectedEvents.reduce((sum, id) => {
@@ -101,53 +113,52 @@ const EventRegistrationScreen = () => {
         return sum + (event ? event.price : 0);
     }, 0);
 
-    // --- Step 3 State ---
-    const [teamMembers, setTeamMembers] = useState([{ id: 1, name: '', college: '', phone: '', email: '' }]);
+    // ── Step 3: Team Members ──
+    const [teamMembers, setTeamMembers] = useState([
+        { id: 1, name: '', college: '', phone: '', email: '' }
+    ]);
 
     const addMember = () => {
-        const newId = teamMembers.length + 1;
-        setTeamMembers([...teamMembers, { id: newId, name: '', college: '', phone: '', email: '' }]);
+        const newId = Date.now();
+        setTeamMembers(prev => [...prev, { id: newId, name: '', college: '', phone: '', email: '' }]);
     };
 
     const removeMember = (id: number) => {
         if (teamMembers.length > 1) {
-            setTeamMembers(teamMembers.filter(m => m.id !== id));
+            setTeamMembers(prev => prev.filter(m => m.id !== id));
         }
     };
 
     const updateMember = (id: number, field: string, value: string) => {
-        setTeamMembers(teamMembers.map(m => m.id === id ? { ...m, [field]: value } : m));
+        setTeamMembers(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
     };
 
-    // --- Step 4 State ---
-    const [timer, setTimer] = useState(872); // 14:32 in seconds
+    // ── Step 4: Payment ──
+    const [timer, setTimer] = useState(870); // 14:30
+    const [utrId, setUtrId] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    React.useEffect(() => {
-        if (currentStep === 3) {
+    useEffect(() => {
+        if (currentStep === 4) {
             const interval = setInterval(() => {
-                setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+                setTimer(prev => (prev > 0 ? prev - 1 : 0));
             }, 1000);
             return () => clearInterval(interval);
         }
     }, [currentStep]);
 
-    // Handle Timer Expiry
-    React.useEffect(() => {
-        if (timer === 0 && currentStep === 3) {
-            showAlert(
-                "SESSION EXPIRED",
-                "Your registration session has timed out. Please start again to ensure availability.",
-                'error'
-            );
+    useEffect(() => {
+        if (timer === 0 && currentStep === 4) {
+            showAlert('SESSION EXPIRED', 'Your registration session has timed out. Please start again.', 'error');
             setCurrentStep(1);
-            setTimer(872); // Reset timer
+            setTimer(870);
         }
     }, [timer, currentStep]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const backAction = () => {
             if (currentStep > 1) {
-                setCurrentStep(currentStep - 1);
+                setCurrentStep(prev => prev - 1);
                 return true;
             }
             return false;
@@ -162,259 +173,233 @@ const EventRegistrationScreen = () => {
         return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     };
 
-    const handlePay = async () => {
-        // --- RAZORPAY INTEGRATION ---
-
-        // 1. configuration
-        // IMPORTANT: Replace this with your actual Razorpay Key ID
-        const RAZORPAY_KEY_ID = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_S8rSjrgYttq3i7';
-
-        // 2. Amount must be in currency subunits (e.g., paise for INR)
-        const amountInPaise = totalPrice * 100;
-
-        // 3. (Optional but Recommended) Create Order on Backend
-        // You should fetch an order_id from your backend here to ensure security.
-        // const orderData = await fetch('YOUR_BACKEND_URL/create-order', ...);
-        // const order_id = orderData.id;
-
-        const options = {
-            description: 'Event Registration Fees',
-            image: 'https://i.imgur.com/3g7nmJC.png', // Optional: Your App Logo
-            currency: 'INR',
-            key: RAZORPAY_KEY_ID,
-            amount: amountInPaise,
-            name: 'Signifiya 2026',
-            // order_id: 'order_DslnoIgkIDL8Zt', // Replace with actual order_id from backend
-            prefill: {
-                email: email,
-                contact: phone,
-                name: leaderName
-            },
-            theme: { color: '#000000' }
-        };
-
-        try {
-            const data = await RazorpayCheckout.open(options);
-
-            let syncError = false;
-
-            // --- SAVE TO DATABASE START ---
-            try {
-                // 1. Resolve Event IDs
-                // We map the selected integer IDs to the actual DB UUIDs using names
-                const resolvedEventIds: string[] = [];
-                for (const scalarId of selectedEvents) {
-                    const localEvent = AVAILABLE_EVENTS.find(e => e.id === scalarId);
-                    if (localEvent) {
-                        const { data: dbEvent, error: fetchError } = await supabase
-                            .from('event')
-                            .select('id')
-                            .eq('name', localEvent.name)
-                            .single();
-
-                        if (dbEvent?.id) {
-                            resolvedEventIds.push(dbEvent.id);
-                        } else {
-                            console.warn(`Event not found in DB: ${localEvent.name}`);
-                            // If event not found, we can't link it.
-                        }
-                    }
-                }
-
-                // 2. Create Team Record
-                const { data: teamData, error: teamError } = await supabase
-                    .from('participant_team')
-                    .insert({
-                        teamName: teamName,
-                        leaderName: leaderName,
-                        leaderEmail: email,
-                        leaderPhone: phone,
-                        leaderBookingId: bookingId || null,
-                        college: college,
-                        totalAmount: totalPrice,
-                        status: 'verified', // Payment successful
-                        paymentProofUrl: data.razorpay_payment_id // Storing payment ID
-                    })
-                    .select()
-                    .single();
-
-                if (teamError) {
-                    throw teamError;
-                }
-
-                if (!teamData) throw new Error("Failed to create team record.");
-
-                const teamId = teamData.id;
-
-                // 3. Create Team Members
-                if (teamMembers.length > 0) {
-                    const membersPayload = teamMembers.map(m => ({
-                        teamId: teamId,
-                        name: m.name || 'Unknown',
-                        college: m.college || 'Unknown',
-                        email: m.email || '',
-                        phone: m.phone || ''
-                    }));
-
-                    const { error: membersError } = await supabase
-                        .from('participant_team_member')
-                        .insert(membersPayload);
-
-                    if (membersError) throw membersError;
-                }
-
-                // 4. Link Events to Team
-                if (resolvedEventIds.length > 0) {
-                    const eventLinks = resolvedEventIds.map(eId => ({
-                        teamId: teamId,
-                        eventId: eId
-                    }));
-
-                    const { error: linksError } = await supabase
-                        .from('participant_team_event')
-                        .insert(eventLinks);
-
-                    if (linksError) throw linksError;
-                }
-
-                console.log("Registration saved successfully!");
-
-            } catch (dbError: any) {
-                console.error("Database Save Error:", dbError);
-                syncError = true;
-            }
-            // --- SAVE TO DATABASE END ---
-
-            // Handle Success - Show Official Receipt Modal
-            setReceiptData({
-                paymentId: data.razorpay_payment_id,
-                orderId: data.razorpay_order_id,
-                amount: totalPrice,
-                date: new Date().toLocaleString(),
-                syncError: syncError
-            });
-            setShowReceipt(true);
-
-        } catch (error: any) {
-            // Handle Failure
-            console.log("Razorpay Error:", error);
-
-            // Don't show error if user cancelled (code 0 is common for cancel)
-            if (error.code !== 0 && error.code !== 'PAYMENT_CANCELLED') {
-                const errorMsg = error.description || error.error?.description || "The payment transaction failed.";
-                showAlert("PAYMENT FAILED", `${errorMsg} (Code: ${error.code})`, 'error');
-            }
-        }
-    };
-
-    // Fonts
-    const FONT_HEADING = 'BBHBartle';
-    const FONT_BODY = 'Gilton';
-    const FONT_SUB = 'Softura';
-
-    // Validation
-    const validateTeamInfo = () => {
-        if (!teamName.trim()) { showAlert("MISSING INPUT", "Please enter your Team Name.", 'error'); return false; }
-        if (!leaderName.trim()) { showAlert("MISSING INPUT", "Please enter the Team Leader's Name.", 'error'); return false; }
-        if (!college.trim()) { showAlert("MISSING INPUT", "Please enter your College.", 'error'); return false; }
-        if (!email.trim()) { showAlert("MISSING INPUT", "Please enter your Email.", 'error'); return false; }
-        if (!phone.trim()) { showAlert("MISSING INPUT", "Please enter your Phone.", 'error'); return false; }
-        if (!bookingId.trim()) {
-            showAlert("MISSING BOOKING ID", "You must enter your Booking ID to proceed.", 'error');
-            return false;
-        }
+    // ── Validation ──
+    const validateLeaderDetails = () => {
+        if (!teamName.trim()) { showAlert('MISSING INPUT', 'Please enter your Team Name.', 'error'); return false; }
+        if (!leaderName.trim()) { showAlert('MISSING INPUT', "Please enter the Leader's Name.", 'error'); return false; }
+        if (!college.trim()) { showAlert('MISSING INPUT', 'Please enter your College.', 'error'); return false; }
+        if (!email.trim()) { showAlert('MISSING INPUT', 'Please enter your Email.', 'error'); return false; }
+        if (!phone.trim()) { showAlert('MISSING INPUT', 'Please enter your Phone.', 'error'); return false; }
+        if (!bookingId.trim()) { showAlert('MISSING BOOKING ID', 'You must enter your Booking ID to proceed.', 'error'); return false; }
 
         const inputId = bookingId.trim().toUpperCase();
         const actualId = user?.bookingId?.trim().toUpperCase();
-
         if (inputId !== actualId) {
-            showAlert(
-                "INVALID BOOKING ID",
-                "The Booking ID you entered does not match your profile.",
-                'error'
-            );
+            showAlert('INVALID BOOKING ID', 'The Booking ID you entered does not match your profile.', 'error');
             return false;
         }
-
-        const hasEmptyMember = teamMembers.find(m => !m.name.trim() || !m.college.trim());
-        if (hasEmptyMember) {
-            showAlert("MEMBER DETAILS", "Please fill in names and colleges for all team members.", 'error');
-            return false;
-        }
-
         return true;
     };
 
+    const validateEvents = () => {
+        if (selectedEvents.length === 0) {
+            showAlert('CHOOSE EVENT', 'Please select at least one event.', 'error');
+            return false;
+        }
+        return true;
+    };
+
+    // ── Submit Payment ──
+    const handleSubmitPayment = async () => {
+        if (!utrId.trim() || utrId.trim().length < 12) {
+            showAlert('INVALID UTR ID', 'Please enter a valid 12-digit Transaction / UTR ID.', 'error');
+            return;
+        }
+
+        setIsSubmitting(true);
+        let syncError = false;
+
+        try {
+            const resolvedEventIds: string[] = [];
+            for (const scalarId of selectedEvents) {
+                const localEvent = AVAILABLE_EVENTS.find(e => e.id === scalarId);
+                if (localEvent) {
+                    const { data: dbEvent } = await supabase
+                        .from('event')
+                        .select('id')
+                        .eq('name', localEvent.name)
+                        .single();
+                    if (dbEvent?.id) resolvedEventIds.push(dbEvent.id);
+                }
+            }
+
+            const { data: teamData, error: teamError } = await supabase
+                .from('participant_team')
+                .insert({
+                    teamName,
+                    leaderName,
+                    leaderEmail: email,
+                    leaderPhone: phone,
+                    leaderBookingId: bookingId || null,
+                    college,
+                    totalAmount: totalPrice,
+                    status: 'pending',
+                    paymentProofUrl: utrId.trim(),
+                })
+                .select()
+                .single();
+
+            if (teamError) throw teamError;
+            if (!teamData) throw new Error('Failed to create team record.');
+
+            const teamId = teamData.id;
+
+            if (teamMembers.length > 0) {
+                const membersPayload = teamMembers
+                    .filter(m => m.name.trim())
+                    .map(m => ({
+                        teamId,
+                        name: m.name || 'Unknown',
+                        college: m.college || 'Unknown',
+                        email: m.email || '',
+                        phone: m.phone || '',
+                    }));
+                if (membersPayload.length > 0) {
+                    const { error: membersError } = await supabase
+                        .from('participant_team_member')
+                        .insert(membersPayload);
+                    if (membersError) throw membersError;
+                }
+            }
+
+            if (resolvedEventIds.length > 0) {
+                const eventLinks = resolvedEventIds.map(eId => ({ teamId, eventId: eId }));
+                const { error: linksError } = await supabase
+                    .from('participant_team_event')
+                    .insert(eventLinks);
+                if (linksError) throw linksError;
+            }
+
+        } catch (dbError: any) {
+            console.error('Database Save Error:', dbError);
+            syncError = true;
+        }
+
+        setIsSubmitting(false);
+        setReceiptData({
+            utrId: utrId.trim(),
+            amount: totalPrice,
+            date: new Date().toLocaleString(),
+            syncError,
+        });
+        setShowSuccess(true);
+    };
+
+    // ── Navigation ──
     const handleNext = () => {
         if (currentStep === 1) {
-            if (selectedEvents.length === 0) {
-                showAlert("CHOOSE EVENT", "Please select at least one event.", 'error');
-                return;
-            }
-            setCurrentStep(2);
+            if (validateLeaderDetails()) setCurrentStep(2);
         } else if (currentStep === 2) {
-            if (validateTeamInfo()) {
-                setCurrentStep(3);
-            }
+            if (validateEvents()) setCurrentStep(3);
+        } else if (currentStep === 3) {
+            setCurrentStep(4);
         } else {
-            handlePay();
+            handleSubmitPayment();
         }
     };
 
-    const ProgressBar = () => {
-        const progressWidth = currentStep === 1 ? '33%' : currentStep === 2 ? '66%' : '100%';
+    const handleBack = () => {
+        if (currentStep > 1) setCurrentStep(prev => prev - 1);
+        else (navigation as any).goBack();
+    };
 
+    // ── Progress Bar ──
+    const steps = ['LEADER', 'EVENTS', 'TEAM', 'PAY'];
+    const progressValue = useSharedValue(currentStep / 4);
+
+    useEffect(() => {
+        progressValue.value = withTiming(currentStep / 4, {
+            duration: 500,
+            easing: Easing.out(Easing.quad)
+        });
+    }, [currentStep, progressValue]);
+
+    const animatedProgressStyle = useAnimatedStyle(() => ({
+        width: `${progressValue.value * 100}%` as any,
+    }));
+
+    const ProgressBar = () => (
+        <View style={{ marginBottom: 12 }}>
+            {/* Striped bar */}
+            <View style={styles.progressTrack}>
+                <Animated.View style={[styles.progressFill, animatedProgressStyle]}>
+                    <View style={[StyleSheet.absoluteFill, { flexDirection: 'row' }]}>
+                        {Array.from({ length: 60 }).map((_, i) => (
+                            <View
+                                key={i}
+                                style={{
+                                    width: 6,
+                                    height: '100%',
+                                    backgroundColor: 'rgba(255,255,255,0.15)',
+                                    marginRight: 8,
+                                    transform: [{ skewX: '-25deg' }]
+                                }}
+                            />
+                        ))}
+                    </View>
+                </Animated.View>
+            </View>
+            {/* Step labels */}
+            <View style={styles.stepLabels}>
+                {steps.map((step, i) => (
+                    <Text
+                        key={step}
+                        style={[
+                            styles.stepLabel,
+                            {
+                                color: currentStep - 1 >= i ? '#000' : '#ccc',
+                                fontWeight: currentStep - 1 === i ? '900' : '700',
+                                fontSize: 9,
+                                fontFamily: FONT_SUB
+                            }
+                        ]}
+                    >
+                        {step}
+                    </Text>
+                ))}
+            </View>
+        </View>
+    );
+
+    // ── Step Badge ──
+    const StepBadge = () => {
+        const configs = [
+            { bg: '#EDE9FE', text: 'STEP 1/4: TEAM LEADER DETAILS' },
+            { bg: '#fff', text: 'STEP 2/4: SELECT EVENT', border: true },
+            { bg: '#FEF9C3', text: 'STEP 3/4: ADD TEAM MEMBERS (OPTIONAL)' },
+            { bg: '#FEE2E2', text: 'STEP 4/4: SECURE PAYMENT', timer: true },
+        ];
+        const cfg = configs[currentStep - 1];
         return (
-            <View className="mb-4">
-                <View className="h-4 w-full bg-gray-100 border-[2px] border-black rounded-full overflow-hidden">
-                    <Animated.View
-                        layout={Layout.springify()}
-                        className="h-full bg-purple-600"
-                        style={{ width: progressWidth }}
-                    />
-                </View>
-                <View className="flex-row justify-between px-1 mt-2">
-                    <Text className={`text-[8px] font-black uppercase tracking-widest ${currentStep >= 1 ? 'text-black' : 'text-gray-300'}`}>EVENTS</Text>
-                    <Text className={`text-[8px] font-black uppercase tracking-widest ${currentStep >= 2 ? 'text-black' : 'text-gray-300'}`}>TEAM</Text>
-                    <Text className={`text-[8px] font-black uppercase tracking-widest ${currentStep >= 3 ? 'text-black' : 'text-gray-300'}`}>PAY</Text>
-                </View>
+            <View style={[
+                styles.stepBadge,
+                { backgroundColor: cfg.bg },
+                cfg.border ? { borderWidth: 1, borderColor: '#ddd' } : {}
+            ]}>
+                <Text style={[styles.stepBadgeText, { fontFamily: FONT_SUB }]}>{cfg.text}</Text>
+                {cfg.timer && (
+                    <View style={styles.timerBadge}>
+                        <Text style={styles.timerText}>EXP: {formatTime(timer)}</Text>
+                    </View>
+                )}
             </View>
         );
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-black" edges={['top', 'bottom']}>
+        <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
 
-            {/* --- CUSTOM ALERT MODAL --- */}
-            <Modal
-                transparent
-                visible={alertConfig.visible}
-                animationType="fade"
-                onRequestClose={hideAlert}
-            >
-                <View className="flex-1 bg-black/80 items-center justify-center px-6">
-                    <Animated.View
-                        entering={FadeIn.duration(200)}
-                        className="w-full relative"
-                    >
-                        {/* 3D Shadow for Alert */}
-                        <View className="absolute top-2 left-2 right-[-8px] bottom-[-8px] bg-white/20 rounded-[24px]" />
-                        <View className="absolute top-1 left-1 right-[-4px] bottom-[-4px] bg-black rounded-[24px]" />
-
-                        {/* Alert Content */}
-                        <View className="bg-white border-[3px] border-black rounded-[24px] p-6 items-center">
-                            <View className="bg-red-100 p-4 rounded-full border-[2px] border-black mb-4">
+            {/* ── Custom Alert Modal ── */}
+            <Modal transparent visible={alertConfig.visible} animationType="fade" onRequestClose={hideAlert}>
+                <View style={styles.modalOverlay}>
+                    <Animated.View entering={FadeIn.duration(200)} style={styles.alertContainer}>
+                        <View style={styles.alertShadow} />
+                        <View style={styles.alertContent}>
+                            <View style={styles.alertIconWrap}>
                                 <AlertCircle color="black" size={32} strokeWidth={2.5} />
                             </View>
-
-                            <Text className="text-xl font-black uppercase text-center mb-2" style={{ fontFamily: FONT_HEADING }}>
-                                {alertConfig.title}
-                            </Text>
-
-                            <Text className="text-center text-black/70 font-medium mb-6 leading-5" style={{ fontFamily: FONT_BODY }}>
-                                {alertConfig.message}
-                            </Text>
-
+                            <Text style={[styles.alertTitle, { fontFamily: FONT_HEADING }]}>{alertConfig.title}</Text>
+                            <Text style={[styles.alertMessage, { fontFamily: FONT_BODY }]}>{alertConfig.message}</Text>
                             <SmoothButton
                                 onPress={hideAlert}
                                 containerStyle={{ width: '100%' }}
@@ -422,7 +407,7 @@ const EventRegistrationScreen = () => {
                                 shadowStyle="bg-gray-400 rounded-xl top-1 left-1"
                                 depth={0}
                             >
-                                <Text className="text-white font-bold uppercase tracking-widest">
+                                <Text style={{ color: '#fff', fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2 }}>
                                     UNDERSTOOD
                                 </Text>
                             </SmoothButton>
@@ -431,369 +416,310 @@ const EventRegistrationScreen = () => {
                 </View>
             </Modal>
 
-            {/* --- PAYMENT RECEIPT MODAL --- */}
-            <Modal
-                transparent
-                visible={showReceipt}
-                animationType="slide"
-                onRequestClose={() => { }} // Disable back button close to force "Go to Profile"
-            >
-                <View className="flex-1 bg-black/90 items-center justify-center px-4">
-                    <Animated.View
-                        entering={FadeInDown.delay(200).springify()}
-                        className="w-full max-w-sm bg-white rounded-[20px] overflow-hidden"
-                    >
-                        {/* Receipt Header */}
-                        <View className={`${receiptData?.syncError ? 'bg-orange-500' : 'bg-green-500'} p-6 items-center`}>
-                            <View className="bg-white p-3 rounded-full mb-3 shadow-lg">
-                                {receiptData?.syncError ? <AlertCircle color="orange" size={32} strokeWidth={3} /> : <Check color="green" size={32} strokeWidth={4} />}
-                            </View>
-                            <Text className="text-white text-xl font-black uppercase tracking-widest text-center" style={{ fontFamily: FONT_HEADING }}>
-                                {receiptData?.syncError ? 'Payment Success' : 'Payment Successful'}
-                            </Text>
-                            <Text className="text-white/90 text-[10px] font-bold uppercase tracking-widest mt-1 text-center">
-                                {receiptData?.syncError ? 'BUT SYNC FAILED - SAVE RECEIPT' : 'Team Registration confirmed'}
-                            </Text>
+            {/* ── Success Screen ────────────────────────────────────────────────── */}
+            {showSuccess ? (
+                <ScrollView
+                    style={{ flex: 1 }}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ padding: 14, paddingBottom: 24 }}
+                >
+                    <View style={styles.card}>
+                        {/* Return Home Button */}
+                        <View style={{ alignSelf: 'flex-start', marginBottom: 16 }}>
+                            <SmoothButton
+                                onPress={() => (navigation as any).goBack()}
+                                buttonStyle="bg-[#FFEB3B] px-4 py-2 rounded-lg border-[2.5px] border-black flex-row items-center gap-2"
+                                shadowStyle="bg-black rounded-lg"
+                                depth={3}
+                            >
+                                <Text style={[styles.returnHomeText, { fontFamily: FONT_SUB, fontSize: 13, fontWeight: '900' }]}>← RETURN HOME</Text>
+                            </SmoothButton>
                         </View>
 
-                        {/* ZigZag / Tear Line Visual */}
-                        <View className={`${receiptData?.syncError ? 'bg-orange-500' : 'bg-green-500'} h-4 relative z-10`}>
-                            <View className="absolute -bottom-2 w-full flex-row ml-[-5px]">
-                                {Array.from({ length: 20 }).map((_, i) => (
-                                    <View key={i} className="w-4 h-4 bg-white transform rotate-45 ml-1.5" />
-                                ))}
+                        <Text style={[styles.titleBlack, { fontFamily: 'Bicubik', fontSize: 36, marginTop: 4, lineHeight: 36 }]}>EVENT</Text>
+                        <Text style={[styles.titlePurple, { fontFamily: 'Bicubik', fontSize: 36, marginBottom: 20, lineHeight: 36, color: '#A855F7' }]}>REGISTRATION.</Text>
+
+                        <ProgressBar />
+
+                        <Animated.View entering={FadeInDown.springify()} style={styles.successCard}>
+                            <View style={styles.successCardShadow} />
+                            <View style={styles.successCardContent}>
+                                <Text style={[styles.successTitle, { fontFamily: 'Bicubik' }]}>
+                                    REGISTRATION SUCCESSFUL!
+                                </Text>
+                                <Text style={[styles.successSubtext, { fontFamily: FONT_BODY }]}>
+                                    Your team registration is pending verification.
+                                </Text>
+                                <Text style={[styles.successSubtext, { fontFamily: FONT_BODY, marginTop: 12 }]}>
+                                    Check your profile for the event pass once approved.
+                                </Text>
                             </View>
-                        </View>
+                        </Animated.View>
 
-                        {/* Receipt Details */}
-                        <View className="p-6 pt-8 bg-white gap-4">
-                            {receiptData?.syncError && (
-                                <View className="bg-orange-50 p-3 rounded-lg border border-orange-200 mb-2">
-                                    <Text className="text-orange-800 text-[10px] font-bold text-center">
-                                        Server sync failed. Please screenshot this screen and contact support with Payment ID.
-                                    </Text>
-                                </View>
-                            )}
-
-                            <View className="flex-row justify-between items-end border-b-2 border-dashed border-gray-200 pb-4">
-                                <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Amount Paid</Text>
-                                <Text className="text-3xl font-black text-black" style={{ fontFamily: 'Courier New' }}>₹{receiptData?.amount}</Text>
-                            </View>
-
-                            <View className="gap-3">
-                                <View className="flex-row justify-between">
-                                    <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Payment ID</Text>
-                                    <Text className="text-xs font-bold text-black" style={{ fontFamily: 'Courier New' }}>{receiptData?.paymentId}</Text>
-                                </View>
-                                {receiptData?.orderId && (
-                                    <View className="flex-row justify-between">
-                                        <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Order ID</Text>
-                                        <Text className="text-xs font-bold text-black" style={{ fontFamily: 'Courier New' }}>{receiptData?.orderId}</Text>
-                                    </View>
-                                )}
-                                <View className="flex-row justify-between">
-                                    <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Date</Text>
-                                    <Text className="text-xs font-bold text-black" style={{ fontFamily: 'Courier New' }}>{receiptData?.date}</Text>
-                                </View>
-                                <View className="flex-row justify-between">
-                                    <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Team</Text>
-                                    <Text className="text-xs font-bold text-black uppercase" style={{ fontFamily: FONT_SUB }}>{teamName}</Text>
-                                </View>
-                            </View>
-
-                            <View className="mt-4 opacity-40">
-                                <View className="h-8 flex-row items-end justify-center gap-[2px]">
-                                    {Array.from({ length: 40 }).map((_, i) => (
-                                        <View key={i} className={`bg-black h-full w-[${i % 3 === 0 ? '4px' : '2px'}]`} />
-                                    ))}
-                                </View>
-                                <Text className="text-center text-[8px] font-mono mt-1 text-black">OFFICIAL RECEIPT • SIGNIFIYA 2026</Text>
-                            </View>
-
-                            <View className="mt-4">
+                        <View style={{ flexDirection: 'row', gap: 12, marginTop: 32 }}>
+                            <View style={{ flex: 1 }}>
                                 <SmoothButton
-                                    onPress={handleCloseReceipt}
+                                    onPress={handleGoToProfile}
                                     containerStyle={{ width: '100%' }}
-                                    buttonStyle="bg-black py-3.5 rounded-xl items-center justify-center border-[2px] border-black"
-                                    shadowStyle="bg-green-500 rounded-xl top-1 left-1"
+                                    buttonStyle="bg-black py-4 rounded-xl items-center justify-center border-[2px] border-black"
+                                    shadowStyle="bg-[#A855F7] rounded-xl top-1.5 left-1.5"
                                     depth={0}
                                 >
-                                    <Text className="text-white font-black uppercase tracking-widest text-sm">
-                                        Continue to Profile
+                                    <Text style={{ color: '#fff', fontSize: 13, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                        GO TO PROFILE
+                                    </Text>
+                                </SmoothButton>
+                            </View>
+
+                            <View style={{ flex: 1 }}>
+                                <SmoothButton
+                                    onPress={handleRegisterAnother}
+                                    containerStyle={{ width: '100%' }}
+                                    buttonStyle="bg-white py-4 rounded-xl items-center justify-center border-[2px] border-black"
+                                    shadowStyle="bg-black rounded-xl top-1.5 left-1.5"
+                                    depth={0}
+                                >
+                                    <Text style={{ color: '#000', fontSize: 13, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                        REGISTER ANOTHER
                                     </Text>
                                 </SmoothButton>
                             </View>
                         </View>
-                    </Animated.View>
-                </View>
-            </Modal>
 
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                className="flex-1"
-            >
-                <ScrollView
-                    className="flex-1"
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
-                >
-                    <View className="bg-white w-full rounded-[30px] p-5 pb-6 overflow-hidden shadow-2xl">
+                        {/* Bottom Separator Line from image */}
+                        <View style={{ height: 4, backgroundColor: '#4b5563', borderRadius: 2, marginTop: 100, marginBottom: 10 }} />
+                    </View>
+                </ScrollView>
+            ) : (
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+                    <ScrollView
+                        style={{ flex: 1 }}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ padding: 14, paddingBottom: 24 }}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        {/* White Card */}
+                        <View style={styles.card}>
 
-                        <View className="self-start mb-4">
-                            <SmoothButton
-                                onPress={() => navigation.goBack()}
-                                buttonStyle="bg-[#FFEB3B] px-4 py-2 rounded-lg border-[2px] border-black flex-row items-center gap-2"
-                                shadowStyle="bg-black rounded-lg"
-                                depth={2}
-                            >
-                                <ArrowLeft color="black" size={14} strokeWidth={3} />
-                                <Text className="text-[10px] font-black uppercase tracking-widest text-black" style={{ fontFamily: 'Gilton' }}>
-                                    RETURN HOME
-                                </Text>
-                            </SmoothButton>
-                        </View>
+                            {/* Return Home Button */}
+                            <View style={{ alignSelf: 'flex-start', marginBottom: 16 }}>
+                                <SmoothButton
+                                    onPress={() => (navigation as any).goBack()}
+                                    buttonStyle="bg-[#FFEB3B] px-4 py-2 rounded-lg border-[2.5px] border-black flex-row items-center gap-2"
+                                    shadowStyle="bg-black rounded-lg"
+                                    depth={2}
+                                >
+                                    <Text style={[styles.returnHomeText, { fontFamily: FONT_SUB, fontSize: 11, fontWeight: '900' }]}>← RETURN HOME</Text>
+                                </SmoothButton>
+                            </View>
 
-                        <View className="mb-4">
-                            <Text className="text-[28px] uppercase text-black leading-8" style={{ fontFamily: 'Gilton' }}>
-                                EVENT
-                            </Text>
-                            <Text className="text-[28px] uppercase text-purple-600 leading-8" style={{ fontFamily: 'Gilton' }}>
-                                REGISTRATION
-                            </Text>
-                        </View>
+                            {/* Title */}
+                            <View style={{ marginBottom: 12 }}>
+                                <Text style={[styles.titleBlack, { fontFamily: 'Bicubik', fontSize: 40, lineHeight: 40, marginTop: 4 }]}>EVENT</Text>
+                                <Text style={[styles.titlePurple, { fontFamily: 'Bicubik', fontSize: 40, lineHeight: 40, color: '#A855F7' }]}>REGISTRATION.</Text>
+                            </View>
 
-                        <View className="mb-6">
+                            {/* Progress Bar */}
                             <ProgressBar />
-                        </View>
 
-                        <Animated.View layout={Layout.springify()} className="mb-6">
-                            {currentStep === 1 && (
-                                <View className="bg-[#FEF08A] border-[2px] border-black rounded-full py-2 px-5 shadow-[3px_3px_0px_#000000] flex-row justify-between items-center">
-                                    <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                        STEP 1/3: CHOOSE EVENTS
-                                    </Text>
-                                    <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                        ₹{totalPrice}
-                                    </Text>
-                                </View>
-                            )}
-                            {currentStep === 2 && (
-                                <View className="bg-[#BFDBFE] border-[2px] border-black rounded-full py-2 px-5 shadow-[3px_3px_0px_#000000]">
-                                    <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                        STEP 2/3: TEAM INFORMATION
-                                    </Text>
-                                </View>
-                            )}
-                            {currentStep === 3 && (
-                                <View className="bg-[#FECACA] border-[2px] border-black rounded-full py-2 px-5 shadow-[3px_3px_0px_#000000] flex-row justify-between items-center">
-                                    <Text className="text-xs font-black uppercase tracking-widest text-black" style={{ fontFamily: FONT_SUB }}>
-                                        STEP 3/3: FINAL REVIEW
-                                    </Text>
-                                    <View className="flex-row items-center gap-1.5 bg-white/40 px-2 py-0.5 rounded-full">
-                                        <View className="w-1.5 h-1.5 rounded-full bg-red-600" />
-                                        <Text className="text-[10px] font-black tracking-widest text-[#DC2626]" style={{ fontFamily: FONT_SUB }}>
-                                            REVIEW & PAY
-                                        </Text>
-                                    </View>
-                                </View>
-                            )}
-                        </Animated.View>
-
-                        {currentStep === 1 && (
-                            <Animated.View entering={FadeInDown} className="gap-3 mb-4">
-                                {AVAILABLE_EVENTS.map((event) => (
-                                    <EventSelectionCard
-                                        key={event.id}
-                                        event={event}
-                                        selected={selectedEvents.includes(event.id)}
-                                        onToggle={() => toggleEvent(event.id)}
-                                    />
-                                ))}
+                            {/* Step Badge */}
+                            <Animated.View layout={Layout.springify()} style={{ marginBottom: 20 }}>
+                                <StepBadge />
                             </Animated.View>
-                        )}
 
-                        {currentStep === 2 && (
-                            <Animated.View entering={FadeInDown} exiting={FadeInDown} className="gap-5 mb-6">
-                                <View className="bg-gray-50 border-[2px] border-black border-dashed rounded-[20px] p-5 gap-5">
-                                    <InputGroup label="TEAM NAME" value={teamName} onChange={setTeamName} placeholder="YOUR TEAM NAME" />
-                                    <InputGroup label="LEADER NAME" value={leaderName} onChange={setLeaderName} placeholder="FULL NAME" />
-                                    <InputGroup label="COLLEGE" value={college} onChange={setCollege} placeholder="YOUR COLLEGE" />
-                                    <View className="flex-row gap-3">
-                                        <View className="flex-1">
-                                            <InputGroup label="EMAIL" value={email} onChange={setEmail} placeholder="EMAIL" keyboardType="email-address" />
-                                        </View>
-                                        <View className="flex-1">
-                                            <InputGroup label="PHONE" value={phone} onChange={setPhone} placeholder="PHONE" keyboardType="phone-pad" />
-                                        </View>
-                                    </View>
+                            {/* ── STEP 1: Leader Details ── */}
+                            {currentStep === 1 && (
+                                <Animated.View entering={FadeInDown} style={{ gap: 14, marginBottom: 8 }}>
+                                    <FieldGroup label="TEAM NAME" value={teamName} onChange={setTeamName} placeholder="CODE WARRIORS" />
+                                    <FieldGroup label="LEADER NAME" value={leaderName} onChange={setLeaderName} placeholder="JANE DOE" />
+                                    <FieldGroup label="COLLEGE" value={college} onChange={setCollege} placeholder="ADAMAS UNIVERSITY" />
+                                    <FieldGroup label="EMAIL" value={email} onChange={setEmail} placeholder="EMAIL@COLLEGE.EDU" keyboardType="email-address" />
+                                    <FieldGroup label="PHONE" value={phone} onChange={setPhone} placeholder="9876543210" keyboardType="phone-pad" />
                                     <View>
-                                        <InputGroup
+                                        <FieldGroup
                                             label="BOOKING ID"
                                             value={bookingId}
                                             onChange={setBookingId}
                                             placeholder="SGF26-XXXXXXXX"
                                         />
-                                        <Text className="text-[10px] text-gray-500 mt-2 leading-4 ml-1" style={{ fontFamily: FONT_BODY }}>
-                                            Find it in <Text className="underline font-bold text-black" onPress={() => (navigation as any).navigate('Main', { screen: 'Profile' })}>Profile</Text>.
+                                        <Text style={[styles.bookingHint, { fontFamily: FONT_BODY }]}>
+                                            Find it in{' '}
+                                            <Text
+                                                style={styles.bookingHintLink}
+                                                onPress={() => (navigation as any).navigate('Main', { screen: 'Profile' })}
+                                            >
+                                                Profile
+                                            </Text>
+                                            . Sign in and visit Profile first if you don't have one.
                                         </Text>
                                     </View>
-                                </View>
+                                </Animated.View>
+                            )}
 
-                                {teamMembers.map((member, index) => (
-                                    <View key={member.id} className="relative mt-2">
-                                        <View className="absolute -top-3 left-6 z-20 bg-black px-3 py-1 rounded-md transform -rotate-1">
-                                            <Text className="text-white text-[10px] font-bold uppercase tracking-widest">
-                                                MEMBER {index + 1}
+                            {/* ── STEP 2: Select Events ── */}
+                            {currentStep === 2 && (
+                                <Animated.View entering={FadeInDown} style={{ gap: 10, marginBottom: 8 }}>
+                                    {AVAILABLE_EVENTS.map(event => (
+                                        <EventCard
+                                            key={event.id}
+                                            event={event}
+                                            selected={selectedEvents.includes(event.id)}
+                                            onToggle={() => toggleEvent(event.id)}
+                                        />
+                                    ))}
+                                </Animated.View>
+                            )}
+
+                            {/* ── STEP 3: Team Members ── */}
+                            {currentStep === 3 && (
+                                <Animated.View entering={FadeInDown} style={{ gap: 14, marginBottom: 8 }}>
+                                    {/* Note */}
+                                    <View style={styles.noteBox}>
+                                        <Text style={[styles.noteText, { fontFamily: FONT_BODY }]}>
+                                            Note: Team leader is automatically included. Add other members here.
+                                        </Text>
+                                    </View>
+
+                                    {teamMembers.map((member, index) => (
+                                        <MemberCard
+                                            key={member.id}
+                                            member={member}
+                                            index={index}
+                                            onRemove={() => removeMember(member.id)}
+                                            onUpdate={(field: string, value: string) => updateMember(member.id, field, value)}
+                                            canRemove={teamMembers.length > 1}
+                                        />
+                                    ))}
+
+                                    {/* Add Member Button */}
+                                    <TouchableOpacity onPress={addMember} style={styles.addMemberBtn} activeOpacity={0.7}>
+                                        <Text style={[styles.addMemberText, { fontFamily: FONT_BODY }]}>+ ADD MEMBER</Text>
+                                    </TouchableOpacity>
+                                </Animated.View>
+                            )}
+
+                            {/* ── STEP 4: Payment ── */}
+                            {currentStep === 4 && (
+                                <Animated.View entering={FadeInDown} style={{ gap: 16, marginBottom: 8 }}>
+                                    {/* Receipt Summary */}
+                                    <View style={styles.receiptSummaryBox}>
+                                        <Text style={[styles.receiptSummaryTitle, { fontFamily: FONT_SUB }]}>RECEIPT SUMMARY</Text>
+                                        <View style={styles.receiptDivider} />
+                                        {selectedEvents.map(id => {
+                                            const event = AVAILABLE_EVENTS.find(e => e.id === id);
+                                            return (
+                                                <View key={id} style={styles.receiptSummaryRow}>
+                                                    <Text style={[styles.receiptSummaryEventName, { fontFamily: FONT_BODY }]}>
+                                                        {event?.name ? event.name.charAt(0) + event.name.slice(1).toLowerCase() : ''}
+                                                    </Text>
+                                                    <Text style={[styles.receiptSummaryPrice, { fontFamily: FONT_BODY }]}>₹{event?.price}</Text>
+                                                </View>
+                                            );
+                                        })}
+                                        <View style={styles.receiptDivider} />
+                                        <View style={styles.receiptSummaryRow}>
+                                            <Text style={[styles.receiptTotalLabel, { fontFamily: FONT_SUB }]}>TOTAL</Text>
+                                            <Text style={[styles.receiptTotalValue, { fontFamily: FONT_SUB }]}>₹{totalPrice}</Text>
+                                        </View>
+                                    </View>
+
+                                    {/* QR Code Section */}
+                                    <View className="items-center mb-8">
+                                        <View className="p-4 bg-white border-[3px] border-black rounded-[25px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                                            <Image
+                                                source={{ uri: `${UPI_QR_PLACEHOLDER}${totalPrice}` }}
+                                                style={{ width: 220, height: 220, borderRadius: 10 }}
+                                            />
+                                            <View className="absolute top-1/2 left-1/2 ml-[-15px] mt-[-15px] bg-white p-1 rounded-sm border border-gray-100">
+                                                <Image source={{ uri: 'https://i.imgur.com/3g7nmJC.png' }} style={{ width: 24, height: 24 }} />
+                                            </View>
+                                        </View>
+                                        <Text className="mt-8 text-black font-black text-sm text-center px-4" style={{ fontFamily: FONT_BODY }}>
+                                            Scan this QR code with any UPI app to pay.
+                                        </Text>
+                                        <Text className="mt-2 text-gray-500 font-bold text-[10px] text-center" style={{ fontFamily: FONT_BODY }}>
+                                            UPI ID: {UPI_ID}
+                                        </Text>
+                                    </View>
+
+                                    {/* UTR Input */}
+                                    <View>
+                                        <Text style={[styles.utrLabel, { fontFamily: FONT_SUB }]}>ENTER TRANSACTION / UTR ID</Text>
+                                        <View style={styles.utrInputWrap}>
+                                            <TextInput
+                                                value={utrId}
+                                                onChangeText={setUtrId}
+                                                placeholder="Enter 12-digit UTR ID"
+                                                placeholderTextColor="#aaa"
+                                                style={[styles.utrInput, { fontFamily: FONT_BODY }]}
+                                                keyboardType="default"
+                                                maxLength={22}
+                                            />
+                                        </View>
+                                        <Text style={[styles.utrHint, { fontFamily: FONT_BODY }]}>
+                                            Usually starts with banking ref no. or 'UPI...'
+                                        </Text>
+                                    </View>
+                                </Animated.View>
+                            )}
+
+                            {/* ── Navigation Buttons ── */}
+                            <View style={{ marginTop: 20, flexDirection: currentStep > 1 ? 'row' : 'column', gap: 10 }}>
+                                {currentStep > 1 && (
+                                    <TouchableOpacity onPress={handleBack} style={styles.backBtn} activeOpacity={0.8}>
+                                        <Text style={[styles.backBtnText, { fontFamily: FONT_SUB }]}>BACK</Text>
+                                    </TouchableOpacity>
+                                )}
+                                <View style={{ flex: currentStep > 1 ? 1 : undefined }}>
+                                    <SmoothButton
+                                        onPress={handleNext}
+                                        containerStyle={{ width: '100%' }}
+                                        buttonStyle="bg-black py-4 rounded-[16px] items-center justify-center border-[2px] border-black"
+                                        shadowStyle="bg-[#A855F7] rounded-[16px] top-1.5 left-1.5"
+                                        depth={0}
+                                    >
+                                        {isSubmitting ? (
+                                            <ActivityIndicator color="#fff" />
+                                        ) : (
+                                            <Text style={[styles.nextBtnText, { fontFamily: FONT_SUB }]}>
+                                                {currentStep === 1 ? 'NEXT: SELECT EVENT →' :
+                                                    currentStep === 2 ? 'NEXT: ADD TEAM →' :
+                                                        currentStep === 3 ? 'NEXT: PAYMENT →' :
+                                                            'SUBMIT PAYMENT DETAILS →'}
                                             </Text>
-                                        </View>
-                                        <TouchableOpacity onPress={() => removeMember(member.id)} className="absolute -top-3 right-4 z-20 bg-red-500 border-2 border-black w-7 h-7 rounded-full items-center justify-center">
-                                            <Text className="text-white font-bold text-[10px]">X</Text>
-                                        </TouchableOpacity>
-                                        <View className="bg-white border-[2px] border-black rounded-[20px] p-4 pt-6 gap-3 shadow-[3px_3px_0px_rgba(0,0,0,1)]">
-                                            <InputGroup label="FULL NAME" value={member.name} onChange={(t: string) => updateMember(member.id, 'name', t)} placeholder="Name" />
-                                            <InputGroup label="COLLEGE" value={member.college} onChange={(t: string) => updateMember(member.id, 'college', t)} placeholder="College" />
-                                        </View>
-                                    </View>
-                                ))}
-                                <TouchableOpacity onPress={addMember} className="border-[2px] border-black border-dashed rounded-[20px] py-4 items-center justify-center bg-gray-50 active:bg-gray-100">
-                                    <Text className="text-black font-bold uppercase tracking-widest text-[10px]">+ ADD TEAM MEMBER</Text>
-                                </TouchableOpacity>
-                            </Animated.View>
-                        )}
-
-                        {currentStep === 3 && (
-                            <Animated.View entering={FadeInDown} className="gap-5 mb-4">
-                                <View className="bg-white border-[2.5px] border-black rounded-[30px] overflow-hidden shadow-[6px_6px_0px_rgba(0,0,0,1)]">
-                                    {/* Receipt Top Section */}
-                                    <View className="bg-black p-4 flex-row justify-between items-center">
-                                        <Text className="text-white text-[10px] font-black tracking-widest uppercase">Payment Summary</Text>
-                                        <View className="bg-red-600 px-3 py-1 rounded-full">
-                                            <Text className="text-white text-[9px] font-bold">EXPIRES IN {formatTime(timer)}</Text>
-                                        </View>
-                                    </View>
-
-                                    <View className="p-6">
-                                        {/* Team Info Snippet */}
-                                        <View className="mb-6 bg-gray-50 p-4 rounded-[20px] border-[1.5px] border-black/10">
-                                            <View className="flex-row justify-between mb-2">
-                                                <Text className="text-[10px] font-bold text-gray-400 uppercase">TEAM</Text>
-                                                <Text className="text-[11px] font-black text-black uppercase">{teamName}</Text>
-                                            </View>
-                                            <View className="flex-row justify-between mb-2">
-                                                <Text className="text-[10px] font-bold text-gray-400 uppercase">LEADER</Text>
-                                                <Text className="text-[11px] font-bold text-black uppercase">{leaderName}</Text>
-                                            </View>
-                                            <View className="flex-row justify-between">
-                                                <Text className="text-[10px] font-bold text-gray-400 uppercase">COLLEGE</Text>
-                                                <Text className="text-[11px] font-medium text-black uppercase" numberOfLines={1}>{college}</Text>
-                                            </View>
-                                        </View>
-
-                                        <Text className="text-[10px] font-black tracking-[0.2em] mb-4 text-gray-400 uppercase">EVENTS BREAKDOWN</Text>
-
-                                        <View className="gap-3 mb-6">
-                                            {selectedEvents.map((id) => {
-                                                const event = AVAILABLE_EVENTS.find(e => e.id === id);
-                                                return (
-                                                    <View key={id} className="flex-row justify-between items-center pb-2 border-b-[1px] border-gray-100">
-                                                        <View className="flex-1">
-                                                            <Text className="text-xs font-bold text-black" style={{ fontFamily: 'Courier New' }}>{event?.name}</Text>
-                                                            <Text className="text-[9px] text-gray-400 uppercase tracking-tighter">Registration Fee</Text>
-                                                        </View>
-                                                        <Text className="text-sm font-black text-black">₹{event?.price}</Text>
-                                                    </View>
-                                                );
-                                            })}
-                                        </View>
-
-                                        {/* Tear Line divider */}
-                                        <View className="flex-row items-center gap-2 mb-6">
-                                            <View className="h-[1px] bg-black flex-1 opacity-10" />
-                                            <View className="w-2 h-2 rounded-full border border-black opacity-20" />
-                                            <View className="h-[1px] bg-black flex-1 opacity-10" />
-                                        </View>
-
-                                        <View className="flex-row justify-between items-center bg-purple-50 p-4 rounded-[20px] border-[2px] border-black">
-                                            <View>
-                                                <Text className="text-[10px] font-black uppercase text-purple-900">Final Total</Text>
-                                                <Text className="text-[8px] text-purple-500 uppercase">Incl. all taxes</Text>
-                                            </View>
-                                            <Text className="text-3xl font-black text-black">₹{totalPrice}</Text>
-                                        </View>
-
-                                        <View className="mt-4 opacity-30 items-center">
-                                            <View className="w-full h-10 flex-row gap-[3px] justify-center overflow-hidden">
-                                                {Array.from({ length: 30 }).map((_, i) => (
-                                                    <View key={i} style={{ width: i % 3 === 0 ? 3 : 1 }} className="bg-black h-full" />
-                                                ))}
-                                            </View>
-                                        </View>
-                                    </View>
+                                        )}
+                                    </SmoothButton>
                                 </View>
-                            </Animated.View>
-                        )}
+                            </View>
 
-                        <View className="mt-6">
-                            <SmoothButton
-                                onPress={handleNext}
-                                containerStyle={{ width: '100%' }}
-                                buttonStyle="bg-black py-4 rounded-[16px] items-center justify-center border-[2px] border-black"
-                                shadowStyle="bg-[#A855F7] rounded-[16px] top-1.5 left-1.5"
-                                depth={0}
-                            >
-                                <Text className="text-white text-base uppercase font-black tracking-widest text-center" style={{ fontFamily: FONT_SUB }}>
-                                    {currentStep === 1 ? 'NEXT: TEAM INFO →' :
-                                        currentStep === 2 ? 'NEXT: REVIEW & PAY →' :
-                                            `PAY ₹${totalPrice}`}
-                                </Text>
-                            </SmoothButton>
                         </View>
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            )}
 
-                    </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
-
-            {/* --- TRANSITION SKELETON OVERLAY --- */}
+            {/* ── Transition Skeleton ── */}
             {isTransitioning && (
-                <View
-                    className="absolute inset-0 z-[100] bg-[#F5E6FA] p-4"
-                    style={StyleSheet.absoluteFill}
-                >
-                    <SafeAreaView className="flex-1" edges={['top']}>
-                        {/* Skeleton Header */}
-                        <View className="mb-6 mt-4">
-                            <View className="h-14 w-56 bg-black/10 rounded-xl mb-3 overflow-hidden">
-                                <SkeletonPulse />
-                            </View>
-                            <View className="h-4 w-40 bg-black/5 rounded-md overflow-hidden">
+                <View style={[StyleSheet.absoluteFill, styles.skeleton]}>
+                    <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+                        <View style={{ marginBottom: 24, marginTop: 16 }}>
+                            <View style={styles.skeletonBlock}>
                                 <SkeletonPulse />
                             </View>
                         </View>
-
-                        {/* Skeleton Card (Profile Info) - Matches ProfileScreen layout */}
-                        <View className="bg-white rounded-[30px] border-[3px] border-black/10 p-6 mb-6 overflow-hidden">
-                            <View className="items-center mb-8">
-                                <View className="w-24 h-24 rounded-full bg-black/5 overflow-hidden">
-                                    <SkeletonPulse />
-                                </View>
+                        <View style={styles.skeletonCard}>
+                            <View style={styles.skeletonCircle}>
+                                <SkeletonPulse />
                             </View>
-                            <View className="gap-6">
-                                {[1, 2, 3].map(i => (
-                                    <View key={i}>
-                                        <View className="h-2 w-16 bg-black/10 rounded mb-3 overflow-hidden">
-                                            <SkeletonPulse />
-                                        </View>
-                                        <View className="h-12 w-full bg-black/5 rounded-xl border border-black/5 overflow-hidden">
-                                            <SkeletonPulse />
-                                        </View>
+                            {[1, 2, 3].map(i => (
+                                <View key={i} style={{ marginBottom: 16 }}>
+                                    <View style={styles.skeletonLine}>
+                                        <SkeletonPulse />
                                     </View>
-                                ))}
-                            </View>
-                        </View>
-
-                        {/* Skeleton Footer (Logout/Actions) */}
-                        <View className="h-14 w-full bg-black/5 rounded-2xl overflow-hidden mt-auto mb-4">
-                            <SkeletonPulse />
+                                    <View style={styles.skeletonField}>
+                                        <SkeletonPulse />
+                                    </View>
+                                </View>
+                            ))}
                         </View>
                     </SafeAreaView>
                 </View>
@@ -802,72 +728,760 @@ const EventRegistrationScreen = () => {
     );
 };
 
-// Helper for Pulse Effect
+// ─── Sub-components ────────────────────────────────────────────────────────────
+
+const FieldGroup = ({ label, value, onChange, placeholder, keyboardType = 'default' }: {
+    label: string,
+    value: string,
+    onChange: (text: string) => void,
+    placeholder: string,
+    keyboardType?: 'default' | 'email-address' | 'phone-pad'
+}) => (
+    <View>
+        <Text style={[styles.fieldLabel, { fontFamily: 'Softura' }]}>{label}</Text>
+        <View style={styles.fieldInputWrap}>
+            <TextInput
+                value={value}
+                onChangeText={onChange}
+                placeholder={placeholder}
+                placeholderTextColor="#bbb"
+                keyboardType={keyboardType}
+                autoCapitalize="none"
+                style={[styles.fieldInput, { fontFamily: 'Gilton' }]}
+            />
+        </View>
+    </View>
+);
+
 const SkeletonPulse = () => {
     const opacity = useSharedValue(0.3);
 
-    React.useEffect(() => {
+    useEffect(() => {
         opacity.value = withRepeat(
             withTiming(0.6, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
             -1,
             true
         );
-    }, []);
+    }, [opacity]);
 
-    const style = useAnimatedStyle(() => ({
+    const animatedStyle = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
 
-    return <Animated.View style={[style, { flex: 1, backgroundColor: 'black' }]} />;
+    return <Animated.View style={[animatedStyle, { flex: 1, backgroundColor: 'rgba(0,0,0,0.1)' }]} />;
 };
 
-const InputGroup = ({ label, value, onChange, placeholder, keyboardType = 'default' }: any) => {
-    return (
-        <View>
-            <Text className="text-[10px] font-bold text-black uppercase tracking-widest mb-1.5 ml-1" style={{ fontFamily: 'Softura' }}>
-                {label}
-            </Text>
-            <View className="relative">
-                <View className="absolute top-1 left-1 right-[-4px] bottom-[-4px] bg-black rounded-xl" />
+const EventCard = ({ event, selected, onToggle }: {
+    event: { id: number, name: string, date: string, teamSize: string, price: number },
+    selected: boolean,
+    onToggle: () => void
+}) => (
+    <TouchableOpacity onPress={onToggle} activeOpacity={0.85} style={styles.eventCard}>
+        <View style={{ flex: 1 }}>
+            <Text style={[styles.eventName, { fontFamily: 'Softura' }]}>{event.name}</Text>
+            <Text style={[styles.eventDate, { fontFamily: 'Gilton' }]}>{event.date}</Text>
+        </View>
+        <View style={[styles.priceBadge, selected && styles.priceBadgeSelected]}>
+            <Text style={[styles.priceText, { fontFamily: 'Softura' }, selected && { color: '#fff' }]}>₹{event.price}</Text>
+        </View>
+    </TouchableOpacity>
+);
+
+const MemberCard = ({ member, index, onRemove, onUpdate, canRemove }: {
+    member: { name: string, college: string, email: string, phone: string },
+    index: number,
+    onRemove: () => void,
+    onUpdate: (field: string, value: string) => void,
+    canRemove: boolean
+}) => (
+    <View style={styles.memberCard}>
+        {/* Member label */}
+        <View style={styles.memberLabelWrap}>
+            <Text style={[styles.memberLabel, { fontFamily: 'Softura' }]}>MEMBER {index + 1}</Text>
+        </View>
+        {/* Remove button */}
+        {canRemove && (
+            <TouchableOpacity onPress={onRemove} style={styles.removeBtn} activeOpacity={0.8}>
+                <X color="#fff" size={12} strokeWidth={3} />
+            </TouchableOpacity>
+        )}
+        <View style={{ gap: 10, marginTop: 4 }}>
+            <TextInput
+                value={member.name}
+                onChangeText={v => onUpdate('name', v)}
+                placeholder="Name"
+                placeholderTextColor="#bbb"
+                style={[styles.memberInput, { fontFamily: 'Gilton' }]}
+            />
+            <TextInput
+                value={member.college}
+                onChangeText={v => onUpdate('college', v)}
+                placeholder="College"
+                placeholderTextColor="#bbb"
+                style={[styles.memberInput, { fontFamily: 'Gilton' }]}
+            />
+            <View style={{ flexDirection: 'row', gap: 8 }}>
                 <TextInput
-                    value={value}
-                    onChangeText={onChange}
-                    placeholder={placeholder}
-                    keyboardType={keyboardType}
-                    className="bg-white border-[2px] border-black rounded-xl px-4 py-2.5 text-sm text-gray-900 font-bold"
-                    style={{ fontFamily: 'Gilton' }}
+                    value={member.email}
+                    onChangeText={v => onUpdate('email', v)}
+                    placeholder="Email"
+                    placeholderTextColor="#bbb"
+                    keyboardType="email-address"
+                    style={[styles.memberInput, { flex: 1, fontFamily: 'Gilton' }]}
+                />
+                <TextInput
+                    value={member.phone}
+                    onChangeText={v => onUpdate('phone', v)}
+                    placeholder="Phone"
+                    placeholderTextColor="#bbb"
+                    keyboardType="phone-pad"
+                    style={[styles.memberInput, { flex: 1, fontFamily: 'Gilton' }]}
                 />
             </View>
         </View>
-    );
-};
+    </View>
+);
 
-const EventSelectionCard = ({ event, selected, onToggle }: { event: any, selected: boolean, onToggle: () => void }) => {
-    return (
-        <Pressable onPress={onToggle} className="mb-2">
-            <View className="relative">
-                <View className="absolute top-1 left-1 right-[-4px] bottom-[-4px] bg-black rounded-xl" />
-                <View className={`border-[2px] border-black rounded-xl p-3 flex-row items-center justify-between ${selected ? 'bg-[#F0FDF4]' : 'bg-white'}`}>
-                    <View className="flex-row items-center flex-1 gap-3">
-                        <View className={`w-6 h-6 rounded border-[2px] border-black items-center justify-center ${selected ? 'bg-black' : 'bg-white'}`}>
-                            {selected && <Check color="white" size={14} strokeWidth={4} />}
-                        </View>
-                        <View>
-                            <Text className="text-sm font-bold uppercase text-black leading-4 mb-0.5" style={{ fontFamily: 'Softura' }}>
-                                {event.name}
-                            </Text>
-                            <Text className="text-[10px] text-black/60" style={{ fontFamily: 'Gilton' }}>
-                                {event.teamSize}
-                            </Text>
-                        </View>
-                    </View>
-                    <View className="border-[1.5px] border-black px-1.5 py-0.5 rounded bg-white shadow-sm">
-                        <Text className="font-bold text-[10px]" style={{ fontFamily: 'Softura' }}>₹{event.price}</Text>
-                    </View>
-                </View>
-            </View>
-        </Pressable>
-    );
-};
+// ─── Styles ────────────────────────────────────────────────────────────────────
+const styles = StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: '#000' },
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 28,
+        padding: 20,
+        paddingBottom: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 8,
+    },
+
+    // Progress
+    progressTrack: {
+        height: 14,
+        backgroundColor: '#f4f4f4',
+        borderRadius: 100,
+        overflow: 'hidden',
+        marginBottom: 6,
+        borderWidth: 1.5,
+        borderColor: '#000',
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: 'black',
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    stripesContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        flexDirection: 'row',
+        overflow: 'hidden',
+    },
+    // Stripes are now inline for consistency
+    stripe: {
+        width: 12,
+        height: '100%',
+        backgroundColor: '#fff',
+        marginRight: 10,
+        transform: [{ skewX: '-25deg' }],
+    },
+    stepLabels: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 2,
+    },
+    stepLabel: {
+        fontSize: 8,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+
+    // Step Badge
+    stepBadge: {
+        borderRadius: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    stepBadgeText: {
+        fontSize: 11,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+        color: '#000',
+        flex: 1,
+    },
+    timerBadge: {
+        backgroundColor: '#EF4444',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 6,
+    },
+    timerText: {
+        color: '#fff',
+        fontSize: 10,
+        fontWeight: '900',
+        letterSpacing: 0.5,
+    },
+
+    // Title
+    titleBlack: {
+        fontSize: 30,
+        fontWeight: '900',
+        color: '#000',
+        textTransform: 'uppercase',
+        lineHeight: 34,
+    },
+    titlePurple: {
+        fontSize: 30,
+        fontWeight: '900',
+        color: '#9333EA',
+        textTransform: 'uppercase',
+        lineHeight: 34,
+    },
+    returnHomeText: {
+        fontSize: 10,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        color: '#000',
+    },
+
+    // Field
+    fieldLabel: {
+        fontSize: 10,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        color: '#000',
+        marginBottom: 6,
+    },
+    fieldInputWrap: {
+        borderWidth: 2,
+        borderColor: '#000',
+        borderRadius: 10,
+        backgroundColor: '#fff',
+        overflow: 'hidden',
+    },
+    fieldInput: {
+        paddingHorizontal: 14,
+        paddingVertical: 11,
+        fontSize: 13,
+        color: '#111',
+        fontWeight: '600',
+    },
+    bookingHint: {
+        fontSize: 10,
+        color: '#6B7280',
+        marginTop: 6,
+        lineHeight: 15,
+    },
+    bookingHintLink: {
+        textDecorationLine: 'underline',
+        color: '#9333EA',
+        fontWeight: '700',
+    },
+
+    // Event Card
+    eventCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderWidth: 1.5,
+        borderColor: '#e5e7eb',
+        borderRadius: 14,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    eventName: {
+        fontSize: 13,
+        fontWeight: '900',
+        color: '#111',
+        textTransform: 'uppercase',
+        letterSpacing: 0.3,
+        lineHeight: 18,
+    },
+    eventDate: {
+        fontSize: 11,
+        color: '#9CA3AF',
+        marginTop: 2,
+    },
+    priceBadge: {
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        backgroundColor: '#f9fafb',
+    },
+    priceBadgeSelected: {
+        backgroundColor: '#000',
+        borderColor: '#000',
+    },
+    priceText: {
+        fontSize: 12,
+        fontWeight: '900',
+        color: '#111',
+    },
+
+    // Member Card
+    memberCard: {
+        borderWidth: 2,
+        borderColor: '#000',
+        borderRadius: 16,
+        padding: 14,
+        paddingTop: 20,
+        backgroundColor: '#fff',
+        position: 'relative',
+    },
+    memberLabelWrap: {
+        position: 'absolute',
+        top: -11,
+        left: 14,
+        backgroundColor: '#fff',
+        paddingHorizontal: 6,
+        zIndex: 10,
+    },
+    memberLabel: {
+        fontSize: 10,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        color: '#6B7280',
+    },
+    removeBtn: {
+        position: 'absolute',
+        top: -12,
+        right: 12,
+        backgroundColor: '#EF4444',
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10,
+        borderWidth: 2,
+        borderColor: '#fff',
+    },
+    memberInput: {
+        borderWidth: 1.5,
+        borderColor: '#d1d5db',
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        fontSize: 13,
+        color: '#111',
+        backgroundColor: '#fff',
+    },
+    addMemberBtn: {
+        borderWidth: 2,
+        borderColor: '#d1d5db',
+        borderStyle: 'dashed',
+        borderRadius: 14,
+        paddingVertical: 14,
+        alignItems: 'center',
+        backgroundColor: '#fafafa',
+    },
+    addMemberText: {
+        fontSize: 12,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        color: '#374151',
+    },
+
+    // Note Box
+    noteBox: {
+        backgroundColor: '#FEF9C3',
+        borderWidth: 1.5,
+        borderColor: '#FCD34D',
+        borderRadius: 12,
+        padding: 12,
+    },
+    noteText: {
+        fontSize: 12,
+        color: '#78350F',
+        lineHeight: 18,
+    },
+
+    // Payment / Receipt Summary
+    receiptSummaryBox: {
+        borderWidth: 1.5,
+        borderColor: '#e5e7eb',
+        borderRadius: 14,
+        padding: 16,
+        backgroundColor: '#fff',
+    },
+    receiptSummaryTitle: {
+        fontSize: 12,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 2,
+        color: '#374151',
+        textAlign: 'center',
+        marginBottom: 10,
+    },
+    receiptDivider: {
+        height: 1,
+        backgroundColor: '#e5e7eb',
+        marginVertical: 8,
+        borderStyle: 'dashed',
+    },
+    receiptSummaryRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 4,
+    },
+    receiptSummaryEventName: {
+        fontSize: 13,
+        color: '#374151',
+        flex: 1,
+    },
+    receiptSummaryPrice: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#111',
+    },
+    receiptTotalLabel: {
+        fontSize: 14,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        color: '#000',
+    },
+    receiptTotalValue: {
+        fontSize: 16,
+        fontWeight: '900',
+        color: '#000',
+    },
+
+    // QR Box
+    qrBox: {
+        borderWidth: 1.5,
+        borderColor: '#e5e7eb',
+        borderRadius: 14,
+        padding: 16,
+        backgroundColor: '#f9fafb',
+        alignItems: 'center',
+    },
+    qrTotalText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#374151',
+        marginBottom: 12,
+    },
+    qrImageWrap: {
+        borderWidth: 2,
+        borderColor: '#000',
+        borderRadius: 12,
+        padding: 10,
+        backgroundColor: '#fff',
+        marginBottom: 10,
+    },
+    qrImage: {
+        width: 160,
+        height: 160,
+    },
+    qrUpiId: {
+        fontSize: 10,
+        color: '#6B7280',
+        marginBottom: 4,
+    },
+    qrScanText: {
+        fontSize: 11,
+        color: '#9CA3AF',
+        fontStyle: 'italic',
+    },
+
+    // UTR Input
+    utrLabel: {
+        fontSize: 10,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        color: '#000',
+        marginBottom: 8,
+    },
+    utrInputWrap: {
+        borderWidth: 2,
+        borderColor: '#d1d5db',
+        borderRadius: 10,
+        backgroundColor: '#fff',
+    },
+    utrInput: {
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        fontSize: 13,
+        color: '#111',
+    },
+    utrHint: {
+        fontSize: 10,
+        color: '#6B7280',
+        marginTop: 6,
+        lineHeight: 15,
+    },
+
+    // Nav Buttons
+    backBtn: {
+        borderWidth: 2,
+        borderColor: '#000',
+        borderRadius: 14,
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+    },
+    backBtnText: {
+        fontSize: 13,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        color: '#000',
+    },
+    nextBtnText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        textAlign: 'center',
+    },
+
+    // Modal / Alert
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+    },
+    alertContainer: {
+        width: '100%',
+        position: 'relative',
+    },
+    alertShadow: {
+        position: 'absolute',
+        top: 6,
+        left: 6,
+        right: -6,
+        bottom: -6,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderRadius: 24,
+    },
+    alertContent: {
+        backgroundColor: '#fff',
+        borderWidth: 3,
+        borderColor: '#000',
+        borderRadius: 24,
+        padding: 24,
+        alignItems: 'center',
+    },
+    alertIconWrap: {
+        backgroundColor: '#FEE2E2',
+        padding: 16,
+        borderRadius: 100,
+        borderWidth: 2,
+        borderColor: '#000',
+        marginBottom: 16,
+    },
+    alertTitle: {
+        fontSize: 18,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        textAlign: 'center',
+        marginBottom: 8,
+        color: '#000',
+    },
+    alertMessage: {
+        textAlign: 'center',
+        color: 'rgba(0,0,0,0.7)',
+        fontWeight: '500',
+        marginBottom: 24,
+        lineHeight: 20,
+    },
+
+    // Receipt Modal
+    receiptCard: {
+        width: '100%',
+        maxWidth: 380,
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        overflow: 'hidden',
+    },
+    receiptHeader: {
+        padding: 24,
+        alignItems: 'center',
+    },
+    receiptIconWrap: {
+        backgroundColor: '#fff',
+        padding: 12,
+        borderRadius: 100,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    receiptTitle: {
+        color: '#fff',
+        fontSize: 20,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        textAlign: 'center',
+    },
+    receiptSubtitle: {
+        color: 'rgba(255,255,255,0.9)',
+        fontSize: 10,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginTop: 4,
+        textAlign: 'center',
+    },
+    receiptBody: {
+        padding: 20,
+        backgroundColor: '#fff',
+    },
+    receiptRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f3f4f6',
+    },
+    receiptLabel: {
+        fontSize: 10,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        color: '#9CA3AF',
+    },
+    receiptValue: {
+        fontSize: 14,
+        fontWeight: '900',
+        color: '#000',
+    },
+    receiptNote: {
+        fontSize: 11,
+        color: '#6B7280',
+        textAlign: 'center',
+        marginTop: 12,
+        lineHeight: 16,
+    },
+    syncErrorBox: {
+        backgroundColor: '#FFF7ED',
+        padding: 12,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#FED7AA',
+        marginBottom: 12,
+    },
+    syncErrorText: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: '#92400E',
+        textAlign: 'center',
+    },
+
+    // Skeleton
+    skeleton: {
+        backgroundColor: '#F5E6FA',
+        padding: 16,
+        zIndex: 100,
+    },
+    skeletonBlock: {
+        height: 56,
+        width: 220,
+        backgroundColor: 'rgba(0,0,0,0.08)',
+        borderRadius: 12,
+        marginBottom: 12,
+    },
+    skeletonCard: {
+        backgroundColor: '#fff',
+        borderRadius: 28,
+        borderWidth: 3,
+        borderColor: 'rgba(0,0,0,0.05)',
+        padding: 24,
+    },
+    skeletonCircle: {
+        width: 96,
+        height: 96,
+        borderRadius: 48,
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        alignSelf: 'center',
+        marginBottom: 32,
+    },
+    skeletonLine: {
+        height: 8,
+        width: 64,
+        backgroundColor: 'rgba(0,0,0,0.08)',
+        borderRadius: 4,
+        marginBottom: 12,
+    },
+    skeletonField: {
+        height: 48,
+        width: '100%',
+        backgroundColor: 'rgba(0,0,0,0.04)',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.04)',
+    },
+    // Success Card
+    successCard: {
+        marginTop: 20,
+        position: 'relative',
+        marginBottom: 10,
+    },
+    successCardShadow: {
+        position: 'absolute',
+        top: 8,
+        left: 8,
+        right: -8,
+        bottom: -8,
+        backgroundColor: '#000',
+        borderRadius: 24,
+    },
+    successCardContent: {
+        backgroundColor: '#48BB78', // Vibrant green from image
+        borderWidth: 3,
+        borderColor: '#000',
+        borderRadius: 24,
+        padding: 24,
+        paddingVertical: 32,
+        alignItems: 'center',
+    },
+    successTitle: {
+        fontSize: 34,
+        color: '#fff',
+        textAlign: 'center',
+        marginBottom: 20,
+        lineHeight: 38,
+        textTransform: 'uppercase',
+    },
+    successSubtext: {
+        fontSize: 14,
+        color: '#fff',
+        textAlign: 'center',
+        fontWeight: '900',
+        lineHeight: 20,
+    },
+});
 
 export default EventRegistrationScreen;
