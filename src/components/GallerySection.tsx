@@ -14,7 +14,7 @@ const GallerySection = React.memo(() => {
                 style={{ height: 250 }}
             >
                 <Image
-                    source={require('../../assets/Home_Screen_Images/about (1).jpg')}
+                    source={require('../../assets/Home_Screen_Images/about (1).webp')}
                     style={{ width: '100%', height: '100%' }}
                     contentFit="cover"
                     cachePolicy="memory-disk"
@@ -27,7 +27,7 @@ const GallerySection = React.memo(() => {
                 style={{ height: 250 }}
             >
                 <Image
-                    source={require('../../assets/Home_Screen_Images/soet-au.jpeg')}
+                    source={require('../../assets/Home_Screen_Images/soet-au.webp')}
                     style={{ width: '100%', height: '100%' }}
                     contentFit="cover"
                     cachePolicy="memory-disk"

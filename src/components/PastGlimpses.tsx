@@ -7,11 +7,11 @@ const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
 const PHOTOS = [
-    { url: require('../../assets/Gallery/gall1.jpg') },
-    { url: require('../../assets/Gallery/gall2.jpg') },
-    { url: require('../../assets/Gallery/gall3.jpg') },
-    { url: require('../../assets/Gallery/gall4.jpg') },
-    { url: require('../../assets/Gallery/gall5.jpg') },
+    { url: require('../../assets/Gallery/gall1.webp') },
+    { url: require('../../assets/Gallery/gall2.webp') },
+    { url: require('../../assets/Gallery/gall3.webp') },
+    { url: require('../../assets/Gallery/gall4.webp') },
+    { url: require('../../assets/Gallery/gall5.webp') },
 ];
 
 const PastGlimpses = React.memo(() => {

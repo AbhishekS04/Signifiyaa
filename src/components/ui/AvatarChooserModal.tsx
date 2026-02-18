@@ -17,14 +17,14 @@ const ITEM_SIZE = (width - 100) / 2;
 
 // Map of avatar IDs to local assets
 export const AVATAR_MAP: Record<string, any> = {
-    'avatar1.jpg': require('../../../assets/avatar/avatar1.jpg'),
-    'avatar2.jpg': require('../../../assets/avatar/avatar2.jpg'),
-    'avatar3.jpg': require('../../../assets/avatar/avatar3.jpg'),
-    'avatar4.jpg': require('../../../assets/avatar/avatar4.jpg'),
-    'avatar5.jpg': require('../../../assets/avatar/avatar5.jpg'),
-    'avatar6.jpg': require('../../../assets/avatar/avatar6.jpg'),
-    'avatar7.jpg': require('../../../assets/avatar/avatar7.jpg'),
-    'avatar8.jpg': require('../../../assets/avatar/avatar8.jpg'),
+    'avatar1.webp': require('../../../assets/avatar/avatar1.webp'),
+    'avatar2.webp': require('../../../assets/avatar/avatar2.webp'),
+    'avatar3.webp': require('../../../assets/avatar/avatar3.webp'),
+    'avatar4.webp': require('../../../assets/avatar/avatar4.webp'),
+    'avatar5.webp': require('../../../assets/avatar/avatar5.webp'),
+    'avatar6.webp': require('../../../assets/avatar/avatar6.webp'),
+    'avatar7.webp': require('../../../assets/avatar/avatar7.webp'),
+    'avatar8.webp': require('../../../assets/avatar/avatar8.webp'),
 };
 
 export const AVATAR_KEYS = Object.keys(AVATAR_MAP);

@@ -32,7 +32,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Mr. Nisarga Chand",
         role: "FACULTY LEAD",
         desc: "Assistant Professor, ECE, SOET",
-        image: require('../../assets/team/Nisarga.jpeg'),
+        image: require('../../assets/team/Nisarga.webp'),
         socials: { linkedin: "https://linkedin.com/in/hrishav-dey-2b2990291/", instagram: "https://instagram.com/hrishav.dey", github: "https://github.com/" },
         category: 'FACULTY'
     },
@@ -41,7 +41,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Ms. Soodipa Chakraborty",
         role: "FACULTY LEAD",
         desc: "Assistant Professor, ECE, SOET",
-        image: require('../../assets/team/Soodipa.jpg'),
+        image: require('../../assets/team/Soodipa.webp'),
         socials: { linkedin: "https://linkedin.com/in/hrishav-dey-2b2990291/", instagram: "https://instagram.com/hrishav.dey", github: "https://github.com/" },
         category: 'FACULTY'
     },
@@ -50,7 +50,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Mr. Prabhat Das",
         role: "TECH MENTOR",
         desc: "Assistant Professor, ECE, SOET",
-        image: require('../../assets/team/Prabhat.jpg'),
+        image: require('../../assets/team/Prabhat.webp'),
         socials: { linkedin: "https://linkedin.com/in/prabhatd/", instagram: "https://instagram.com/hrishav.dey", github: "https://github.com/" },
         category: 'FACULTY'
     },
@@ -59,7 +59,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Hrishav Dey",
         role: "EVENT ADVISOR",
         desc: "The force that turns bold ideas into flawlessly executed reality.",
-        image: require('../../assets/avatar/avatar4.jpg'),
+        image: require('../../assets/avatar/avatar4.webp'),
         socials: { linkedin: "https://linkedin.com/in/hrishav-dey-2b2990291/", instagram: "https://instagram.com/hrishav.dey" },
         category: 'CORE MEMBER'
     },
@@ -68,7 +68,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Digant Mishra",
         role: "ON-GROUND COORDINATOR",
         desc: "The go-to problem solver who keeps the action running seamlessly on the ground.",
-        image: require('../../assets/team/Digant.jpeg'),
+        image: require('../../assets/team/Digant.webp'),
         socials: { linkedin: "https://linkedin.com/in/digant-mishra-2b2990291/", instagram: "https://instagram.com/digantt._" },
         category: 'CORE MEMBER'
     },
@@ -77,7 +77,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Arijit De",
         role: "FINANCIAL LEAD",
         desc: "Driving partnerships and managing resources to power the fest’s biggest ambitions.",
-        image: require('../../assets/team/Arijit.jpg'),
+        image: require('../../assets/team/Arijit.webp'),
         socials: { linkedin: "https://linkedin.com/in/arijit-de-ba1594358", instagram: "https://instagram.com/arijit_.04" },
         category: 'CORE MEMBER'
     },
@@ -86,7 +86,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Snehasish Mondal",
         role: "OPERATIONS LEAD",
         desc: "The backbone of smooth workflows, ensuring every detail runs right on time.",
-        image: require('../../assets/team/Snehasish.jpeg'),
+        image: require('../../assets/team/Snehasish.webp'),
         socials: { linkedin: "https://linkedin.com/in/snehasish-mondal-2b2990291/", instagram: "https://instagram.com/snehasish.mondal", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
@@ -95,7 +95,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Samriddhi Sinha",
         role: "DECORATIONS LEAD",
         desc: "Transforming spaces into immersive experiences that set the fest’s mood.",
-        image: require('../../assets/team/Samriddhi.jpeg'),
+        image: require('../../assets/team/Samriddhi.webp'),
         socials: { linkedin: "https://linkedin.com/in/samriddhi-sinha-2b2990291/", instagram: "https://instagram.com/samriddhi.sinha", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
@@ -104,7 +104,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Arnab Mandal",
         role: "SOCIAL MEDIA HEAD",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: require('../../assets/team/Arnab.jpeg'),
+        image: require('../../assets/team/Arnab.webp'),
         socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/arnab_mandal", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
@@ -113,7 +113,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Ashish R. Das",
         role: "TECH LEAD",
         desc: "19, full stack web3 dev, community lead @0DAY",
-        image: require('../../assets/team/Ashish.jpeg'),
+        image: require('../../assets/team/Ashish.webp'),
         socials: { linkedin: "https://linkedin.com/in/arddev", instagram: "https://instagram.com/ashishh_rd_", github: "https://github.com/0day-Ashish" },
         category: 'CORE MEMBER'
     },
@@ -122,7 +122,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Subham Karmakar",
         role: "TECH SUPPORT",
         desc: "Architect of innovation, powering the fest with smart tech and seamless systems.",
-        image: require('../../assets/team/Subham.jpeg'),
+        image: require('../../assets/team/Subham.webp'),
         socials: { linkedin: "https://linkedin.com/in/subham12r", instagram: "https://instagram.com/5ubhamkarmakar", github: "https://github.com/subham12r" },
         category: 'CORE MEMBER'
     },
@@ -131,7 +131,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Abhisekh Singh",
         role: "APP DEVELOPMENT",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: require('../../assets/team/Abhishek.jpg'),
+        image: require('../../assets/team/Abhishek.webp'),
         socials: { linkedin: "https://linkedin.com/in/abhisekhsingh", instagram: "https://instagram.com/abhisekhsingh", github: "https://github.com/abhisekhsingh" },
         category: 'CORE MEMBER'
     },
@@ -140,7 +140,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Garima Roy",
         role: "DOCUMENTATIONS LEAD",
         desc: "The mind that captures every milestone and detail with clarity and precision.",
-        image: require('../../assets/team/Garima.jpeg'),
+        image: require('../../assets/team/Garima.webp'),
         socials: { linkedin: "https://linkedin.com/in/garima-roy-032277290", instagram: "https://instagram.com/_garimaa.07_", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
@@ -149,7 +149,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Leeza Bhowal",
         role: "DESIGN LEAD",
         desc: "The creative spark behind visuals that give the fest its identity and vibe.",
-        image: require('../../assets/team/Leeza.jpg'),
+        image: require('../../assets/team/Leeza.webp'),
         socials: { linkedin: "https://linkedin.com/in/leeza-bhowal-2b2990291/", instagram: "https://instagram.com/leeza.bhowal", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
@@ -158,7 +158,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Srijita Bera",
         role: "MARKETING LEAD",
         desc: "The voice of the fest, turning ideas into buzz and reach into impact.",
-        image: require('../../assets/team/Srijita.jpeg'),
+        image: require('../../assets/team/Srijita.webp'),
         socials: { linkedin: "https://linkedin.com/in/srijita-bera-ab5578291/", instagram: "https://instagram.com/veilof_mist", github: "https://github.com/Srijiiii" },
         category: 'CORE MEMBER'
     },
@@ -167,7 +167,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Siddartha Chakraborty",
         role: "ESPORTS LEAD",
         desc: "The strategist behind high-energy battles and next-level competitive gaming.",
-        image: require('../../assets/team/Siddharth-01.jpeg'),
+        image: require('../../assets/team/Siddharth-01.webp'),
         socials: { linkedin: "https://linkedin.com/in/siddarthachakraborty/", instagram: "https://instagram.com/siddarthachk", github: "https://github.com/siddarthachk" },
         category: 'CORE MEMBER'
     },
@@ -176,7 +176,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Keshav Maheshwari",
         role: "EXECUTION CELL",
         desc: "The hands-on executor ensuring plans come alive with precision and speed.",
-        image: require('../../assets/avatar/avatar7.jpg'),
+        image: require('../../assets/avatar/avatar7.webp'),
         socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/keshav.maheshwari", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
@@ -185,7 +185,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Sampad Ghosh",
         role: "EXECUTION CELL",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: require('../../assets/avatar/avatar8.jpg'),
+        image: require('../../assets/avatar/avatar8.webp'),
         socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/sampad.ghosh", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },

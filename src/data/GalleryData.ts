@@ -27,201 +27,201 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     {
         id: '1',
         title: 'THE OPENING CEREMONY',
-        image: require('../../assets/Gallery/gall1.jpg'),
+        image: require('../../assets/Gallery/gall1.webp'),
         tag: 'CULTURAL',
-        filename: 'gall1.jpg',
+        filename: 'gall1.webp',
         titleFont: 'Gilton'
     },
     {
         id: '2',
         title: 'HACKATHON GRIND',
-        image: require('../../assets/Gallery/gall2.jpg'),
+        image: require('../../assets/Gallery/gall2.webp'),
         tag: 'TECH',
-        filename: 'gall2.jpg',
+        filename: 'gall2.webp',
         titleFont: 'Gilton'
     },
     {
         id: '3',
         title: 'ROBO WARS ARENA',
-        image: require('../../assets/Gallery/gall3.jpg'),
+        image: require('../../assets/Gallery/gall3.webp'),
         tag: 'TECH',
-        filename: 'gall3.jpg',
+        filename: 'gall3.webp',
         titleFont: 'Gilton'
     },
     {
         id: '4',
         title: 'VIBES UNLIMITED',
-        image: require('../../assets/Gallery/gall4.jpg'),
+        image: require('../../assets/Gallery/gall4.webp'),
         tag: 'VIBES',
-        filename: 'gall4.jpg',
+        filename: 'gall4.webp',
         titleFont: 'Gilton'
     },
     {
         id: '5',
         title: 'BEHIND THE SCENES',
-        image: require('../../assets/Gallery/gall5.jpg'),
+        image: require('../../assets/Gallery/gall5.webp'),
         tag: 'BTS',
-        filename: 'gall5.jpg',
+        filename: 'gall5.webp',
         titleFont: 'Gilton'
     },
     {
         id: '6',
         title: 'CULTURAL NIGHT',
-        image: require('../../assets/Gallery/gall6.jpg'),
+        image: require('../../assets/Gallery/gall6.webp'),
         tag: 'CULTURAL',
-        filename: 'gall6.jpg',
+        filename: 'gall6.webp',
         titleFont: 'Gilton'
     },
     {
         id: '7',
         title: 'TECH EXHIBITION',
-        image: require('../../assets/Gallery/gall7.jpg'),
+        image: require('../../assets/Gallery/gall7.webp'),
         tag: 'TECH',
-        filename: 'gall7.jpg',
+        filename: 'gall7.webp',
         titleFont: 'Gilton'
     },
     {
         id: '8',
         title: 'FESTIVAL VIBES',
-        image: require('../../assets/Gallery/gall8.jpg'),
+        image: require('../../assets/Gallery/gall8.webp'),
         tag: 'VIBES',
-        filename: 'gall8.jpg',
+        filename: 'gall8.webp',
         titleFont: 'Gilton'
     },
     {
         id: '9',
         title: 'TEAM MOMENTS',
-        image: require('../../assets/Gallery/gall9.jpg'),
+        image: require('../../assets/Gallery/gall9.webp'),
         tag: 'BTS',
-        filename: 'gall9.jpg',
+        filename: 'gall9.webp',
         titleFont: 'Gilton'
     },
     {
         id: '10',
         title: 'INNOVATION HUB',
-        image: require('../../assets/Gallery/gall10.jpg'),
+        image: require('../../assets/Gallery/gall10.webp'),
         tag: 'TECH',
-        filename: 'gall10.jpg',
+        filename: 'gall10.webp',
         titleFont: 'Gilton'
     },
     {
         id: '11',
         title: 'GRAND PERFORMANCE',
-        image: require('../../assets/Gallery/gall11.jpg'),
+        image: require('../../assets/Gallery/gall11.webp'),
         tag: 'CULTURAL',
-        filename: 'gall11.jpg',
+        filename: 'gall11.webp',
         titleFont: 'Gilton'
     },
     {
         id: '12',
         title: 'EVENT HIGHLIGHTS',
-        image: require('../../assets/Gallery/gall12.jpg'),
+        image: require('../../assets/Gallery/gall12.webp'),
         tag: 'VIBES',
-        filename: 'gall12.jpg',
+        filename: 'gall12.webp',
         titleFont: 'Gilton'
     },
     {
         id: '13',
         title: 'THE PREPARATION',
-        image: require('../../assets/Gallery/gall13.jpg'),
+        image: require('../../assets/Gallery/gall13.webp'),
         tag: 'BTS',
-        filename: 'gall13.jpg',
+        filename: 'gall13.webp',
         titleFont: 'Gilton'
     },
     {
         id: '14',
         title: 'STAGE READINESS',
-        image: require('../../assets/Gallery/gall14.jpg'),
+        image: require('../../assets/Gallery/gall14.webp'),
         tag: 'BTS',
-        filename: 'gall14.jpg',
+        filename: 'gall14.webp',
         titleFont: 'Gilton'
     },
     {
         id: '15',
         title: 'CELEBRATIONS',
-        image: require('../../assets/Gallery/gall15.jpg'),
+        image: require('../../assets/Gallery/gall15.webp'),
         tag: 'VIBES',
-        filename: 'gall15.jpg',
+        filename: 'gall15.webp',
         titleFont: 'Gilton'
     },
     {
         id: '16',
         title: 'CODING BATTLE',
-        image: require('../../assets/Gallery/gall16.jpg'),
+        image: require('../../assets/Gallery/gall16.webp'),
         tag: 'TECH',
-        filename: 'gall16.jpg',
+        filename: 'gall16.webp',
         titleFont: 'Gilton'
     },
     {
         id: '17',
         title: 'BACKSTAGE CHAOS',
-        image: require('../../assets/Gallery/gall17.jpg'),
+        image: require('../../assets/Gallery/gall17.webp'),
         tag: 'BTS',
-        filename: 'gall17.jpg',
+        filename: 'gall17.webp',
         titleFont: 'Gilton'
     },
     {
         id: '18',
         title: 'ARTISTIC EXPRESSION',
-        image: require('../../assets/Gallery/gall18.jpg'),
+        image: require('../../assets/Gallery/gall18.webp'),
         tag: 'CULTURAL',
-        filename: 'gall18.jpg',
+        filename: 'gall18.webp',
         titleFont: 'Gilton'
     },
     {
         id: '19',
         title: 'CROWD ENERGY',
-        image: require('../../assets/Gallery/gall19.jpg'),
+        image: require('../../assets/Gallery/gall19.webp'),
         tag: 'VIBES',
-        filename: 'gall19.jpg',
+        filename: 'gall19.webp',
         titleFont: 'Gilton'
     },
     {
         id: '20',
         title: 'FINAL TOUCHES',
-        image: require('../../assets/Gallery/gall20.jpg'),
+        image: require('../../assets/Gallery/gall20.webp'),
         tag: 'BTS',
-        filename: 'gall20.jpg',
+        filename: 'gall20.webp',
         titleFont: 'Gilton'
     },
     {
         id: '21',
         title: 'PROJECT DEMO',
-        image: require('../../assets/Gallery/gall21.jpg'),
+        image: require('../../assets/Gallery/gall21.webp'),
         tag: 'TECH',
-        filename: 'gall21.jpg',
+        filename: 'gall21.webp',
         titleFont: 'Gilton'
     },
     {
         id: '22',
         title: 'MUSICAL NIGHT',
-        image: require('../../assets/Gallery/gall22.jpg'),
+        image: require('../../assets/Gallery/gall22.webp'),
         tag: 'CULTURAL',
-        filename: 'gall22.jpg',
+        filename: 'gall22.webp',
         titleFont: 'Gilton'
     },
     {
         id: '23',
         title: 'FESTIVE MOOD',
-        image: require('../../assets/Gallery/gall23.jpg'),
+        image: require('../../assets/Gallery/gall23.webp'),
         tag: 'VIBES',
-        filename: 'gall23.jpg',
+        filename: 'gall23.webp',
         titleFont: 'Gilton'
     },
     {
         id: '24',
         title: 'ORGANIZING TEAM',
-        image: require('../../assets/Gallery/gall24.jpg'),
+        image: require('../../assets/Gallery/gall24.webp'),
         tag: 'BTS',
-        filename: 'gall24.jpg',
+        filename: 'gall24.webp',
         titleFont: 'Gilton'
     },
     {
         id: '25',
         title: 'CLOSING MOMENTS',
-        image: require('../../assets/Gallery/gall25.jpg'),
+        image: require('../../assets/Gallery/gall25.webp'),
         tag: 'VIBES',
-        filename: 'gall25.jpg',
+        filename: 'gall25.webp',
         titleFont: 'Gilton'
     }
 ];
