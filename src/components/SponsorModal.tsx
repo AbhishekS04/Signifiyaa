@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, Modal, TouchableOpacity, ScrollView, Alert, Dimensions, StyleSheet } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, ScrollView, Dimensions, StyleSheet, Linking } from 'react-native';
 import { Download, X } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import SmoothButton from './ui/SmoothButton';
@@ -27,13 +27,18 @@ interface SponsorModalProps {
     onClose: () => void;
 }
 
+const TECH_BROCHURE_URL = 'https://mkjxhijmvlzsijgsfvyy.supabase.co/storage/v1/object/sign/signifiya/SPONSORSHIP%20BROCHURE%20SIGNIFIYA\'26_TECH.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYTc1Y2FmZi1lOWU3LTQ2YWItODc1Ni00NjZkMmZlYWY3ZWIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaWduaWZpeWEvU1BPTlNPUlNISVAgQlJPQ0hVUkUgU0lHTklGSVlBJzI2X1RFQ0gucGRmIiwiaWF0IjoxNzcxNTEyMDYxLCJleHAiOjIwODY4NzIwNjF9.PjUzGIAyIxZBOVTUIbSEhjTuaNXfspVZRTSF0GoM-Ik';
+
+const NON_TECH_BROCHURE_URL = 'https://mkjxhijmvlzsijgsfvyy.supabase.co/storage/v1/object/sign/signifiya/SPONSORSHIP%20BROCHURE%20SIGNIFIYA\'26_NON-TECH.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYTc1Y2FmZi1lOWU3LTQ2YWItODc1Ni00NjZkMmZlYWY3ZWIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaWduaWZpeWEvU1BPTlNPUlNISVAgQlJPQ0hVUkUgU0lHTklGSVlBJzI2X05PTi1URUNILnBkZiIsImlhdCI6MTc3MTUxMTkyMCwiZXhwIjoyMDg2ODcxOTIwfQ.EzFG73tmHHuAGTgl5HjVvfnoLAjrGIwplZch84UtzPM';
+
 const SponsorModal = React.memo(({ visible, onClose }: SponsorModalProps) => {
+
     const handleDownloadTech = useCallback(() => {
-        Alert.alert('Download Started', 'Downloading Tech Brochure...');
+        Linking.openURL(TECH_BROCHURE_URL);
     }, []);
 
     const handleDownloadNonTech = useCallback(() => {
-        Alert.alert('Download Started', 'Downloading Non-Tech Brochure...');
+        Linking.openURL(NON_TECH_BROCHURE_URL);
     }, []);
 
     return (
