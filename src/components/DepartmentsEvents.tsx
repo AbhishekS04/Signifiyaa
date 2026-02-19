@@ -220,14 +220,16 @@ interface EventCardProps {
     onVideoPlay: () => void;
     onVideoStop: () => void;
     onRegisterPress: () => void;
+    onViewDetailsPress: () => void;
 }
 
-const EventCard = React.memo(({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl, isActive, onVideoPlay, onVideoStop, onRegisterPress }: EventCardProps) => {
+const EventCard = React.memo(({ title, date, category, description, prizePool, imageColor, buttonColor, imageUrl, videoUrl, isActive, onVideoPlay, onVideoStop, onRegisterPress, onViewDetailsPress }: EventCardProps) => {
     const detailButtonBg = useMemo(() => ({ backgroundColor: buttonColor }), [buttonColor]);
 
     const handleViewDetails = useCallback(() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    }, []);
+        onViewDetailsPress();
+    }, [onViewDetailsPress]);
 
     return (
         <View className="relative w-full h-full">
@@ -275,9 +277,9 @@ const EventCard = React.memo(({ title, date, category, description, prizePool, i
 });
 
 // ─── CustomItem wrapper (carousel animation isolation) ─────────────────────────
-const CustomItem = React.memo(({ item, animationValue, isActive, onVideoPlay, onVideoStop, onRegisterPress }: {
+const CustomItem = React.memo(({ item, animationValue, isActive, onVideoPlay, onVideoStop, onRegisterPress, onViewDetailsPress }: {
     item: EventData; animationValue: SharedValue<number>; isActive: boolean;
-    onVideoPlay: () => void; onVideoStop: () => void; onRegisterPress: () => void;
+    onVideoPlay: () => void; onVideoStop: () => void; onRegisterPress: () => void; onViewDetailsPress: () => void;
 }) => {
     const animatedStyle = useAnimatedStyle(() => {
         const scale = interpolate(animationValue.value, [-1, 0, 1], [0.9, 1, 0.9], Extrapolation.CLAMP);
@@ -302,6 +304,7 @@ const CustomItem = React.memo(({ item, animationValue, isActive, onVideoPlay, on
                     onVideoPlay={onVideoPlay}
                     onVideoStop={onVideoStop}
                     onRegisterPress={onRegisterPress}
+                    onViewDetailsPress={onViewDetailsPress}
                 />
             </View>
         </Animated.View>
@@ -477,6 +480,10 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
         (navigation as any).navigate('EventRegistration');
     }, [navigation]);
 
+    const handleViewDetails = useCallback(() => {
+        (navigation as any).navigate('Main', { screen: 'Events' });
+    }, [navigation]);
+
     // Container width callback
     const handleContainerLayout = useCallback((e: any) => setContainerWidth(e.nativeEvent.layout.width), []);
 
@@ -493,8 +500,9 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
             onVideoPlay={handleVideoPlay}
             onVideoStop={handleVideoStop}
             onRegisterPress={handleRegister}
+            onViewDetailsPress={handleViewDetails}
         />
-    ), [activeSnapIndex, isSectionVisible, isFocused, handleVideoPlay, handleVideoStop, handleRegister]);
+    ), [activeSnapIndex, isSectionVisible, isFocused, handleVideoPlay, handleVideoStop, handleRegister, handleViewDetails]);
 
     // Pagination dot press generators (stable per-index)
     const dotPressHandlers = useMemo(() =>
@@ -504,103 +512,103 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
 
     return (
         <Animated.View style={entranceStyle}>
-        <View className="w-full">
-            {/* ABOUT SOET */}
-            <View className="bg-[#E3F2FD] rounded-[30px] border-[3px] border-black pb-6 relative mb-4" style={S.aboutCardPad}>
-                <View className="absolute top-6 left-6 bg-red-400 p-2 rounded-full border-2 border-black">
-                    <Star color="black" fill="black" size={20} />
-                </View>
-                <View className="mb-4 mt-2">
-                    <View className="flex-row" style={S.aboutHeaderAlign}>
-                        <Text className="text-4xl text-black" style={S.fontGilton}>ABOUT </Text>
-                        <Text className="text-4xl text-black" style={S.fontGilton}>SOET</Text>
+            <View className="w-full">
+                {/* ABOUT SOET */}
+                <View className="bg-[#E3F2FD] rounded-[30px] border-[3px] border-black pb-6 relative mb-4" style={S.aboutCardPad}>
+                    <View className="absolute top-6 left-6 bg-red-400 p-2 rounded-full border-2 border-black">
+                        <Star color="black" fill="black" size={20} />
                     </View>
-                </View>
-                <Text className="text-black text-center leading-7 p-4 pl-4 text-lg" style={S.fontSoftura}>
-                    The School of Engineering and Technology stands as a beacon of technical excellence, fostering innovation and shaping the future engineers who will build tomorrow's world.
-                </Text>
-            </View>
-
-            {/* MARQUEE */}
-            <View className="bg-[#FFEB3B] border-[3px] border-black py-3 overflow-hidden mb-4" style={S.marqueeRotation}>
-                <Animated.View style={[marqueeStyle, S.marqueeRow]}>
-                    <Text onLayout={handleTextLayout} className="absolute opacity-0 font-[Gilton] text-black text-lg tracking-widest">{MARQUEE_TEXT}</Text>
-                    {[...Array(6)].map((_, i) => <Text key={i} className="font-[Gilton] text-black text-lg tracking-widest">{MARQUEE_TEXT}</Text>)}
-                </Animated.View>
-            </View>
-
-            {/* EVENTS SECTION */}
-            <View
-                className="bg-[#FFF8E1] border-[3px] border-black rounded-[30px] p-4 pb-10 min-h-[500px]"
-                style={S.eventsOverflow}
-                onLayout={handleSectionLayout}
-            >
-                <View className="items-center my-6">
-                    <Text className="text-4xl text-black mb-2" style={S.headerFontPad}>SIGNIFIYA</Text>
-                    <Text className="text-4xl text-black" style={S.headerFontPad}>EVENTS</Text>
-                    <Text className="text-gray-500 text-center mt-2 px-8" style={S.descFont}>Discover the diverse range of events happening at Signifiya'26.</Text>
+                    <View className="mb-4 mt-2">
+                        <View className="flex-row" style={S.aboutHeaderAlign}>
+                            <Text className="text-4xl text-black" style={S.fontGilton}>ABOUT </Text>
+                            <Text className="text-4xl text-black" style={S.fontGilton}>SOET</Text>
+                        </View>
+                    </View>
+                    <Text className="text-black text-center leading-7 p-4 pl-4 text-lg" style={S.fontSoftura}>
+                        The School of Engineering and Technology stands as a beacon of technical excellence, fostering innovation and shaping the future engineers who will build tomorrow's world.
+                    </Text>
                 </View>
 
-                {/* FILTERS */}
-                <View className="flex-row flex-wrap justify-center gap-2 mb-8">
-                    {FILTERS.map((filter) => (
-                        <SmoothButton
-                            key={filter}
-                            onPress={() => handleFilterChange(filter)}
-                            buttonStyle={`px-4 py-2 rounded-full border-2 border-black ${activeFilter === filter ? 'bg-[#9d4edd]' : 'bg-white'}`}
-                            shadowStyle="bg-black rounded-full"
-                            depth={4}
-                        >
-                            <Text className={`text-[12px] uppercase tracking-wider ${activeFilter === filter ? 'text-white' : 'text-black'}`} style={S.filterFont}>{filter}</Text>
-                        </SmoothButton>
-                    ))}
+                {/* MARQUEE */}
+                <View className="bg-[#FFEB3B] border-[3px] border-black py-3 overflow-hidden mb-4" style={S.marqueeRotation}>
+                    <Animated.View style={[marqueeStyle, S.marqueeRow]}>
+                        <Text onLayout={handleTextLayout} className="absolute opacity-0 font-[Gilton] text-black text-lg tracking-widest">{MARQUEE_TEXT}</Text>
+                        {[...Array(6)].map((_, i) => <Text key={i} className="font-[Gilton] text-black text-lg tracking-widest">{MARQUEE_TEXT}</Text>)}
+                    </Animated.View>
                 </View>
 
-                {/* CAROUSEL — NO key={selectedCategory} — avoids full unmount/remount */}
-                <Animated.View style={[S.carouselMinH, containerAnimatedStyle]}>
-                    {filteredEvents.length > 0 ? (
-                        <View onLayout={handleContainerLayout} style={S.containerCenter}>
-                            <View className="relative w-full items-center justify-center">
-                                <Carousel
-                                    loop={true}
-                                    ref={carouselRef}
-                                    width={containerWidth}
-                                    height={CARD_HEIGHT}
-                                    autoPlay={false}
-                                    data={filteredEvents}
-                                    scrollAnimationDuration={600}
-                                    onSnapToItem={handleSnapToItem}
-                                    onProgressChange={handleProgressChange}
-                                    windowSize={3}
-                                    renderItem={renderItem}
-                                />
-                                <NavButton direction="left" onPress={scrollPrev} />
-                                <NavButton direction="right" onPress={scrollNext} />
-                            </View>
+                {/* EVENTS SECTION */}
+                <View
+                    className="bg-[#FFF8E1] border-[3px] border-black rounded-[30px] p-4 pb-10 min-h-[500px]"
+                    style={S.eventsOverflow}
+                    onLayout={handleSectionLayout}
+                >
+                    <View className="items-center my-6">
+                        <Text className="text-4xl text-black mb-2" style={S.headerFontPad}>SIGNIFIYA</Text>
+                        <Text className="text-4xl text-black" style={S.headerFontPad}>EVENTS</Text>
+                        <Text className="text-gray-500 text-center mt-2 px-8" style={S.descFont}>Discover the diverse range of events happening at Signifiya'26.</Text>
+                    </View>
 
-                            {/* DOTS */}
-                            {filteredEvents.length > 1 && (
-                                <View className="flex-row justify-center items-center mt-8 gap-2">
-                                    {filteredEvents.map((_, index) => (
-                                        <PaginationDot
-                                            key={index}
-                                            index={index}
-                                            scrollProgress={scrollProgress}
-                                            length={filteredEvents.length}
-                                            onPress={dotPressHandlers[index]}
-                                        />
-                                    ))}
+                    {/* FILTERS */}
+                    <View className="flex-row flex-wrap justify-center gap-2 mb-8">
+                        {FILTERS.map((filter) => (
+                            <SmoothButton
+                                key={filter}
+                                onPress={() => handleFilterChange(filter)}
+                                buttonStyle={`px-4 py-2 rounded-full border-2 border-black ${activeFilter === filter ? 'bg-[#9d4edd]' : 'bg-white'}`}
+                                shadowStyle="bg-black rounded-full"
+                                depth={4}
+                            >
+                                <Text className={`text-[12px] uppercase tracking-wider ${activeFilter === filter ? 'text-white' : 'text-black'}`} style={S.filterFont}>{filter}</Text>
+                            </SmoothButton>
+                        ))}
+                    </View>
+
+                    {/* CAROUSEL — NO key={selectedCategory} — avoids full unmount/remount */}
+                    <Animated.View style={[S.carouselMinH, containerAnimatedStyle]}>
+                        {filteredEvents.length > 0 ? (
+                            <View onLayout={handleContainerLayout} style={S.containerCenter}>
+                                <View className="relative w-full items-center justify-center">
+                                    <Carousel
+                                        loop={true}
+                                        ref={carouselRef}
+                                        width={containerWidth}
+                                        height={CARD_HEIGHT}
+                                        autoPlay={false}
+                                        data={filteredEvents}
+                                        scrollAnimationDuration={600}
+                                        onSnapToItem={handleSnapToItem}
+                                        onProgressChange={handleProgressChange}
+                                        windowSize={3}
+                                        renderItem={renderItem}
+                                    />
+                                    <NavButton direction="left" onPress={scrollPrev} />
+                                    <NavButton direction="right" onPress={scrollNext} />
                                 </View>
-                            )}
-                        </View>
-                    ) : (
-                        <View className="items-center py-12">
-                            <Text className="text-gray-400 text-lg">No events in this category yet!</Text>
-                        </View>
-                    )}
-                </Animated.View>
+
+                                {/* DOTS */}
+                                {filteredEvents.length > 1 && (
+                                    <View className="flex-row justify-center items-center mt-8 gap-2">
+                                        {filteredEvents.map((_, index) => (
+                                            <PaginationDot
+                                                key={index}
+                                                index={index}
+                                                scrollProgress={scrollProgress}
+                                                length={filteredEvents.length}
+                                                onPress={dotPressHandlers[index]}
+                                            />
+                                        ))}
+                                    </View>
+                                )}
+                            </View>
+                        ) : (
+                            <View className="items-center py-12">
+                                <Text className="text-gray-400 text-lg">No events in this category yet!</Text>
+                            </View>
+                        )}
+                    </Animated.View>
+                </View>
             </View>
-        </View>
         </Animated.View>
     );
 };

@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Check, AlertCircle, X } from 'lucide-react-native';
+import { Check, AlertCircle, X, Lock, User } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
 import Animated, {
     FadeInDown, Layout, FadeIn,
@@ -45,7 +45,7 @@ interface ReceiptData {
 
 const EventRegistrationScreen = () => {
     const navigation = useNavigation();
-    const { user } = useAuth();
+    const { user, isLoading } = useAuth();
     const [currentStep, setCurrentStep] = useState(1); // 1=Leader, 2=Events, 3=Team, 4=Payment
 
     // ── Alert State ──
@@ -385,6 +385,73 @@ const EventRegistrationScreen = () => {
             </View>
         );
     };
+
+    // ── Auth Guard ──
+    if (!isLoading && !user) {
+        return (
+            <SafeAreaView style={[styles.safeArea, { backgroundColor: '#F5E6FA' }]} edges={['top', 'bottom']}>
+                <ScrollView
+                    style={{ backgroundColor: '#F5E6FA' }}
+                    contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 16, paddingTop: 20 }}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <Animated.View entering={FadeIn.duration(400)} style={{ paddingTop: 40 }}>
+                        {/* Header */}
+                        <View style={{ marginBottom: 32 }}>
+                            <Text style={{ fontSize: 48, textTransform: 'uppercase', letterSpacing: -1, fontFamily: FONT_BODY, color: 'black', lineHeight: 52 }}>
+                                EVENT{`\n`}REGISTRATION
+                            </Text>
+                        </View>
+
+                        {/* Auth Required Card */}
+                        <View style={{
+                            backgroundColor: 'white',
+                            borderWidth: 3, borderColor: 'black',
+                            borderRadius: 30, padding: 32,
+                            shadowColor: '#000', shadowOffset: { width: 12, height: 12 },
+                            shadowOpacity: 1, shadowRadius: 0, elevation: 12,
+                        }}>
+                            <View style={{ alignItems: 'center', marginBottom: 32 }}>
+                                {/* Purple tinted lock circle — matches PaymentsScreen exactly */}
+                                <View style={{
+                                    backgroundColor: 'rgba(156,39,176,0.1)',
+                                    padding: 24, borderRadius: 9999,
+                                    borderWidth: 2.5, borderColor: 'black',
+                                    marginBottom: 24,
+                                }}>
+                                    <Lock color="#9C27B0" size={40} strokeWidth={2.5} />
+                                </View>
+                                <Text style={{ fontSize: 28, textAlign: 'center', marginBottom: 12, fontFamily: FONT_BODY, color: 'black' }}>
+                                    ACCESS RESTRICTED
+                                </Text>
+                                <Text style={{ fontSize: 13, textAlign: 'center', paddingHorizontal: 16, lineHeight: 20, fontFamily: FONT_BODY, color: '#6b7280' }}>
+                                    Please sign in to your account to register for events and competitions.
+                                </Text>
+                            </View>
+
+                            <SmoothButton
+                                onPress={() => (navigation as any).navigate('Auth')}
+                                buttonStyle="bg-black border-[2.5px] border-black rounded-[20px] py-5 items-center justify-center"
+                                shadowStyle="bg-black rounded-[20px]"
+                                depth={6}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <User color="white" size={20} />
+                                    <Text style={{ color: 'white', fontSize: 16, textTransform: 'uppercase', letterSpacing: 2, marginLeft: 12, fontFamily: FONT_BODY }}>
+                                        SIGN IN TO CONTINUE
+                                    </Text>
+                                </View>
+                            </SmoothButton>
+
+                            <Text style={{ fontSize: 10, textAlign: 'center', marginTop: 24, textTransform: 'uppercase', letterSpacing: 2, fontFamily: FONT_BODY, color: '#9ca3af' }}>
+                                Signifiya'26 Secure Portal
+                            </Text>
+                        </View>
+                    </Animated.View>
+                </ScrollView>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>

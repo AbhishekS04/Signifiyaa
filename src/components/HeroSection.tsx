@@ -132,7 +132,7 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
 
     // Memoize navigation callbacks — prevents child re-renders from new function refs
     const handleNavigateEvents = useCallback(() => navigation.navigate('Events'), [navigation]);
-    const handleNavigatePayments = useCallback(() => navigation.navigate('Main', { screen: 'Payments' }), [navigation]);
+    const handleNavigatePayments = useCallback(() => navigation.navigate('VisitorRegistration'), [navigation]);
     const handleTextLayout = useCallback((e: any) => setTextWidth(e.nativeEvent.layout.width), []);
 
     useEffect(() => {
@@ -147,129 +147,129 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
 
     return (
         <Animated.View style={entranceStyle}>
-        <View className="mb-4">
+            <View className="mb-4">
 
-            {/* --- 1. Top Marquee Strip (Outside Card) --- */}
-            <View className="w-full h-10 bg-[#E1BEE7] overflow-hidden justify-center mb-5 border-y-2 border-black">
-                <Animated.View style={[marqueeStyle, { flexDirection: 'row', width: 2000 }]}>
-                    {/* Render one invisible to measure */}
-                    <Text
-                        onLayout={handleTextLayout}
-                        className="absolute opacity-0 text-black font-[Gilton] text-[11px] uppercase tracking-widest"
-                    >
-                        {MARQUEE_TEXT}
-                    </Text>
-
-                    {/* Reduced from 10 → 5 copies — more than enough for seamless loop in 2000px */}
-                    {[...Array(5)].map((_, i) => (
-                        <Text key={i} className="text-black font-[Gilton] text-[11px] uppercase tracking-widest">
+                {/* --- 1. Top Marquee Strip (Outside Card) --- */}
+                <View className="w-full h-10 bg-[#E1BEE7] overflow-hidden justify-center mb-5 border-y-2 border-black">
+                    <Animated.View style={[marqueeStyle, { flexDirection: 'row', width: 2000 }]}>
+                        {/* Render one invisible to measure */}
+                        <Text
+                            onLayout={handleTextLayout}
+                            className="absolute opacity-0 text-black font-[Gilton] text-[11px] uppercase tracking-widest"
+                        >
                             {MARQUEE_TEXT}
                         </Text>
-                    ))}
-                </Animated.View>
-            </View>
 
-            {/* Main Hero Card with padding wrapper */}
-            <View className="px-4">
-                <LinearGradient
-                    colors={['#6A1B9A', '#8E24AA', '#BA68C8', '#E1BEE7']}
-                    locations={[0, 0.3, 0.6, 1]}
-                    className="w-full rounded-[30px] pt-16 pb-8 px-6 relative overflow-hidden justify-center"
-                    style={{ minHeight: isSmallDevice ? 600 : 700 }}
-                >
-                    {/* Background Watermark */}
-                    <View className="absolute inset-x-0 bottom-0 items-center justify-end opacity-[0.10]" style={{ bottom: -40 }}>
-                        <Image
-                            source={require('../../assets/bglogo.png')}
-                            style={{ width: 600, height: 700, tintColor: 'white' }}
-                            contentFit="contain"
-                            cachePolicy="memory-disk"
-                        />
-                    </View>
+                        {/* Reduced from 10 → 5 copies — more than enough for seamless loop in 2000px */}
+                        {[...Array(5)].map((_, i) => (
+                            <Text key={i} className="text-black font-[Gilton] text-[11px] uppercase tracking-widest">
+                                {MARQUEE_TEXT}
+                            </Text>
+                        ))}
+                    </Animated.View>
+                </View>
 
-                    {/* Content */}
-                    <View className="items-center z-10 w-full mb-20">
-                        {/* Title */}
-                        <Text
-                            className={`text-white ${isSmallDevice ? 'text-4xl' : 'text-5xl'} tracking-[0.25em] text-center mb-8 uppercase`}
-                            style={{ fontFamily: 'Bicubik' }}
-                        >
-                            SIGNIFIYA
-                        </Text>
-
-                        {/* Countdown Timer — isolated component, 1s updates don't re-render HeroSection */}
-                        <CountdownTimer />
-
-                        {/* Button(s) Container */}
-                        <View className="items-center gap-4 mb-16">
-                            {!isLoggedIn ? (
-                                <SmoothButton
-                                    onPress={onSignInPress}
-                                    containerStyle={{ alignSelf: 'center' }}
-                                    buttonStyle="bg-[#E1BEE7] border-2 border-black rounded-full px-14 py-4"
-                                    depth={6}
-                                >
-                                    <Text className="text-black text-[12px] uppercase tracking-[0.15em]"
-                                        style={{ fontFamily: 'Gilton' }} >
-                                        SIGN IN / SIGN UP
-                                    </Text>
-                                </SmoothButton>
-                            ) : (
-                                <>
-                                    {/* CHECK EVENTS Button */}
-                                    <SmoothButton
-                                        onPress={handleNavigateEvents}
-                                        containerStyle={{ alignSelf: 'center' }}
-                                        buttonStyle="bg-[#E1BEE7] border-[3px] border-black rounded-full px-10 py-3"
-                                        depth={4}
-                                    >
-                                        <Text className="text-black text-[16px] uppercase tracking-tighter"
-                                            style={{ fontFamily: 'Gilton' }} >
-                                            CHECK EVENTS
-                                        </Text>
-                                    </SmoothButton>
-
-                                    {/* VISITOR'S PASS Button */}
-                                    <SmoothButton
-                                        onPress={handleNavigatePayments}
-                                        containerStyle={{ alignSelf: 'center' }}
-                                        buttonStyle="bg-white border-[2px] border-black rounded-full px-10 py-3"
-                                        depth={4}
-                                    >
-                                        <Text className="text-black text-[16px] uppercase tracking-tighter"
-                                            style={{ fontFamily: 'Gilton' }} >
-                                            VISITOR'S PASS
-                                        </Text>
-                                    </SmoothButton>
-                                </>
-                            )}
+                {/* Main Hero Card with padding wrapper */}
+                <View className="px-4">
+                    <LinearGradient
+                        colors={['#6A1B9A', '#8E24AA', '#BA68C8', '#E1BEE7']}
+                        locations={[0, 0.3, 0.6, 1]}
+                        className="w-full rounded-[30px] pt-16 pb-8 px-6 relative overflow-hidden justify-center"
+                        style={{ minHeight: isSmallDevice ? 600 : 700 }}
+                    >
+                        {/* Background Watermark */}
+                        <View className="absolute inset-x-0 bottom-0 items-center justify-end opacity-[0.10]" style={{ bottom: -40 }}>
+                            <Image
+                                source={require('../../assets/bglogo.png')}
+                                style={{ width: 600, height: 700, tintColor: 'white' }}
+                                contentFit="contain"
+                                cachePolicy="memory-disk"
+                            />
                         </View>
 
-                        {/* Description */}
-                        <Text className="text-black/50 text-[9px] uppercase text-center mb-8 leading-4 tracking-tighter px-6"
-                            style={{ fontFamily: 'Softura' }}>
-                            SOET'S AWAITED FEST IS BACK WITH EVEN MORE FUN N{'\n'}
-                            EXCITING PLANS | GLIDE DOWN TO EXPLORE OUR FEST
-                        </Text>
+                        {/* Content */}
+                        <View className="items-center z-10 w-full mb-20">
+                            {/* Title */}
+                            <Text
+                                className={`text-white ${isSmallDevice ? 'text-4xl' : 'text-5xl'} tracking-[0.25em] text-center mb-8 uppercase`}
+                                style={{ fontFamily: 'Bicubik' }}
+                            >
+                                SIGNIFIYA
+                            </Text>
 
-                    </View>
+                            {/* Countdown Timer — isolated component, 1s updates don't re-render HeroSection */}
+                            <CountdownTimer />
 
-                    {/* Footer Icons - Positioned Absolutely at Bottom */}
-                    <View className="absolute bottom-6 left-0 right-0 px-6 z-20">
-                        <View className="w-full relative h-24 items-center justify-end">
-                            {/* Bouncing Arrow - Indicates Scroll Down */}
-                            <Animated.View style={arrowAnimatedStyle} className="mb-2">
-                                <ArrowDown color="black" size={45} strokeWidth={1.5} />
-                            </Animated.View>
-                            {/* Bunny - Bottom Right Absolute */}
-                            <View className="absolute right-0 bottom-0">
-                                <BunnyMascot />
+                            {/* Button(s) Container */}
+                            <View className="items-center gap-4 mb-16">
+                                {!isLoggedIn ? (
+                                    <SmoothButton
+                                        onPress={onSignInPress}
+                                        containerStyle={{ alignSelf: 'center' }}
+                                        buttonStyle="bg-[#E1BEE7] border-2 border-black rounded-full px-14 py-4"
+                                        depth={6}
+                                    >
+                                        <Text className="text-black text-[12px] uppercase tracking-[0.15em]"
+                                            style={{ fontFamily: 'Gilton' }} >
+                                            SIGN IN / SIGN UP
+                                        </Text>
+                                    </SmoothButton>
+                                ) : (
+                                    <>
+                                        {/* CHECK EVENTS Button */}
+                                        <SmoothButton
+                                            onPress={handleNavigateEvents}
+                                            containerStyle={{ alignSelf: 'center' }}
+                                            buttonStyle="bg-[#E1BEE7] border-[3px] border-black rounded-full px-10 py-3"
+                                            depth={4}
+                                        >
+                                            <Text className="text-black text-[16px] uppercase tracking-tighter"
+                                                style={{ fontFamily: 'Gilton' }} >
+                                                CHECK EVENTS
+                                            </Text>
+                                        </SmoothButton>
+
+                                        {/* VISITOR'S PASS Button */}
+                                        <SmoothButton
+                                            onPress={handleNavigatePayments}
+                                            containerStyle={{ alignSelf: 'center' }}
+                                            buttonStyle="bg-white border-[2px] border-black rounded-full px-10 py-3"
+                                            depth={4}
+                                        >
+                                            <Text className="text-black text-[16px] uppercase tracking-tighter"
+                                                style={{ fontFamily: 'Gilton' }} >
+                                                VISITOR'S PASS
+                                            </Text>
+                                        </SmoothButton>
+                                    </>
+                                )}
+                            </View>
+
+                            {/* Description */}
+                            <Text className="text-black/50 text-[9px] uppercase text-center mb-8 leading-4 tracking-tighter px-6"
+                                style={{ fontFamily: 'Softura' }}>
+                                SOET'S AWAITED FEST IS BACK WITH EVEN MORE FUN N{'\n'}
+                                EXCITING PLANS | GLIDE DOWN TO EXPLORE OUR FEST
+                            </Text>
+
+                        </View>
+
+                        {/* Footer Icons - Positioned Absolutely at Bottom */}
+                        <View className="absolute bottom-6 left-0 right-0 px-6 z-20">
+                            <View className="w-full relative h-24 items-center justify-end">
+                                {/* Bouncing Arrow - Indicates Scroll Down */}
+                                <Animated.View style={arrowAnimatedStyle} className="mb-2">
+                                    <ArrowDown color="black" size={45} strokeWidth={1.5} />
+                                </Animated.View>
+                                {/* Bunny - Bottom Right Absolute */}
+                                <View className="absolute right-0 bottom-0">
+                                    <BunnyMascot />
+                                </View>
                             </View>
                         </View>
-                    </View>
-                </LinearGradient>
+                    </LinearGradient>
+                </View>
             </View>
-        </View>
         </Animated.View>
     );
 };

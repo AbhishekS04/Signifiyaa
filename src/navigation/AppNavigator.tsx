@@ -10,6 +10,7 @@ import PaymentsScreen from '../screens/PaymentsScreen';
 import EventsScreen from '../screens/EventsScreen';
 import AuthScreen from '../screens/AuthScreen';
 import EventRegistrationScreen from '../screens/EventRegistrationScreen';
+import VisitorRegistrationScreen from '../screens/VisitorRegistrationScreen';
 import ContactSupportScreen from '../screens/ContactSupportScreen';
 import { CustomTabBar } from '../components/navigation/CustomTabBar';
 import { useAuth } from '../context/AuthContext';
@@ -88,6 +89,14 @@ export default function AppNavigator() {
                 <Stack.Screen
                     name="EventRegistration"
                     component={EventRegistrationScreen}
+                    options={{
+                        cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
+                        headerShown: false,
+                    }}
+                />
+                <Stack.Screen
+                    name="VisitorRegistration"
+                    component={VisitorRegistrationScreen}
                     options={{
                         cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
                         headerShown: false,
