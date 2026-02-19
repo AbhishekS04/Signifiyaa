@@ -126,7 +126,7 @@ export default function HomeScreen() {
             case 'prizesSponsors':
                 content = (
                     <View className="px-4 gap-4">
-                        <PrizesSponsors scrollY={scrollY} />
+                        <PrizesSponsors />
                     </View>
                 );
                 break;
