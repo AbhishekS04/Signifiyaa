@@ -1,21 +1,65 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Platform, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Platform, Alert, ActivityIndicator, RefreshControl, Modal, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Copy, Check, ChevronDown, Calendar, Ticket, Lock, User } from 'lucide-react-native';
+import {
+    Copy,
+    Check,
+    ChevronDown,
+    Calendar,
+    Ticket,
+    Lock,
+    User,
+    Clock,
+    CheckCircle2,
+    QrCode,
+    Download,
+    X,
+    UserCircle2,
+    CalendarDays
+} from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
-import Animated, { FadeIn, Easing, useSharedValue, useAnimatedStyle, withTiming, runOnJS, cancelAnimation } from 'react-native-reanimated';
+import Animated, { FadeIn, Easing, useSharedValue, useAnimatedStyle, withTiming, runOnJS, cancelAnimation, FadeOut } from 'react-native-reanimated';
 import { PageTransition } from '../components/navigation/PageTransition';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import AvatarChooserModal, { AVATAR_MAP } from '../components/ui/AvatarChooserModal';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Path, Circle } from 'react-native-svg';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Font Constants
 const FONT_MAIN = 'Gilton';
-const FONT_BOLD = 'Gilton'; // Assuming Gilton has bold weight or is used for headings
+const FONT_BOLD = 'Gilton';
+
+interface VisitorRegistration {
+    id: string;
+    name: string;
+    email: string;
+    passType: string;
+    status: 'pending' | 'approved';
+    userBookingId: string;
+    createdAt: string;
+    amount: number;
+}
+
+interface EventRegistration {
+    id: string;
+    teamName: string;
+    status: 'pending' | 'approved';
+    leaderBookingId: string;
+    createdAt: string;
+    participant_team_event: {
+        event: {
+            name: string;
+            date?: string;
+        }
+    }[];
+}
 
 // Helper Component for 3D Shadow (Manual Implementation for reliability)
 const ShadowCard = ({ children, style, shadowOffset = 8 }: { children: React.ReactNode, style?: any, shadowOffset?: number }) => {
@@ -78,8 +122,91 @@ const ProfileScreen = () => {
     const [gender, setGender] = useState(profile?.gender || 'Male');
     const bookingId = profile?.bookingId || user?.bookingId || 'NOT-ASSIGNED';
 
+    const [visitorRegistrations, setVisitorRegistrations] = useState<VisitorRegistration[]>([]);
+    const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>([]);
+    const [isFetchingReg, setIsFetchingReg] = useState(false);
+    const [selectedPass, setSelectedPass] = useState<{ type: 'visitor' | 'event', data: any } | null>(null);
+
+    const fetchRegistrations = useCallback(async () => {
+        if (!user?.email) return;
+        setIsFetchingReg(true);
+        try {
+            // Fetch visitor registrations
+            const { data: vData, error: vError } = await supabase
+                .from('visitor_registration')
+                .select('*')
+                .eq('email', user.email)
+                .order('createdAt', { ascending: false });
+
+            // Fetch event registrations
+            const { data: eData, error: eError } = await supabase
+                .from('participant_team')
+                .select(`
+                    *,
+                    participant_team_event (
+                        event (
+                            name,
+                            date
+                        )
+                    )
+                `)
+                .eq('leaderEmail', user.email)
+                .order('createdAt', { ascending: false });
+
+            if (vError) console.error('Error fetching visitor regs:', vError);
+            if (eError) console.error('Error fetching event regs:', eError);
+
+            // Normalize status: Map 'verified' to 'approved' so the UI logic works correctly
+            const normalizedVData = (vData || []).map(v => ({
+                ...v,
+                status: v.status === 'verified' ? 'approved' : v.status
+            })) as VisitorRegistration[];
+
+            const normalizedEData = (eData as any || []).map((e: any) => ({
+                ...e,
+                status: e.status === 'verified' ? 'approved' : e.status
+            })) as EventRegistration[];
+
+            // ── Dummy Data for Visual Testing ──
+            const dummyVisitor: VisitorRegistration = {
+                id: 'dummy-v-101',
+                name: user?.name || 'Sayan Mukherjee',
+                email: user?.email || '',
+                passType: 'dual',
+                status: 'approved',
+                userBookingId: bookingId,
+                createdAt: new Date().toISOString(),
+                amount: 79
+            };
+
+            const dummyEvent: EventRegistration = {
+                id: 'dummy-e-101',
+                teamName: 'DUMMY VOLTAGE SQUAD',
+                status: 'approved',
+                leaderBookingId: bookingId,
+                createdAt: new Date().toISOString(),
+                participant_team_event: [
+                    {
+                        event: {
+                            name: 'DUMMY TECH SUMMIT',
+                            date: 'MAR 27'
+                        }
+                    }
+                ]
+            };
+
+            setVisitorRegistrations([dummyVisitor, ...normalizedVData]);
+            setEventRegistrations([dummyEvent, ...normalizedEData]);
+
+        } catch (err) {
+            console.error('Fetch exception:', err);
+        } finally {
+            setIsFetchingReg(false);
+        }
+    }, [user?.email, bookingId]);
+
     // Update state when profile loads
-    React.useEffect(() => {
+    useEffect(() => {
         if (profile) {
             setName(profile.name || user?.name || '');
             setMobile(profile.mobileNo || '');
@@ -90,6 +217,7 @@ const ProfileScreen = () => {
         }
         if (user) {
             setEmail(user.email || '');
+            fetchRegistrations();
         }
     }, [profile, user]);
 
@@ -268,12 +396,13 @@ const ProfileScreen = () => {
                 setCollege(freshProfile.collegeName || '');
                 setGender(freshProfile.gender || 'Male');
             }
+            await fetchRegistrations();
         } catch (error) {
             // Silent fail - user can retry
         } finally {
             setRefreshing(false);
         }
-    }, [user?.email, user?.name]);
+    }, [user?.email, user?.name, fetchRegistrations]);
 
     const handleAvatarSelect = useCallback(async (avatarId: string) => {
         try {
@@ -514,10 +643,74 @@ const ProfileScreen = () => {
                                         <View className="bg-[#E0B0FF] p-2 rounded-full border-[2px] border-black"><Calendar color="black" size={20} /></View>
                                         <Text className="text-xl uppercase flex-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>REGISTERED{'\n'}EVENTS</Text>
                                     </View>
-                                    <View className="h-[2px] bg-black w-full mb-8 rounded-full" />
-                                    <View className="items-center justify-center py-4">
-                                        <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Events Found</Text>
-                                    </View>
+                                    <View className="h-[2px] bg-black w-full mb-6 rounded-full" />
+
+                                    {eventRegistrations.length > 0 ? (
+                                        <View className="gap-4">
+                                            {eventRegistrations.map((reg) => (
+                                                <View key={reg.id} className="bg-[#F8F9FA] p-4 rounded-2xl border-2 border-dashed border-black/20">
+                                                    <View className="flex-row justify-between items-start mb-2">
+                                                        <View className="flex-1">
+                                                            <Text className="text-sm text-black mb-1" style={{ fontFamily: FONT_BOLD }}>
+                                                                {reg.teamName}
+                                                            </Text>
+                                                            <View className="flex-row items-center gap-1">
+                                                                <CalendarDays size={12} color="#6b7280" />
+                                                                <Text className="text-[10px] text-gray-500" style={{ fontFamily: FONT_MAIN }}>
+                                                                    {new Date(reg.createdAt).toLocaleDateString()}
+                                                                </Text>
+                                                            </View>
+                                                        </View>
+                                                        <View className={`px-2 py-1 rounded-full border ${reg.status === 'approved' ? 'bg-green-100 border-green-500/30' : 'bg-orange-100 border-orange-500/30'}`}>
+                                                            <View className="flex-row items-center gap-1">
+                                                                {reg.status === 'approved' ? (
+                                                                    <CheckCircle2 size={10} color="#22c55e" />
+                                                                ) : (
+                                                                    <Clock size={10} color="#f97316" />
+                                                                )}
+                                                                <Text className={`text-[8px] font-bold uppercase ${reg.status === 'approved' ? 'text-green-600' : 'text-orange-600'}`}>
+                                                                    {reg.status}
+                                                                </Text>
+                                                            </View>
+                                                        </View>
+                                                    </View>
+
+                                                    <View className="flex-row flex-wrap gap-2 mb-3">
+                                                        {reg.participant_team_event.map((ev, i) => (
+                                                            <View key={i} className="bg-black/5 px-2 py-1 rounded-md">
+                                                                <Text className="text-[8px] text-black/60 uppercase" style={{ fontFamily: FONT_BOLD }}>
+                                                                    {ev.event?.name}
+                                                                </Text>
+                                                            </View>
+                                                        ))}
+                                                    </View>
+
+                                                    {reg.status === 'approved' ? (
+                                                        <TouchableOpacity
+                                                            onPress={() => setSelectedPass({ type: 'event', data: reg })}
+                                                            className="bg-black py-2 rounded-xl flex-row items-center justify-center gap-2"
+                                                        >
+                                                            <QrCode size={14} color="white" />
+                                                            <Text className="text-white text-[10px] font-bold uppercase tracking-widest">VIEW PASS</Text>
+                                                        </TouchableOpacity>
+                                                    ) : (
+                                                        <View className="bg-gray-200 py-2 rounded-xl flex-row items-center justify-center gap-2 opacity-50">
+                                                            <Clock size={14} color="#6b7280" />
+                                                            <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">PENDING APPROVAL</Text>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            ))}
+                                        </View>
+                                    ) : (
+                                        <View className="items-center justify-center py-4">
+                                            {isFetchingReg ? (
+                                                <ActivityIndicator size="small" color="#000" />
+                                            ) : (
+                                                <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Events Found</Text>
+                                            )}
+                                        </View>
+                                    )}
                                 </ShadowCard>
                             </Animated.View>
 
@@ -528,11 +721,64 @@ const ProfileScreen = () => {
                                         <View className="bg-[#E0B0FF] p-2 rounded-full border-[2px] border-black"><Ticket color="black" size={20} /></View>
                                         <Text className="text-xl uppercase flex-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>MY PASSES</Text>
                                     </View>
-                                    <View className="h-[2px] bg-black w-full mb-8 rounded-full" />
-                                    <View className="items-center justify-center py-4">
-                                        <Lock color="#d1d5db" size={48} strokeWidth={1.5} className="mb-3" />
-                                        <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Passes Found</Text>
-                                    </View>
+                                    <View className="h-[2px] bg-black w-full mb-6 rounded-full" />
+
+                                    {visitorRegistrations.length > 0 ? (
+                                        <View className="gap-4">
+                                            {visitorRegistrations.map((reg) => (
+                                                <View key={reg.id} className="bg-[#F8F9FA] p-4 rounded-2xl border-2 border-dashed border-black/20">
+                                                    <View className="flex-row justify-between items-start mb-3">
+                                                        <View>
+                                                            <Text className="text-[10px] text-gray-500 uppercase mb-1" style={{ fontFamily: FONT_BOLD }}>
+                                                                VISITOR PASS
+                                                            </Text>
+                                                            <Text className="text-sm text-black" style={{ fontFamily: FONT_BOLD }}>
+                                                                {reg.passType === 'day1' ? 'Single Day Pass' : 'Combo Pass'}
+                                                            </Text>
+                                                        </View>
+                                                        <View className={`px-2 py-1 rounded-full border ${reg.status === 'approved' ? 'bg-green-100 border-green-500/30' : 'bg-orange-100 border-orange-500/30'}`}>
+                                                            <View className="flex-row items-center gap-1">
+                                                                {reg.status === 'approved' ? (
+                                                                    <CheckCircle2 size={10} color="#22c55e" />
+                                                                ) : (
+                                                                    <Clock size={10} color="#f97316" />
+                                                                )}
+                                                                <Text className={`text-[8px] font-bold uppercase ${reg.status === 'approved' ? 'text-green-600' : 'text-orange-600'}`}>
+                                                                    {reg.status}
+                                                                </Text>
+                                                            </View>
+                                                        </View>
+                                                    </View>
+
+                                                    {reg.status === 'approved' ? (
+                                                        <TouchableOpacity
+                                                            onPress={() => setSelectedPass({ type: 'visitor', data: reg })}
+                                                            className="bg-black py-2 rounded-xl flex-row items-center justify-center gap-2"
+                                                        >
+                                                            <QrCode size={14} color="white" />
+                                                            <Text className="text-white text-[10px] font-bold uppercase tracking-widest">VIEW PASS</Text>
+                                                        </TouchableOpacity>
+                                                    ) : (
+                                                        <View className="bg-gray-200 py-2 rounded-xl flex-row items-center justify-center gap-2 opacity-50">
+                                                            <Clock size={14} color="#6b7280" />
+                                                            <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">PENDING APPROVAL</Text>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            ))}
+                                        </View>
+                                    ) : (
+                                        <View className="items-center justify-center py-4">
+                                            {isFetchingReg ? (
+                                                <ActivityIndicator size="small" color="#000" />
+                                            ) : (
+                                                <>
+                                                    <Lock color="#d1d5db" size={48} strokeWidth={1.5} className="mb-3" />
+                                                    <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Passes Found</Text>
+                                                </>
+                                            )}
+                                        </View>
+                                    )}
                                 </ShadowCard>
                             </Animated.View>
 
@@ -592,8 +838,190 @@ const ProfileScreen = () => {
                 onSelect={handleAvatarSelect}
                 currentAvatarId={rawImage || undefined}
             />
+
+            <PassModal
+                visible={!!selectedPass}
+                type={selectedPass?.type || 'visitor'}
+                data={selectedPass?.data}
+                onClose={() => setSelectedPass(null)}
+                userName={name}
+                bookingId={bookingId}
+            />
         </SafeAreaView >
     );
 };
+
+// --- Pass Modal Component ---
+const PassModal = ({ visible, type, data, onClose, userName, bookingId }: {
+    visible: boolean,
+    type: 'visitor' | 'event',
+    data: any,
+    onClose: () => void,
+    userName: string,
+    bookingId: string
+}) => {
+    if (!data) return null;
+
+    const isEvent = type === 'event';
+    const subTitle = isEvent ? 'single' : (data.passType === 'day1' ? 'single' : 'combo');
+
+    // QR Content
+    const qrContent = isEvent ? `TEAM-${data.id}` : `VISIT-${data.id}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${qrContent}`;
+
+    return (
+        <Modal
+            visible={visible}
+            transparent
+            animationType="fade"
+            onRequestClose={onClose}
+        >
+            <View className="flex-1 bg-black/80 items-center justify-center p-6">
+                <Animated.View
+                    entering={FadeIn.duration(400)}
+                    exiting={FadeOut.duration(300)}
+                    className="w-full max-w-[360px] bg-white rounded-[32px] p-6 border-[1px] border-black/10 shadow-2xl"
+                >
+                    {/* Header: Title and Top Buttons */}
+                    <View className="flex-row items-center justify-between mb-6">
+                        <Text className="text-2xl" style={{ fontFamily: 'Gilton', color: 'black' }}>
+                            My Pass
+                        </Text>
+                        <View className="flex-row gap-3">
+                            <TouchableOpacity
+                                onPress={() => Alert.alert("Download", "Pass has been saved to your gallery!")}
+                                className="w-10 h-10 rounded-full bg-indigo-100 items-center justify-center border-[1.5px] border-black"
+                            >
+                                <Download color="black" size={20} />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={onClose}
+                                className="w-10 h-10 rounded-full bg-red-100 items-center justify-center border-[1.5px] border-black"
+                            >
+                                <X color="black" size={20} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* The Actual Neon Pass Card */}
+                    <View className="w-full aspect-[3/4] rounded-[30px] border-[6px] border-[#8B5CF6] overflow-hidden bg-black shadow-[0_0_20px_rgba(139,92,246,0.5)]">
+                        {/* Upper Half: Gradient + Logo + Mascot */}
+                        <View className="h-[40%] relative">
+                            <LinearGradient
+                                colors={['#0047FF', '#9D00FF']}
+                                className="absolute inset-0"
+                            />
+
+                            {/* Logo top left */}
+                            <View className="absolute top-5 left-5 opacity-80">
+                                <Svg width={30} height={30} viewBox="0 0 100 100">
+                                    <Path d="M20,80 L50,20 L80,80 M50,20 L50,80" stroke="white" strokeWidth="8" fill="none" />
+                                    <Circle cx="50" cy="50" r="40" stroke="white" strokeWidth="2" fill="none" opacity="0.3" />
+                                </Svg>
+                            </View>
+
+                            {/* Signifiya Text */}
+                            <View className="absolute bottom-4 left-6">
+                                <Text className="text-white/40 text-[14px]" style={{ fontFamily: 'Gilton' }}>
+                                    Signifiya <Text className="text-white/60">2026</Text>
+                                </Text>
+                            </View>
+
+                            {/* Robot Mascot - Absolutely positioned overlapping boundary */}
+                            <View className="absolute right-[-10px] bottom-[-60px] z-20">
+                                <RobotMascotModal />
+                            </View>
+                        </View>
+
+                        {/* Lower Half: Info Section */}
+                        <View className="flex-1 bg-black p-6 justify-between">
+                            <View>
+                                <Text className="text-white/50 text-xs uppercase tracking-widest mb-1" style={{ fontFamily: 'Gilton' }}>
+                                    Pass : {subTitle}
+                                </Text>
+                                <Text className="text-white text-4xl leading-tight mb-2" style={{ fontFamily: 'Gilton' }}>
+                                    {userName}
+                                </Text>
+                            </View>
+
+                            {/* QR and Booking ID Section */}
+                            <View className="flex-row items-end justify-between">
+                                <View className="bg-white p-2 rounded-xl">
+                                    <Image
+                                        source={{ uri: qrUrl }}
+                                        style={{ width: 100, height: 100 }}
+                                        contentFit="contain"
+                                    />
+                                </View>
+
+                                <View className="flex-1 ml-4 mb-2">
+                                    <View className="mb-4">
+                                        <Text className="text-white/40 text-[10px] uppercase font-bold">Booking ID</Text>
+                                        <Text className="text-white text-sm font-bold tracking-tighter uppercase">{bookingId}</Text>
+                                    </View>
+                                    <Text className="text-white/30 text-[9px] leading-3">
+                                        Scan QR or use Booking ID at entry.
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+                </Animated.View>
+            </View>
+        </Modal>
+    );
+};
+
+// Robot Mascot SVG Component (Matches the reference)
+const RobotMascotModal = () => (
+    <View style={{ width: 140, height: 160 }}>
+        <Svg width="100%" height="100%" viewBox="0 0 200 200">
+            {/* Body */}
+            <Circle cx="100" cy="110" r="45" fill="white" stroke="#D1D5DB" strokeWidth="1" />
+
+            {/* Head / Helmet */}
+            <Circle cx="100" cy="70" r="40" fill="white" stroke="#D1D5DB" strokeWidth="2" />
+            {/* Visor Area */}
+            <Path
+                d="M75,65 Q100,60 125,65 L125,85 Q100,90 75,85 Z"
+                fill="#1F2937"
+            />
+            {/* Eyes glowing in visor */}
+            <Circle cx="88" cy="75" r="3" fill="#60A5FA" />
+            <Circle cx="112" cy="75" r="3" fill="#60A5FA" />
+
+            {/* Top indicator light */}
+            <Circle cx="100" cy="35" r="5" fill="#3B82F6" />
+            <Path d="M100,40 L100,30" stroke="#3B82F6" strokeWidth="2" />
+
+            {/* Left Arm waving */}
+            <Path
+                d="M140,90 Q160,80 155,60"
+                stroke="white"
+                strokeWidth="12"
+                strokeLinecap="round"
+                fill="none"
+            />
+            {/* Hand details */}
+            <Circle cx="155" cy="60" r="8" fill="white" />
+
+            {/* Right Arm */}
+            <Path
+                d="M60,105 Q45,115 50,135"
+                stroke="white"
+                strokeWidth="12"
+                strokeLinecap="round"
+                fill="none"
+            />
+
+            {/* Legs floating */}
+            <Path d="M85,150 Q85,170 70,175" stroke="#E5E7EB" strokeWidth="15" strokeLinecap="round" fill="none" />
+            <Path d="M115,150 Q115,170 130,175" stroke="#E5E7EB" strokeWidth="15" strokeLinecap="round" fill="none" />
+
+            {/* Subtle glow / shadow */}
+            <Circle cx="100" cy="185" r="20" fill="rgba(255,255,255,0.1)" />
+        </Svg>
+    </View>
+);
 
 export default ProfileScreen;

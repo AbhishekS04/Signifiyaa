@@ -15,6 +15,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useAuth } from '../context/AuthContext';
 
+const generateUUID = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
+};
+
 
 // ─── Event Data ────────────────────────────────────────────────────────────────
 const AVAILABLE_EVENTS = [
@@ -214,10 +222,12 @@ const EventRegistrationScreen = () => {
             for (const scalarId of selectedEvents) {
                 const localEvent = AVAILABLE_EVENTS.find(e => e.id === scalarId);
                 if (localEvent) {
+                    // Try exact match first, then case-insensitive match
                     const { data: dbEvent } = await supabase
                         .from('event')
                         .select('id')
-                        .eq('name', localEvent.name)
+                        .ilike('name', localEvent.name)
+                        .limit(1)
                         .single();
                     if (dbEvent?.id) resolvedEventIds.push(dbEvent.id);
                 }
@@ -226,6 +236,7 @@ const EventRegistrationScreen = () => {
             const { data: teamData, error: teamError } = await supabase
                 .from('participant_team')
                 .insert({
+                    id: generateUUID(),
                     teamName,
                     leaderName,
                     leaderEmail: email,
@@ -235,6 +246,8 @@ const EventRegistrationScreen = () => {
                     totalAmount: totalPrice,
                     status: 'pending',
                     paymentProofUrl: utrId.trim(),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
                 })
                 .select()
                 .single();
@@ -257,13 +270,21 @@ const EventRegistrationScreen = () => {
                 if (membersPayload.length > 0) {
                     const { error: membersError } = await supabase
                         .from('participant_team_member')
-                        .insert(membersPayload);
+                        .insert(membersPayload.map(m => ({
+                            ...m,
+                            id: generateUUID(),
+                            createdAt: new Date().toISOString()
+                        })));
                     if (membersError) throw membersError;
                 }
             }
 
             if (resolvedEventIds.length > 0) {
-                const eventLinks = resolvedEventIds.map(eId => ({ teamId, eventId: eId }));
+                const eventLinks = resolvedEventIds.map(eId => ({
+                    teamId,
+                    eventId: eId,
+                    createdAt: new Date().toISOString()
+                }));
                 const { error: linksError } = await supabase
                     .from('participant_team_event')
                     .insert(eventLinks);
