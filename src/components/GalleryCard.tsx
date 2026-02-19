@@ -23,7 +23,7 @@ const S = StyleSheet.create({
     grayscaleOverlay: {
         position: 'absolute',
         top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: 'rgba(128, 128, 128, 0.6)',
+        backgroundColor: 'rgba(0, 0, 0, 0.45)',
     },
     imageFull: { width: '100%' as any, height: '100%' as any },
     heartWrap: { width: 48, height: 48 },
@@ -151,22 +151,20 @@ interface GalleryItemProps {
 }
 
 const GalleryCard = React.memo(({ item, isActive, onToggle }: GalleryItemProps) => {
-    // Particle trigger counter — incrementing this causes HeartParticles to spawn a batch.
-    // Does NOT live in state — we use a lightweight state counter that is isolated to HeartParticles.
     const [particleTrigger, setParticleTrigger] = useState(0);
+    const [revealed, setRevealed] = useState(false);
 
-    // Shared values for instant button feedback
     const buttonScale = useSharedValue(1);
     const buttonOffset = useSharedValue(-4);
     const colorOpacity = useSharedValue(0);
 
-    // Color transition (grayscale ↔ color)
+    // Dark overlay fades out when heart is tapped (revealed → true)
     React.useEffect(() => {
-        colorOpacity.value = withTiming(isActive ? 1 : 0, {
+        colorOpacity.value = withTiming(revealed ? 1 : 0, {
             duration: 400,
             easing: Easing.out(Easing.cubic),
         });
-    }, [isActive]);
+    }, [revealed]);
 
     const handlePressIn = useCallback(() => {
         buttonScale.value = withTiming(0.85, { duration: 40 });
@@ -181,7 +179,7 @@ const GalleryCard = React.memo(({ item, isActive, onToggle }: GalleryItemProps) 
     const handlePress = useCallback(() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         onToggle();
-        // Bump trigger — only HeartParticles re-renders, not GalleryCard's image/overlay
+        setRevealed(prev => !prev);
         setParticleTrigger(t => t + 1);
     }, [onToggle]);
 
