@@ -98,7 +98,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "DECORATIONS LEAD",
         desc: "Transforming spaces into immersive experiences that set the fest's mood.",
         image: require('../../assets/team/Samriddhi.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/samriddhi-sinha-555768280/", instagram: "https://www.instagram.com/samriddhibelike_/", github: "https://github.com/" },
+        socials: { linkedin: "https://www.linkedin.com/in/samriddhi-sinha-555768280/", instagram: "https://www.instagram.com/samriddhibelike_/", github: "https://github.com/Samriddhie" },
         category: 'CORE MEMBER'
     },
     {
