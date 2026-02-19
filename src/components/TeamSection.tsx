@@ -35,7 +35,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "FACULTY LEAD",
         desc: "Assistant Professor, ECE, SOET",
         image: require('../../assets/team/Nisarga.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/nisarga-chand-48634667/", instagram: "https://instagram.com/hrishav.dey" },
+        socials: { linkedin: "https://www.linkedin.com/in/nisarga-chand-48634667/", instagram: "https://www.instagram.com/nisarga_chand/" },
         category: 'FACULTY'
     },
     {
@@ -44,7 +44,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "FACULTY LEAD",
         desc: "Assistant Professor, ECE, SOET",
         image: require('../../assets/team/Soodipa.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/soodipachakraborty/", instagram: "https://instagram.com/hrishav.dey" },
+        socials: { linkedin: "https://www.linkedin.com/in/soodipachakraborty/", instagram: "https://www.instagram.com/soodipa_c/" },
         category: 'FACULTY'
     },
     {
@@ -53,7 +53,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "TECH MENTOR",
         desc: "Assistant Professor, ECE, SOET",
         image: require('../../assets/team/Prabhat.webp'),
-        socials: { linkedin: "https://linkedin.com/in/prabhatd/", instagram: "https://instagram.com/hrishav.dey", github: "https://github.com/" },
+        socials: { linkedin: "https://linkedin.com/in/prabhatd/", instagram: "", github: "https://github.com/prabhatdash/" },
         category: 'FACULTY'
     },
     {
@@ -62,7 +62,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "EVENT ADVISOR",
         desc: "The force that turns bold ideas into flawlessly executed reality.",
         image: require('../../assets/avatar/avatar4.webp'),
-        socials: { linkedin: "https://linkedin.com/in/hrishav-dey-2b2990291/", instagram: "https://instagram.com/hrishav.dey" },
+        socials: { linkedin: "https://www.linkedin.com/in/hrishav-dey-60a8292aa/", instagram: "https://www.instagram.com/hrishav_02/" },
         category: 'CORE MEMBER'
     },
     {
@@ -71,7 +71,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "ON-GROUND COORDINATOR",
         desc: "The go-to problem solver who keeps the action running seamlessly on the ground.",
         image: require('../../assets/team/Digant.webp'),
-        socials: { linkedin: "https://linkedin.com/in/digant-mishra-2b2990291/", instagram: "https://instagram.com/digantt._" },
+        socials: { linkedin: "https://www.linkedin.com/in/digant-mishra-2b2990291/", instagram: "https://www.instagram.com/digantt._" },
         category: 'CORE MEMBER'
     },
     {
@@ -89,7 +89,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "OPERATIONS LEAD",
         desc: "The backbone of smooth workflows, ensuring every detail runs right on time.",
         image: require('../../assets/team/Snehasish.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/snehasish-mondal/", instagram: "https://instagram.com/snehasish.mondal", github: "https://github.com/" },
+        socials: { linkedin: "https://www.linkedin.com/in/snehasish-mondal/", instagram: "https://www.instagram.com/sn3hasishhhhh/", github: "https://github.com/Snehasish321" },
         category: 'CORE MEMBER'
     },
     {
@@ -98,7 +98,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "DECORATIONS LEAD",
         desc: "Transforming spaces into immersive experiences that set the fest's mood.",
         image: require('../../assets/team/Samriddhi.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/samriddhi-sinha-555768280/", instagram: "https://instagram.com/samriddhi.sinha", github: "https://github.com/" },
+        socials: { linkedin: "https://www.linkedin.com/in/samriddhi-sinha-555768280/", instagram: "https://www.instagram.com/samriddhibelike_/", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
     {
@@ -107,7 +107,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "SOCIAL MEDIA HEAD",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
         image: require('../../assets/team/Arnab.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/arnab-mandal-4b61151a1/", instagram: "https://instagram.com/arnab_mandal", github: "https://github.com/" },
+        socials: { linkedin: "https://www.linkedin.com/in/arnab-mandal-4b61151a1/", instagram: "https://www.instagram.com/arna4b/", github: "https://github.com/arnaabh" },
         category: 'CORE MEMBER'
     },
     {
@@ -116,7 +116,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "TECH LEAD",
         desc: "19, full stack web3 dev, community lead @0DAY",
         image: require('../../assets/team/Ashish.webp'),
-        socials: { linkedin: "https://linkedin.com/in/arddev", instagram: "https://instagram.com/ashishh_rd_", github: "https://github.com/0day-Ashish" },
+        socials: { linkedin: "https://www.linkedin.com/in/arddev", instagram: "https://www.instagram.com/ashishh_rd_", github: "https://github.com/0day-Ashish" },
         category: 'CORE MEMBER'
     },
     {
@@ -125,7 +125,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "TECH SUPPORT",
         desc: "Architect of innovation, powering the fest with smart tech and seamless systems.",
         image: require('../../assets/team/Subham.webp'),
-        socials: { linkedin: "https://linkedin.com/in/subham12r", instagram: "https://instagram.com/5ubhamkarmakar", github: "https://github.com/subham12r" },
+        socials: { linkedin: "https://www.linkedin.com/in/subham12r", instagram: "https://www.instagram.com/5ubhamkarmakar", github: "https://github.com/subham12r" },
         category: 'CORE MEMBER'
     },
     {
@@ -134,7 +134,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "APP DEVELOPMENT",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
         image: require('../../assets/team/Abhishek.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/abhi3hekk/", instagram: "https://instagram.com/abhisekhsingh", github: "https://github.com/abhisekhsingh" },
+        socials: { linkedin: "https://www.linkedin.com/in/abhi3hekk/", instagram: "https://www.instagram.com/abhi3hekk/", github: "https://github.com/AbhishekS04/" },
         category: 'CORE MEMBER'
     },
     {
@@ -143,7 +143,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "DOCUMENTATIONS LEAD",
         desc: "The mind that captures every milestone and detail with clarity and precision.",
         image: require('../../assets/team/Garima.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/garima-roy-032277290/", instagram: "https://instagram.com/_garimaa.07_", github: "https://github.com/" },
+        socials: { linkedin: "https://www.linkedin.com/in/garima-roy-032277290/", instagram: "https://www.instagram.com/_garimaa.07_", github: "https://github.com/GarimaRoy07" },
         category: 'CORE MEMBER'
     },
     {
@@ -152,7 +152,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "DESIGN LEAD",
         desc: "The creative spark behind visuals that give the fest its identity and vibe.",
         image: require('../../assets/team/Leeza.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/leeza-bhowal/", instagram: "https://instagram.com/leeza.bhowal", github: "https://github.com/" },
+        socials: { linkedin: "https://www.linkedin.com/in/leeza-bhowal/", instagram: "https://www.instagram.com/leeza_bhowal/", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
     {
