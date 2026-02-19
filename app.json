@@ -15,6 +15,9 @@
 
     "ios": {
       "supportsTablet": true,
+      "infoPlist": {
+        "CADisableMinimumFrameDurationOnPhone": true
+      },
       "bundleIdentifier": "com.abhishek2304.signifiya"
     },
 
@@ -35,7 +38,8 @@
       "expo-font",
       "expo-video",
       "expo-web-browser",
-      "expo-updates"
+      "expo-updates",
+      "./plugins/withHighRefreshRate"
     ],
 
     "runtimeVersion": {

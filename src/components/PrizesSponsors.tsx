@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { View, Text, Dimensions, StyleSheet } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import SmoothButton from './ui/SmoothButton';
@@ -6,14 +6,17 @@ import SponsorModal from './SponsorModal';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
+    useAnimatedReaction,
     withRepeat,
     withTiming,
     withDelay,
     withSpring,
     interpolate,
     cancelAnimation,
+    runOnJS,
     Easing,
-    FadeInDown
+    FadeInDown,
+    type SharedValue,
 } from 'react-native-reanimated';
 
 // ─── Constants (hoisted — zero per-render cost) ────────────────────────────────
@@ -123,7 +126,7 @@ const S = StyleSheet.create({
     billAbsolute: { position: 'absolute' as const },
 });
 
-// ─── MoneyBill (single shared progress → 1 animation per bill instead of 3) ───
+// ─── MoneyBill (single shared progress → visibility-aware, pauses off-screen) ─
 const MoneyBill = React.memo(({
     delay,
     startX,
@@ -131,6 +134,7 @@ const MoneyBill = React.memo(({
     size,
     opacity,
     fallDuration,
+    paused,
 }: {
     delay: number;
     startX: number;
@@ -138,21 +142,30 @@ const MoneyBill = React.memo(({
     size: number;
     opacity: number;
     fallDuration: number;
+    paused: boolean;
 }) => {
     const progress = useSharedValue(0);
+    const wasRunningRef = useRef(false);
 
     useEffect(() => {
-        // Single animation driver — derives translateY, translateX, rotateZ
-        progress.value = withDelay(
-            delay,
-            withRepeat(
-                withTiming(1, { duration: fallDuration, easing: Easing.bezier(0.42, 0, 0.58, 1) }),
-                -1,
-                false
-            )
-        );
+        if (paused) {
+            // Stop running animation — preserves current progress value
+            cancelAnimation(progress);
+            wasRunningRef.current = false;
+        } else {
+            // Start / restart animation
+            progress.value = withDelay(
+                wasRunningRef.current ? 0 : delay, // skip initial delay on resume
+                withRepeat(
+                    withTiming(1, { duration: fallDuration, easing: Easing.bezier(0.42, 0, 0.58, 1) }),
+                    -1,
+                    false
+                )
+            );
+            wasRunningRef.current = true;
+        }
         return () => cancelAnimation(progress);
-    }, []);
+    }, [paused]);
 
     const animatedStyle = useAnimatedStyle(() => {
         const p = progress.value;
@@ -203,9 +216,36 @@ const PartnerCard = React.memo(({ logo }: { logo: any }) => (
 ));
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-const PrizesSponsors = () => {
+const PrizesSponsors = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
     const enterOpacity = useSharedValue(0);
     const enterTranslateY = useSharedValue(30);
+
+    // ── Visibility tracking (same pattern as DepartmentsEvents) ──
+    const [isSectionVisible, setIsSectionVisible] = useState(true);
+    const sectionYShared = useSharedValue(0);
+    const sectionHeightShared = useSharedValue(0);
+
+    useAnimatedReaction(
+        () => {
+            if (!scrollY) return true;
+            const y = scrollY.value;
+            const sY = sectionYShared.value;
+            const sH = sectionHeightShared.value;
+            return (y + SCREEN_HEIGHT > sY + 100) && (y < sY + sH - 100);
+        },
+        (visible, prev) => {
+            if (visible !== prev) {
+                runOnJS(setIsSectionVisible)(visible);
+            }
+        },
+        [scrollY],
+    );
+
+    const handleSectionLayout = useCallback((e: any) => {
+        const { y, height } = e.nativeEvent.layout;
+        sectionYShared.value = y;
+        sectionHeightShared.value = height;
+    }, [sectionYShared, sectionHeightShared]);
 
     useEffect(() => {
         enterOpacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
@@ -222,9 +262,11 @@ const PrizesSponsors = () => {
     const openModal = useCallback(() => setSponsorModalVisible(true), []);
     const closeModal = useCallback(() => setSponsorModalVisible(false), []);
 
+    const billsPaused = !isSectionVisible;
+
     return (
         <Animated.View style={entranceStyle}>
-        <View className="w-full pb-8">
+        <View className="w-full pb-8" onLayout={handleSectionLayout}>
 
             {/* ── Section A: Prize Pool Card ── */}
             <View className="bg-[#E8EAF6] rounded-3xl p-8 items-center relative overflow-hidden border-[3px] border-black shadow-sm mb-6">
@@ -237,6 +279,7 @@ const PrizesSponsors = () => {
                         size={bill.size}
                         opacity={bill.opacity}
                         fallDuration={bill.fallDuration}
+                        paused={billsPaused}
                     />
                 ))}
 

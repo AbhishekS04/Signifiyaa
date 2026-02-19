@@ -1,13 +1,26 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import { View, Text, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowDown } from 'lucide-react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSpring, Easing } from 'react-native-reanimated';
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    useAnimatedReaction,
+    withRepeat,
+    withTiming,
+    withSpring,
+    cancelAnimation,
+    runOnJS,
+    Easing,
+    type SharedValue,
+} from 'react-native-reanimated';
 import SmoothButton from './ui/SmoothButton';
 import { useAuth } from '../context/AuthContext';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
@@ -81,9 +94,10 @@ const CountdownTimer = React.memo(() => {
 
 interface HeroSectionProps {
     onSignInPress?: () => void;
+    scrollY?: SharedValue<number>;
 }
 
-const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
+const HeroSection = ({ onSignInPress, scrollY }: HeroSectionProps) => {
     // Entrance animation
     const enterOpacity = useSharedValue(0);
     const enterTranslateY = useSharedValue(30);
@@ -95,16 +109,58 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
     // Arrow bounce animation
     const arrowBounce = useSharedValue(0);
 
+    // ── Visibility tracking ──────────────────────────────────────────
+    const [isSectionVisible, setIsSectionVisible] = useState(true);
+    const sectionYShared = useSharedValue(0);
+    const sectionHeightShared = useSharedValue(0);
+    const textWidthRef = useRef(0);
+
+    useAnimatedReaction(
+        () => {
+            if (!scrollY) return true;
+            const y = scrollY.value;
+            const sY = sectionYShared.value;
+            const sH = sectionHeightShared.value;
+            return (y + SCREEN_HEIGHT > sY + 100) && (y < sY + sH - 100);
+        },
+        (visible, prev) => {
+            if (visible !== prev) {
+                runOnJS(setIsSectionVisible)(visible);
+            }
+        },
+        [scrollY],
+    );
+
+    const handleSectionLayout = useCallback((e: any) => {
+        const { y, height } = e.nativeEvent.layout;
+        sectionYShared.value = y;
+        sectionHeightShared.value = height;
+    }, [sectionYShared, sectionHeightShared]);
+
+    // ── Start / stop infinite animations based on visibility ─────────
     useEffect(() => {
-        arrowBounce.value = withRepeat(
-            withTiming(10, {
-                duration: 800,
-                easing: Easing.inOut(Easing.ease)
-            }),
-            -1,
-            true
-        );
-    }, []);
+        if (isSectionVisible) {
+            arrowBounce.value = withRepeat(
+                withTiming(10, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+                -1,
+                true
+            );
+            if (textWidthRef.current > 0) {
+                translateX.value = withRepeat(
+                    withTiming(-textWidthRef.current, { duration: 3500, easing: Easing.linear }),
+                    -1,
+                    false
+                );
+            }
+        } else {
+            cancelAnimation(arrowBounce);
+            cancelAnimation(translateX);
+        }
+        return () => {
+            cancelAnimation(arrowBounce);
+            cancelAnimation(translateX);
+        };
+    }, [isSectionVisible]);
 
     const arrowAnimatedStyle = useAnimatedStyle(() => ({
         transform: [{ translateY: arrowBounce.value }],
@@ -112,14 +168,14 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
 
     useEffect(() => {
         if (textWidth > 0) {
-            translateX.value = withRepeat(
-                withTiming(-textWidth, {
-                    duration: 3500,
-                    easing: Easing.linear,
-                }),
-                -1,
-                false
-            );
+            textWidthRef.current = textWidth;
+            if (isSectionVisible) {
+                translateX.value = withRepeat(
+                    withTiming(-textWidth, { duration: 3500, easing: Easing.linear }),
+                    -1,
+                    false
+                );
+            }
         }
     }, [textWidth]);
 
@@ -147,9 +203,9 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
 
     return (
         <Animated.View style={entranceStyle}>
-            <View className="mb-4">
+        <View className="mb-4" onLayout={handleSectionLayout}>
 
-                {/* --- 1. Top Marquee Strip (Outside Card) --- */}
+            {/* --- 1. Top Marquee Strip (Outside Card) --- */}
                 <View className="w-full h-10 bg-[#E1BEE7] overflow-hidden justify-center mb-5 border-y-2 border-black">
                     <Animated.View style={[marqueeStyle, { flexDirection: 'row', width: 2000 }]}>
                         {/* Render one invisible to measure */}

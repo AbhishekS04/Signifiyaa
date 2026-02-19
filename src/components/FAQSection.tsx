@@ -103,9 +103,9 @@ const AccordionItem = React.memo(({ question, answer }: { question: string; answ
     const buttonOffset = useSharedValue(-4);
 
     const toggleOpen = useCallback(() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setIsOpen((prev) => {
             const nextState = !prev;
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
             if (nextState) {
                 rotation.value = withSpring(45, { damping: 12, stiffness: 120 });

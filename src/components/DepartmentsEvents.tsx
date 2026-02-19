@@ -8,6 +8,7 @@ import Animated, {
     withRepeat,
     withTiming,
     withSpring,
+    cancelAnimation,
     Easing,
     interpolate,
     runOnJS,
@@ -346,6 +347,8 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
     const containerTranslateY = useSharedValue(0);
 
     const carouselRef = useRef<any>(null);
+    const pendingIndexRef = useRef<number | null>(null);
+    const navFrameRef = useRef<number | null>(null);
 
     // Entrance
     useEffect(() => {
@@ -387,15 +390,31 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
         sectionHeightShared.value = height;
     }, [sectionYShared, sectionHeightShared]);
 
-    // Marquee
+    // Marquee — visibility-aware (pauses off-screen)
+    const textWidthRef = useRef(0);
+
     useEffect(() => {
         if (textWidth > 0) {
-            translateX.value = withRepeat(
-                withTiming(-textWidth, { duration: 4000, easing: Easing.linear }),
-                -1, false,
-            );
+            textWidthRef.current = textWidth;
+            if (isSectionVisible) {
+                translateX.value = withRepeat(
+                    withTiming(-textWidth, { duration: 4000, easing: Easing.linear }),
+                    -1, false,
+                );
+            }
         }
     }, [textWidth]);
+
+    useEffect(() => {
+        if (isSectionVisible && textWidthRef.current > 0) {
+            translateX.value = withRepeat(
+                withTiming(-textWidthRef.current, { duration: 4000, easing: Easing.linear }),
+                -1, false,
+            );
+        } else if (!isSectionVisible) {
+            cancelAnimation(translateX);
+        }
+    }, [isSectionVisible]);
 
     const marqueeStyle = useAnimatedStyle(() => ({
         transform: [{ translateX: translateX.value }],
@@ -431,6 +450,12 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
         setActiveSnapIndex(0);
         scrollProgress.value = 0;
         containerTranslateY.value = -10;
+
+        pendingIndexRef.current = null;
+        if (navFrameRef.current !== null) {
+            cancelAnimationFrame(navFrameRef.current);
+            navFrameRef.current = null;
+        }
 
         if (carouselRef.current) carouselRef.current.scrollTo({ index: 0, animated: false });
 
@@ -487,9 +512,61 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
     // Container width callback
     const handleContainerLayout = useCallback((e: any) => setContainerWidth(e.nativeEvent.layout.width), []);
 
-    // Nav callbacks (stable refs)
-    const scrollPrev = useCallback(() => carouselRef.current?.scrollTo({ count: -1, animated: true }), []);
-    const scrollNext = useCallback(() => carouselRef.current?.scrollTo({ count: 1, animated: true }), []);
+    // Nav callbacks (frame-coalesced, rapid-tap safe)
+
+    const getNextIndex = useCallback((index: number, length: number) => {
+        if (length <= 0) return 0;
+        if (index < 0) return length - 1;
+        if (index >= length) return 0;
+        return index;
+    }, []);
+
+    const flushNavigation = useCallback(() => {
+        navFrameRef.current = null;
+
+        const pendingIndex = pendingIndexRef.current;
+        if (pendingIndex === null) return;
+
+        const length = filteredEvents.length;
+        if (!carouselRef.current || length <= 0) return;
+
+        const previousIndex = currentIndexRef.current;
+        const nextIndex = getNextIndex(pendingIndex, length);
+        pendingIndexRef.current = null;
+        const isWrapJump = (previousIndex === 0 && nextIndex === length - 1)
+            || (previousIndex === length - 1 && nextIndex === 0);
+        const shouldAnimate = !isWrapJump && Math.abs(nextIndex - previousIndex) <= 1;
+
+        currentIndexRef.current = nextIndex;
+        setActiveSnapIndex(nextIndex);
+        scrollProgress.value = nextIndex;
+
+        carouselRef.current.scrollTo({ index: nextIndex, animated: shouldAnimate });
+    }, [filteredEvents.length, getNextIndex, scrollProgress]);
+
+    const navigateToIndex = useCallback((targetIndex: number) => {
+        pendingIndexRef.current = targetIndex;
+        if (navFrameRef.current !== null) return;
+        navFrameRef.current = requestAnimationFrame(() => {
+            flushNavigation();
+        });
+    }, [flushNavigation]);
+
+    useEffect(() => {
+        return () => {
+            if (navFrameRef.current !== null) {
+                cancelAnimationFrame(navFrameRef.current);
+            }
+        };
+    }, []);
+
+    const scrollPrev = useCallback(() => {
+        navigateToIndex(currentIndexRef.current - 1);
+    }, [navigateToIndex]);
+
+    const scrollNext = useCallback(() => {
+        navigateToIndex(currentIndexRef.current + 1);
+    }, [navigateToIndex]);
 
     // renderItem — memoized, uses ref-based active index
     const renderItem = useCallback(({ item, index, animationValue }: { item: EventData; index: number; animationValue: SharedValue<number> }) => (
@@ -505,9 +582,9 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
     ), [activeSnapIndex, isSectionVisible, isFocused, handleVideoPlay, handleVideoStop, handleRegister, handleViewDetails]);
 
     // Pagination dot press generators (stable per-index)
-    const dotPressHandlers = useMemo(() =>
-        filteredEvents.map((_, i) => () => carouselRef.current?.scrollTo({ index: i, animated: true })),
-        [filteredEvents.length],
+    const dotPressHandlers = useMemo(
+        () => filteredEvents.map((_, i) => () => navigateToIndex(i)),
+        [filteredEvents.length, navigateToIndex],
     );
 
     return (
@@ -570,7 +647,7 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
                             <View onLayout={handleContainerLayout} style={S.containerCenter}>
                                 <View className="relative w-full items-center justify-center">
                                     <Carousel
-                                        loop={true}
+                                        loop={false}
                                         ref={carouselRef}
                                         width={containerWidth}
                                         height={CARD_HEIGHT}
@@ -579,7 +656,7 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
                                         scrollAnimationDuration={600}
                                         onSnapToItem={handleSnapToItem}
                                         onProgressChange={handleProgressChange}
-                                        windowSize={3}
+                                        windowSize={Math.max(5, filteredEvents.length)}
                                         renderItem={renderItem}
                                     />
                                     <NavButton direction="left" onPress={scrollPrev} />

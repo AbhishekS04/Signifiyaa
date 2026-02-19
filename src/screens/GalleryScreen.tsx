@@ -12,6 +12,7 @@ import Animated, {
     useAnimatedScrollHandler,
     useAnimatedRef,
 } from 'react-native-reanimated';
+import { useIsFocused } from '@react-navigation/native';
 
 // Components
 import SmoothButton from '../components/ui/SmoothButton';
@@ -98,9 +99,10 @@ const ListFooter = React.memo(() => (
     </View>
 ));
 
-/* ── memoized marquee — measures only once via ref guard ──── */
-const Marquee = React.memo(() => {
+/* ── memoized marquee — focus-aware, pauses when screen loses focus ── */
+const Marquee = React.memo(({ isFocused }: { isFocused: boolean }) => {
     const measuredRef = useRef(false);
+    const widthRef = useRef(0);
     const translateX = useSharedValue(0);
 
     const handleLayout = useCallback((e: any) => {
@@ -108,15 +110,34 @@ const Marquee = React.memo(() => {
         const w = e.nativeEvent.layout.width;
         if (w > 0) {
             measuredRef.current = true;
+            widthRef.current = w;
+            // Initial start handled by the isFocused effect below
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isFocused && widthRef.current > 0) {
             translateX.value = withRepeat(
-                withTiming(-w, { duration: 4000, easing: Easing.linear }),
+                withTiming(-widthRef.current, { duration: 4000, easing: Easing.linear }),
+                -1,
+                false,
+            );
+        } else {
+            cancelAnimation(translateX);
+        }
+        return () => { cancelAnimation(translateX); };
+    }, [isFocused]);
+
+    // Also kick off when width first measured (if focused)
+    useEffect(() => {
+        if (widthRef.current > 0 && isFocused) {
+            translateX.value = withRepeat(
+                withTiming(-widthRef.current, { duration: 4000, easing: Easing.linear }),
                 -1,
                 false,
             );
         }
-    }, []);
-
-    useEffect(() => () => { cancelAnimation(translateX); }, []);
+    }, [widthRef.current]);
 
     const marqueeStyle = useAnimatedStyle(() => ({
         transform: [{ translateX: translateX.value }],
@@ -142,9 +163,10 @@ interface GalleryHeaderProps {
     selectedFilter: string;
     filterHandlers: (() => void)[];
     elasticStyle: any;
+    isFocused: boolean;
 }
 
-const GalleryHeader = React.memo(({ selectedFilter, filterHandlers, elasticStyle }: GalleryHeaderProps) => (
+const GalleryHeader = React.memo(({ selectedFilter, filterHandlers, elasticStyle, isFocused }: GalleryHeaderProps) => (
     <View>
         {/* Purple Block Header */}
         <LinearGradient
@@ -186,9 +208,9 @@ const GalleryHeader = React.memo(({ selectedFilter, filterHandlers, elasticStyle
             </View>
         </LinearGradient>
 
-        {/* Marquee — fully isolated, never re-renders on filter change */}
+        {/* Marquee — focus-aware, pauses when screen is not active */}
         <View style={s.marqueePad}>
-            <Marquee />
+            <Marquee isFocused={isFocused} />
         </View>
 
         {/* Filter grid */}
@@ -233,6 +255,7 @@ const GalleryRow = React.memo(({ item, onToggle }: {
 const GalleryScreen: React.FC = () => {
     const scrollRef = useAnimatedRef<Animated.FlatList<any>>();
     const scrollY = useSharedValue(0);
+    const isFocused = useIsFocused();
 
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
@@ -285,8 +308,9 @@ const GalleryScreen: React.FC = () => {
             selectedFilter={selectedFilter}
             filterHandlers={filterHandlers}
             elasticStyle={elasticStyle}
+            isFocused={isFocused}
         />
-    ), [selectedFilter, filterHandlers, elasticStyle]);
+    ), [selectedFilter, filterHandlers, elasticStyle, isFocused]);
 
     const renderListHeader = useCallback(() => listHeader, [listHeader]);
 
@@ -298,7 +322,7 @@ const GalleryScreen: React.FC = () => {
                     <Animated.FlatList
                         ref={scrollRef}
                         onScroll={scrollHandler}
-                        scrollEventThrottle={16}
+                        scrollEventThrottle={1}
                         data={filteredItems}
                         renderItem={renderItem}
                         keyExtractor={keyExtractor}

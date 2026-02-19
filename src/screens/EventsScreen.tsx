@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, Platform, UIManager, FlatList, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, Platform, FlatList, StyleSheet, Pressable, ScrollView } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,11 +10,6 @@ import EventsHeader from '../components/ui/EventsHeader';
 import SketchyEventCard from '../components/ui/SketchyEventCard';
 import { PageTransition } from '../components/navigation/PageTransition';
 import Svg, { Text as SvgText } from 'react-native-svg';
-
-// Enable LayoutAnimation on Android (other components in tree may depend on this)
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 /* ── module-scope constants ───────────────────────────────── */
 
@@ -150,13 +145,14 @@ const EventsScreen = () => {
     /* Flattened data — every event is its own FlatList item */
     const flatData = useMemo(() => buildFlatData(events, activeFilter), [events, activeFilter]);
 
-    /* Functional updater → zero dependency on activeFilter */
+    /* Functional updater kept pure — haptic fires before setState */
     const handleFilterChange = useCallback((f: string) => {
         setActiveFilter(prev => {
             if (prev === f) return prev;
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            // Side-effect moved outside updater (see below)
             return f;
         });
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }, []);
 
     /* Pre-bound per-filter handlers — avoids inline closures in render */

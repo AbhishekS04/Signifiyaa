@@ -102,7 +102,7 @@ export default function HomeScreen() {
             case 'hero':
                 content = (
                     <View className="mb-4">
-                        <HeroSection onSignInPress={handleSignInPress} />
+                        <HeroSection onSignInPress={handleSignInPress} scrollY={scrollY} />
                     </View>
                 );
                 break;
@@ -126,7 +126,7 @@ export default function HomeScreen() {
             case 'prizesSponsors':
                 content = (
                     <View className="px-4 gap-4">
-                        <PrizesSponsors />
+                        <PrizesSponsors scrollY={scrollY} />
                     </View>
                 );
                 break;
@@ -187,7 +187,7 @@ export default function HomeScreen() {
                     renderItem={renderSection}
                     keyExtractor={keyExtractor}
                     onScroll={scrollHandler}
-                    scrollEventThrottle={16}
+                    scrollEventThrottle={1}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={FLATLIST_CONTENT_STYLE}
                     bounces={true}

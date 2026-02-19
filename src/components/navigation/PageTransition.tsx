@@ -61,8 +61,6 @@ export const PageTransition: React.FC<PageTransitionProps> = ({ children, style 
     return (
         <Animated.View
             style={[animatedStyle, style]}
-            renderToHardwareTextureAndroid={true} // Composite as bitmap before fading (prevents X-ray artifacts)
-            shouldRasterizeIOS={true}
         >
             {children}
         </Animated.View>

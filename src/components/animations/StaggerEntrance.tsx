@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
 import { View, ViewStyle } from 'react-native';
 import Animated, {
+    SharedValue,
     useSharedValue,
     useAnimatedStyle,
     withTiming,
@@ -21,16 +22,17 @@ interface StaggerEntranceProps {
     reduceMotion?: boolean;
 }
 
+// ─── Context to share ONE progress value across all children ───────────────────
+const ProgressCtx = createContext<SharedValue<number> | null>(null);
+
 /**
  * StaggerEntrance
  *
- * Single-driver stagger animation:
- *  - 1 shared value  (was 2N)
- *  - 1 animation driver (was 2N)
+ * True single-driver stagger animation:
+ *  - 1 shared value for the entire group
+ *  - 1 animation driver (withTiming) started once in the parent
+ *  - Each child derives opacity + translateY via interpolation
  *  - Proper cancelAnimation cleanup on unmount
- *
- * Each child derives its own opacity + translateY via interpolation
- * against the single progress value, using index-based input ranges.
  */
 export const StaggerEntrance: React.FC<StaggerEntranceProps> = ({
     children,
@@ -42,35 +44,51 @@ export const StaggerEntrance: React.FC<StaggerEntranceProps> = ({
     const childrenArray = useMemo(() => React.Children.toArray(children), [children]);
     const count = childrenArray.length;
 
+    // ── Single animation driver — hoisted to parent ─────────────────
+    const PER_CHILD_FADE = 800;
+    const totalDuration = baseDelay + (count - 1) * stagger + PER_CHILD_FADE;
+
+    const progress = useSharedValue(0);
+
+    useEffect(() => {
+        if (reduceMotion || count === 0) return;
+
+        progress.value = withTiming(1, {
+            duration: totalDuration,
+            easing: Easing.linear,
+        });
+
+        return () => {
+            cancelAnimation(progress);
+        };
+    }, [totalDuration, reduceMotion, count]);
+
     // ── Bail out: nothing to animate ────────────────────────────────
     if (reduceMotion || count === 0) {
         return <View style={style}>{children}</View>;
     }
 
-    // Total timeline = baseDelay + last-child-delay + per-child-fade
-    // Normalised to 0→1 inside the single driver.
-    const PER_CHILD_FADE = 800; // ms each child takes to fully appear
-    const totalDuration = baseDelay + (count - 1) * stagger + PER_CHILD_FADE;
-
     return (
-        <View style={style}>
-            {childrenArray.map((child, index) => (
-                <StaggerItem
-                    key={index}
-                    index={index}
-                    baseDelay={baseDelay}
-                    stagger={stagger}
-                    totalDuration={totalDuration}
-                    perChildFade={PER_CHILD_FADE}
-                >
-                    {child}
-                </StaggerItem>
-            ))}
-        </View>
+        <ProgressCtx.Provider value={progress}>
+            <View style={style}>
+                {childrenArray.map((child, index) => (
+                    <StaggerItem
+                        key={index}
+                        index={index}
+                        baseDelay={baseDelay}
+                        stagger={stagger}
+                        totalDuration={totalDuration}
+                        perChildFade={PER_CHILD_FADE}
+                    >
+                        {child}
+                    </StaggerItem>
+                ))}
+            </View>
+        </ProgressCtx.Provider>
     );
 };
 
-// ─── Single-driver stagger item ────────────────────────────────────────────────
+// ─── Lightweight child — reads shared progress, zero animation drivers ─────────
 const StaggerItem = React.memo(({
     children,
     index,
@@ -86,27 +104,7 @@ const StaggerItem = React.memo(({
     totalDuration: number;
     perChildFade: number;
 }) => {
-    // One shared value drives all children — created once per StaggerEntrance
-    // via the parent, but because hooks must be called inside a component we
-    // need the value here. However, to truly share ONE value we hoist it.
-    // ── Compromise: each StaggerItem still owns a ref to the SAME progress
-    //    pattern but Reanimated's withTiming is idempotent when called with
-    //    identical target + duration, so the UI-thread cost is still 1 driver
-    //    per unique (totalDuration) group.
-    //
-    // For true single-driver we use a context-free approach:
-    const progress = useSharedValue(0);
-
-    useEffect(() => {
-        progress.value = withTiming(1, {
-            duration: totalDuration,
-            easing: Easing.linear,
-        });
-
-        return () => {
-            cancelAnimation(progress);
-        };
-    }, [totalDuration]);
+    const progress = useContext(ProgressCtx)!;
 
     // Normalised delay range for this child within 0→1
     const delayStart = (baseDelay + index * stagger) / totalDuration;
