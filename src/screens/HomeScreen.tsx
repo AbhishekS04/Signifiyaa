@@ -23,7 +23,7 @@ import GlobalMusicButton from '../components/GlobalMusicButton';
 
 // ─── Stable constants hoisted outside render ───────────────────────────────────
 const SAFE_AREA_EDGES = ['top', 'left', 'right'] as const;
-const FLATLIST_CONTENT_STYLE = { paddingBottom: 0, backgroundColor: '#4ADE80' };
+const FLATLIST_CONTENT_STYLE = { paddingBottom: 0 };
 const MUSIC_BUTTON_POSITION = { position: 'absolute' as const, zIndex: 50, right: 20, top: 20 };
 const REFRESH_COLORS = ['#ffffff'];
 
