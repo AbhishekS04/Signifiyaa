@@ -360,9 +360,9 @@ const s = StyleSheet.create({
     filterRowSingle: { flexDirection: 'row' },
 
     /* footer */
-    footerWrap: { marginTop: 32 },
+    footerWrap: { marginTop: 32, backgroundColor: '#4ADE80' },
     footerInner: { paddingHorizontal: 16, gap: 16 },
-    footerPad: { height: 192 },
+    footerPad: { height: 0 },
 
     /* gradient */
     gradientMin: { minHeight: 500 },

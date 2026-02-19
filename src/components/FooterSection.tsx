@@ -146,6 +146,8 @@ const FooterSection = React.memo(() => {
             </View>
 
         </View>
+        {/* Green extension to cover any black gap below */}
+        <View className="bg-[#4ADE80] h-40" />
         </Animated.View>
     );
 });
