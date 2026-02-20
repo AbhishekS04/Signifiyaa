@@ -235,7 +235,7 @@ export default function VisitorRegistrationScreen() {
                 amount: amount,
                 status: 'pending',
                 paymentProofUrl: utrId,
-                bookingId: null, // Legacy field
+                bookingId: bookingId, // Legacy field
                 userBookingId: bookingId,
                 userId: user?.id || null,
                 createdAt: new Date().toISOString(),

@@ -17,7 +17,6 @@ import { useIsFocused } from '@react-navigation/native';
 // Components
 import SmoothButton from '../components/ui/SmoothButton';
 import NewsletterSupport from '../components/NewsletterSupport';
-import FooterSection from '../components/FooterSection';
 import { PageTransition } from '../components/navigation/PageTransition';
 import GlobalMusicButton from '../components/GlobalMusicButton';
 import GalleryCard from '../components/GalleryCard';
@@ -92,7 +91,6 @@ const ListFooter = React.memo(() => (
         <View style={s.footerInner}>
             <NewsletterSupport />
         </View>
-        <FooterSection />
         <View style={s.footerPad} />
     </View>
 ));
@@ -358,7 +356,7 @@ const s = StyleSheet.create({
     filterRowSingle: { flexDirection: 'row' },
 
     /* footer */
-    footerWrap: { marginTop: 32, backgroundColor: '#4ADE80' },
+    footerWrap: { marginTop: 32, backgroundColor: '#000' },
     footerInner: { paddingHorizontal: 16, gap: 16 },
     footerPad: { height: 0 },
 

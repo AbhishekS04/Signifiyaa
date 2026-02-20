@@ -865,9 +865,10 @@ const PassModal = ({ visible, type, data, onClose, userName, bookingId }: {
     const isEvent = type === 'event';
     const subTitle = isEvent ? 'single' : (data.passType === 'day1' ? 'single' : 'combo');
 
-    // QR Content
-    const qrContent = isEvent ? `TEAM-${data.id}` : `VISIT-${data.id}`;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${qrContent}`;
+    // QR Content - Embed Booking ID so it shows when scanned
+    const currentBookingId = isEvent ? (data.leaderBookingId || bookingId) : (data.userBookingId || bookingId);
+    const qrContent = `BOOKING ID: ${currentBookingId}\nTYPE: ${isEvent ? 'EVENT PASS' : 'VISITOR PASS'}\nID: ${data.id}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrContent)}`;
 
     return (
         <Modal
