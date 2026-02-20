@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Platform, Alert, ActivityIndicator, RefreshControl, Modal, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Platform, Alert, ActivityIndicator, RefreshControl, Modal, Dimensions, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -29,6 +29,8 @@ import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle } from 'react-native-svg';
+import EventPass from '../components/passes/EventPass';
+import VisitorPass from '../components/passes/VisitorPass';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -132,15 +134,13 @@ const ProfileScreen = () => {
         setIsFetchingReg(true);
         try {
             // Fetch visitor registrations
-            const { data: vData, error: vError } = await supabase
-                .from('visitor_registration')
+            const { data: vData, error: vError } = await supabase.from('visitor_registration')
                 .select('*')
                 .eq('email', user.email)
                 .order('createdAt', { ascending: false });
 
             // Fetch event registrations
-            const { data: eData, error: eError } = await supabase
-                .from('participant_team')
+            const { data: eData, error: eError } = await supabase.from('participant_team')
                 .select(`
                     *,
                     participant_team_event (
@@ -148,7 +148,8 @@ const ProfileScreen = () => {
                             name,
                             date
                         )
-                    )
+                    ),
+                    participant_team_member (*)
                 `)
                 .eq('leaderEmail', user.email)
                 .order('createdAt', { ascending: false });
@@ -167,7 +168,7 @@ const ProfileScreen = () => {
                 status: e.status === 'verified' ? 'approved' : e.status
             })) as EventRegistration[];
 
-            // ── Dummy Data for Visual Testing ──
+            // Dummy Data for Visual Testing
             const dummyVisitor: VisitorRegistration = {
                 id: 'dummy-v-101',
                 name: user?.name || 'Sayan Mukherjee',
@@ -250,8 +251,6 @@ const ProfileScreen = () => {
     const [showAvatarToast, setShowAvatarToast] = useState(false);
     const [showCopyToast, setShowCopyToast] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
-
-    // ... existing code ...
 
     const handleCopyBookingId = useCallback(async () => {
         if (bookingId) {
@@ -851,7 +850,6 @@ const ProfileScreen = () => {
     );
 };
 
-// --- Pass Modal Component ---
 const PassModal = ({ visible, type, data, onClose, userName, bookingId }: {
     visible: boolean,
     type: 'visitor' | 'event',
@@ -862,167 +860,43 @@ const PassModal = ({ visible, type, data, onClose, userName, bookingId }: {
 }) => {
     if (!data) return null;
 
-    const isEvent = type === 'event';
-    const subTitle = isEvent ? 'single' : (data.passType === 'day1' ? 'single' : 'combo');
-
-    // QR Content - Embed Booking ID so it shows when scanned
-    const currentBookingId = isEvent ? (data.leaderBookingId || bookingId) : (data.userBookingId || bookingId);
-    const qrContent = `BOOKING ID: ${currentBookingId}\nTYPE: ${isEvent ? 'EVENT PASS' : 'VISITOR PASS'}\nID: ${data.id}`;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrContent)}`;
-
     return (
         <Modal
             visible={visible}
             transparent
             animationType="fade"
+            statusBarTranslucent
             onRequestClose={onClose}
         >
-            <View className="flex-1 bg-black/80 items-center justify-center p-6">
-                <Animated.View
-                    entering={FadeIn.duration(400)}
-                    exiting={FadeOut.duration(300)}
-                    className="w-full max-w-[360px] bg-white rounded-[32px] p-6 border-[1px] border-black/10 shadow-2xl"
-                >
-                    {/* Header: Title and Top Buttons */}
-                    <View className="flex-row items-center justify-between mb-6">
-                        <Text className="text-2xl" style={{ fontFamily: 'Gilton', color: 'black' }}>
-                            My Pass
-                        </Text>
-                        <View className="flex-row gap-3">
-                            <TouchableOpacity
-                                onPress={() => Alert.alert("Download", "Pass has been saved to your gallery!")}
-                                className="w-10 h-10 rounded-full bg-indigo-100 items-center justify-center border-[1.5px] border-black"
-                            >
-                                <Download color="black" size={20} />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={onClose}
-                                className="w-10 h-10 rounded-full bg-red-100 items-center justify-center border-[1.5px] border-black"
-                            >
-                                <X color="black" size={20} />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    {/* The Actual Neon Pass Card */}
-                    <View className="w-full aspect-[3/4] rounded-[30px] border-[6px] border-[#8B5CF6] overflow-hidden bg-black shadow-[0_0_20px_rgba(139,92,246,0.5)]">
-                        {/* Upper Half: Gradient + Logo + Mascot */}
-                        <View className="h-[40%] relative">
-                            <LinearGradient
-                                colors={['#0047FF', '#9D00FF']}
-                                className="absolute inset-0"
-                            />
-
-                            {/* Logo top left */}
-                            <View className="absolute top-5 left-5 opacity-80">
-                                <Svg width={30} height={30} viewBox="0 0 100 100">
-                                    <Path d="M20,80 L50,20 L80,80 M50,20 L50,80" stroke="white" strokeWidth="8" fill="none" />
-                                    <Circle cx="50" cy="50" r="40" stroke="white" strokeWidth="2" fill="none" opacity="0.3" />
-                                </Svg>
-                            </View>
-
-                            {/* Signifiya Text */}
-                            <View className="absolute bottom-4 left-6">
-                                <Text className="text-white/40 text-[14px]" style={{ fontFamily: 'Gilton' }}>
-                                    Signifiya <Text className="text-white/60">2026</Text>
-                                </Text>
-                            </View>
-
-                            {/* Robot Mascot - Absolutely positioned overlapping boundary */}
-                            <View className="absolute right-[-10px] bottom-[-60px] z-20">
-                                <RobotMascotModal />
-                            </View>
-                        </View>
-
-                        {/* Lower Half: Info Section */}
-                        <View className="flex-1 bg-black p-6 justify-between">
-                            <View>
-                                <Text className="text-white/50 text-xs uppercase tracking-widest mb-1" style={{ fontFamily: 'Gilton' }}>
-                                    Pass : {subTitle}
-                                </Text>
-                                <Text className="text-white text-4xl leading-tight mb-2" style={{ fontFamily: 'Gilton' }}>
-                                    {userName}
-                                </Text>
-                            </View>
-
-                            {/* QR and Booking ID Section */}
-                            <View className="flex-row items-end justify-between">
-                                <View className="bg-white p-2 rounded-xl">
-                                    <Image
-                                        source={{ uri: qrUrl }}
-                                        style={{ width: 100, height: 100 }}
-                                        contentFit="contain"
-                                    />
-                                </View>
-
-                                <View className="flex-1 ml-4 mb-2">
-                                    <View className="mb-4">
-                                        <Text className="text-white/40 text-[10px] uppercase font-bold">Booking ID</Text>
-                                        <Text className="text-white text-sm font-bold tracking-tighter uppercase">{bookingId}</Text>
-                                    </View>
-                                    <Text className="text-white/30 text-[9px] leading-3">
-                                        Scan QR or use Booking ID at entry.
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    </View>
-                </Animated.View>
+            <View style={passStyles.overlay}>
+                {type === 'event' ? (
+                    <EventPass
+                        data={data}
+                        userName={userName}
+                        bookingId={bookingId}
+                        onClose={onClose}
+                    />
+                ) : (
+                    <VisitorPass
+                        data={data}
+                        userName={userName}
+                        bookingId={bookingId}
+                        onClose={onClose}
+                    />
+                )}
             </View>
         </Modal>
     );
 };
 
-// Robot Mascot SVG Component (Matches the reference)
-const RobotMascotModal = () => (
-    <View style={{ width: 140, height: 160 }}>
-        <Svg width="100%" height="100%" viewBox="0 0 200 200">
-            {/* Body */}
-            <Circle cx="100" cy="110" r="45" fill="white" stroke="#D1D5DB" strokeWidth="1" />
-
-            {/* Head / Helmet */}
-            <Circle cx="100" cy="70" r="40" fill="white" stroke="#D1D5DB" strokeWidth="2" />
-            {/* Visor Area */}
-            <Path
-                d="M75,65 Q100,60 125,65 L125,85 Q100,90 75,85 Z"
-                fill="#1F2937"
-            />
-            {/* Eyes glowing in visor */}
-            <Circle cx="88" cy="75" r="3" fill="#60A5FA" />
-            <Circle cx="112" cy="75" r="3" fill="#60A5FA" />
-
-            {/* Top indicator light */}
-            <Circle cx="100" cy="35" r="5" fill="#3B82F6" />
-            <Path d="M100,40 L100,30" stroke="#3B82F6" strokeWidth="2" />
-
-            {/* Left Arm waving */}
-            <Path
-                d="M140,90 Q160,80 155,60"
-                stroke="white"
-                strokeWidth="12"
-                strokeLinecap="round"
-                fill="none"
-            />
-            {/* Hand details */}
-            <Circle cx="155" cy="60" r="8" fill="white" />
-
-            {/* Right Arm */}
-            <Path
-                d="M60,105 Q45,115 50,135"
-                stroke="white"
-                strokeWidth="12"
-                strokeLinecap="round"
-                fill="none"
-            />
-
-            {/* Legs floating */}
-            <Path d="M85,150 Q85,170 70,175" stroke="#E5E7EB" strokeWidth="15" strokeLinecap="round" fill="none" />
-            <Path d="M115,150 Q115,170 130,175" stroke="#E5E7EB" strokeWidth="15" strokeLinecap="round" fill="none" />
-
-            {/* Subtle glow / shadow */}
-            <Circle cx="100" cy="185" r="20" fill="rgba(255,255,255,0.1)" />
-        </Svg>
-    </View>
-);
+const passStyles = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.9)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+    },
+});
 
 export default ProfileScreen;
