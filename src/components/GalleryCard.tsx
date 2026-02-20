@@ -20,11 +20,6 @@ const PARTICLE_LIFETIME_MS = 700; // longest possible duration (450 + 200 + buff
 // ─── StyleSheet (module scope — zero per-render cost) ──────────────────────────
 const S = StyleSheet.create({
     particleAbsolute: { position: 'absolute', pointerEvents: 'none' as any },
-    grayscaleOverlay: {
-        position: 'absolute',
-        top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    },
     imageFull: { width: '100%' as any, height: '100%' as any },
     heartWrap: { width: 48, height: 48 },
     heartShadow: {
@@ -156,15 +151,6 @@ const GalleryCard = React.memo(({ item, isActive, onToggle }: GalleryItemProps) 
 
     const buttonScale = useSharedValue(1);
     const buttonOffset = useSharedValue(-4);
-    const colorOpacity = useSharedValue(0);
-
-    // Dark overlay fades out when heart is tapped (revealed → true)
-    React.useEffect(() => {
-        colorOpacity.value = withTiming(revealed ? 1 : 0, {
-            duration: 400,
-            easing: Easing.out(Easing.cubic),
-        });
-    }, [revealed]);
 
     const handlePressIn = useCallback(() => {
         buttonScale.value = withTiming(0.85, { duration: 40 });
@@ -182,11 +168,6 @@ const GalleryCard = React.memo(({ item, isActive, onToggle }: GalleryItemProps) 
         setRevealed(prev => !prev);
         setParticleTrigger(t => t + 1);
     }, [onToggle]);
-
-    // Grayscale overlay fades OUT when active (opacity goes 1 → 0)
-    const grayscaleOverlayStyle = useAnimatedStyle(() => ({
-        opacity: 1 - colorOpacity.value,
-    }));
 
     const heartButtonStyle = useAnimatedStyle(() => ({
         transform: [
@@ -208,10 +189,9 @@ const GalleryCard = React.memo(({ item, isActive, onToggle }: GalleryItemProps) 
             {/* The Polaroid Card */}
             <View className="bg-white border-[3px] border-black rounded-[32px] p-4 overflow-hidden">
 
-                {/* Image Container — static image + animated overlay */}
+                {/* Image Container */}
                 <View className="w-full h-80 rounded-[20px] border-[3px] border-black overflow-hidden relative bg-gray-100">
                     <StaticImageLayer imageSource={imageSource} itemId={item.id} />
-                    <Animated.View style={[grayscaleOverlayStyle, S.grayscaleOverlay]} />
                 </View>
 
                 {/* Content Block */}
