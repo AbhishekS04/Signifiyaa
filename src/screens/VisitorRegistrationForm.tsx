@@ -240,7 +240,7 @@ export default function VisitorRegistrationForm({ onBack }: VisitorRegistrationF
                 amount: amount,
                 status: 'pending',
                 paymentProofUrl: utrId,
-                bookingId: null, // Restore legacy field
+                bookingId: bookingId, // Saved to legacy field
                 userBookingId: bookingId,
                 userId: user?.id || null,
                 createdAt: new Date().toISOString(),

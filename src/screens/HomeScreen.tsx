@@ -17,7 +17,7 @@ import TeamSection from '../components/TeamSection';
 import FAQSection from '../components/FAQSection';
 import NewsletterSupport from '../components/NewsletterSupport';
 import SocialConnect from '../components/SocialConnect';
-import FooterSection from '../components/FooterSection';
+import BlinkitFooter from '../components/BlinkitFooter';
 import { PageTransition } from '../components/navigation/PageTransition';
 import GlobalMusicButton from '../components/GlobalMusicButton';
 
@@ -162,7 +162,7 @@ export default function HomeScreen() {
                 content = <SocialConnect />;
                 break;
             case 'footerSection':
-                content = <FooterSection />;
+                content = <BlinkitFooter />;
                 break;
             default:
                 content = null;
