@@ -268,5 +268,35 @@ export const EVENTS_DATA: EventData[] = [
         time: 'TBA',
         studentCoordinators: [],
         facultyCoordinators: []
+    },
+    {
+        id: 16,
+        title: 'Free Fire',
+        date: 'MARCH 27TH - 28TH',
+        category: 'ESPORTS',
+        description: 'Lock hands, hold your ground, and power through to pin your opponent down.',
+        prizePool: 'TBA',
+        imageColor: '#795548',
+        buttonColor: '#FFFFFF',
+        imageUrl: require('../../assets/Event_Images/freefire.webp'),
+        venue: 'Open Ground',
+        time: 'TBA',
+        studentCoordinators: [],
+        facultyCoordinators: []
+    },
+    {
+        id: 17,
+        title: 'E-Football Tournament',
+        date: 'MARCH 27TH - 28TH',
+        category: 'ESPORTS',
+        description: 'Lock hands, hold your ground, and power through to pin your opponent down.',
+        prizePool: 'TBA',
+        imageColor: '#795548',
+        buttonColor: '#FFFFFF',
+        imageUrl: require('../../assets/Event_Images/efootbal.webp'),
+        venue: 'Open Ground',
+        time: 'TBA',
+        studentCoordinators: [],
+        facultyCoordinators: []
     }
 ];

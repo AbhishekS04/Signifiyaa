@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, Platform, FlatList, StyleSheet, Pressable, ScrollView } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { EventData } from '../data/EventsData';
@@ -139,11 +139,24 @@ const DayCardEnd = React.memo(({ day }: { day: 1 | 2 }) => (
 /* ── main screen ──────────────────────────────────────────── */
 const EventsScreen = () => {
     const navigation = useNavigation();
+    const route = useRoute<any>();
     const [activeFilter, setActiveFilter] = useState('ALL');
     const { events } = useEvents();
+    const flatListRef = React.useRef<FlatList>(null);
 
     /* Flattened data — every event is its own FlatList item */
     const flatData = useMemo(() => buildFlatData(events, activeFilter), [events, activeFilter]);
+
+    React.useEffect(() => {
+        if (route.params?.eventId && flatData.length > 0 && flatListRef.current) {
+            const index = flatData.findIndex(item => item.type === 'event' && item.event.id === route.params.eventId);
+            if (index !== -1) {
+                setTimeout(() => {
+                    flatListRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.1 });
+                }, 300);
+            }
+        }
+    }, [route.params?.eventId, flatData]);
 
     /* Functional updater kept pure — haptic fires before setState */
     const handleFilterChange = useCallback((f: string) => {
@@ -184,10 +197,10 @@ const EventsScreen = () => {
                 contentContainerStyle={s.filterContent}
                 style={s.filterScroll}
             >
-                
+
             </ScrollView>
         </View>
-    ), [activeFilter, ]);
+    ), [activeFilter,]);
 
     /* Stable renderItem — no dependency on filter state */
     const renderItem = useCallback(({ item }: { item: FlatItem }) => {
@@ -219,6 +232,7 @@ const EventsScreen = () => {
         <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
             <PageTransition style={{ flex: 1 }}>
                 <FlatList
+                    ref={flatListRef}
                     data={flatData}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
@@ -228,6 +242,12 @@ const EventsScreen = () => {
                     initialNumToRender={8}
                     maxToRenderPerBatch={6}
                     windowSize={5}
+                    onScrollToIndexFailed={(info) => {
+                        const wait = new Promise(resolve => setTimeout(resolve, 500));
+                        wait.then(() => {
+                            flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
+                        });
+                    }}
                 />
             </PageTransition>
         </SafeAreaView>

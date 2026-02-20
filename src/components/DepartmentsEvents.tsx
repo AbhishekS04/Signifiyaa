@@ -283,9 +283,8 @@ const CustomItem = React.memo(({ item, animationValue, isActive, onVideoPlay, on
     onVideoPlay: () => void; onVideoStop: () => void; onRegisterPress: () => void; onViewDetailsPress: () => void;
 }) => {
     const animatedStyle = useAnimatedStyle(() => {
-        const scale = interpolate(animationValue.value, [-1, 0, 1], [0.9, 1, 0.9], Extrapolation.CLAMP);
-        const opacity = interpolate(animationValue.value, [-1, 0, 1], [0.7, 1, 0.7], Extrapolation.CLAMP);
-        return { transform: [{ scale }], opacity, zIndex: isActive ? 10 : 1 };
+        // scale removed, opacity removed
+        return { zIndex: isActive ? 10 : 1 };
     });
 
     return (
@@ -505,8 +504,8 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
         (navigation as any).navigate('EventRegistration');
     }, [navigation]);
 
-    const handleViewDetails = useCallback(() => {
-        (navigation as any).navigate('Main', { screen: 'Events' });
+    const handleViewDetails = useCallback((eventId: number) => {
+        (navigation as any).navigate('Main', { screen: 'Events', params: { eventId } });
     }, [navigation]);
 
     // Container width callback
@@ -577,7 +576,7 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
             onVideoPlay={handleVideoPlay}
             onVideoStop={handleVideoStop}
             onRegisterPress={handleRegister}
-            onViewDetailsPress={handleViewDetails}
+            onViewDetailsPress={() => handleViewDetails(item.id)}
         />
     ), [activeSnapIndex, isSectionVisible, isFocused, handleVideoPlay, handleVideoStop, handleRegister, handleViewDetails]);
 
