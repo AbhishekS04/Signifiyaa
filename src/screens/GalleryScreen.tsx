@@ -16,7 +16,6 @@ import { useIsFocused } from '@react-navigation/native';
 
 // Components
 import SmoothButton from '../components/ui/SmoothButton';
-import SocialConnect from '../components/SocialConnect';
 import NewsletterSupport from '../components/NewsletterSupport';
 import { PageTransition } from '../components/navigation/PageTransition';
 import GlobalMusicButton from '../components/GlobalMusicButton';
@@ -92,7 +91,6 @@ const ListFooter = React.memo(() => (
         <View style={s.footerInner}>
             <NewsletterSupport />
         </View>
-        <SocialConnect />
         <View style={s.footerPad} />
     </View>
 ));
