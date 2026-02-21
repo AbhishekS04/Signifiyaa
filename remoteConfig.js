@@ -1,7 +1,7 @@
 export async function getOfferConfig() {
   try {
     const res = await fetch(
-      "https://github.com/Tusharxhub/Signifiya/blob/main/config.json"
+      "https://github.com/AbhishekS04/signifiyaAppFinal/blob/master/config.json"
     );
 
     const data = await res.json();
