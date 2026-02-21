@@ -33,7 +33,7 @@ const GallerySection = React.memo(() => {
     return (
         <Animated.View style={entranceStyle}>
             <View className="gap-6 px-4 mb-8">
-                {GALLERY_ITEMS.slice(0, 6).map((item) => (
+                {GALLERY_ITEMS.filter(item => !['2', '3', '5'].includes(item.id)).slice(0, 2).map((item) => (
                     <View
                         key={item.id}
                         className="w-full rounded-[30px] overflow-hidden border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"

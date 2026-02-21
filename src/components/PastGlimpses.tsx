@@ -127,42 +127,42 @@ const PastGlimpses = React.memo(() => {
 
     return (
         <Animated.View style={entranceStyle}>
-        <View className="bg-[#FFF0F5] py-12 w-full items-center rounded-[30px] mb-6 overflow-hidden">
-            {/* Header */}
-            <View className={`items-center px-6 ${IS_SMALL ? 'mb-10' : 'mb-14'}`}>
-                <Text className={`text-black uppercase leading-tight ${IS_SMALL ? 'text-5xl' : 'text-6xl'}`} style={S.fontGilton}>GLIMPSES OF</Text>
-                <Text className={`text-black -mt-3 uppercase ${IS_SMALL ? 'text-5xl' : 'text-6xl'}`} style={S.fontGilton}>PAST</Text>
-                <View className="w-16 h-1 bg-red-500 mt-4 rounded-full" />
-                <Text className="text-gray-600 text-center text-base px-6 mt-6 leading-6" style={S.fontSoftura}>
-                    Relive the best moments from our previous events.
-                </Text>
-            </View>
+            <View className="bg-[#FFF0F5] py-12 w-full items-center rounded-[30px] mb-6 overflow-hidden">
+                {/* Header */}
+                <View className={`items-center px-6 ${IS_SMALL ? 'mb-10' : 'mb-14'}`}>
+                    <Text className={`text-black uppercase leading-tight ${IS_SMALL ? 'text-5xl' : 'text-6xl'}`} style={S.fontGilton}>GLIMPSES OF</Text>
+                    <Text className={`text-black -mt-3 uppercase ${IS_SMALL ? 'text-5xl' : 'text-6xl'}`} style={S.fontGilton}>PAST</Text>
+                    <View className="w-16 h-1 bg-red-500 mt-4 rounded-full" />
+                    <Text className="text-gray-600 text-center text-base px-6 mt-6 leading-6" style={S.fontSoftura}>
+                        Relive the best moments from our previous events.
+                    </Text>
+                </View>
 
-            {/* Polaroid Timeline */}
-            <View className="w-full relative" style={S.timelineMinH}>
-                <View className="w-full px-4">
-                    {PHOTOS.map((photo, index) => (
-                        <PolaroidCard
-                            key={photo.id}
-                            photo={photo}
-                            index={index}
-                            isLeft={index % 2 === 0}
-                        />
-                    ))}
+                {/* Polaroid Timeline */}
+                <View className="w-full relative" style={S.timelineMinH}>
+                    <View className="w-full px-4">
+                        {PHOTOS.map((photo, index) => (
+                            <PolaroidCard
+                                key={photo.id}
+                                photo={photo}
+                                index={index}
+                                isLeft={index % 2 === 0}
+                            />
+                        ))}
+                    </View>
+                </View>
+
+                {/* Footer Button */}
+                <View className="mt-8">
+                    <TouchableOpacity
+                        className="bg-black px-12 py-5 rounded-full shadow-xl border-2 border-black"
+                        activeOpacity={0.85}
+                        onPress={handleGalleryPress}
+                    >
+                        <Text className="text-white text-base uppercase tracking-[2px]" style={S.fontSoftura}>VIEW GALLERY</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
-
-            {/* Footer Button */}
-            <View className="mt-8">
-                <TouchableOpacity
-                    className="bg-black px-12 py-5 rounded-full shadow-xl border-2 border-black"
-                    activeOpacity={0.85}
-                    onPress={handleGalleryPress}
-                >
-                    <Text className="text-white text-base uppercase tracking-[2px]" style={S.fontSoftura}>VIEW GALLERY</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
         </Animated.View>
     );
 });

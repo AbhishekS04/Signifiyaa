@@ -410,9 +410,9 @@ const EventRegistrationScreen = () => {
     // ── Auth Guard ──
     if (!isLoading && !user) {
         return (
-            <SafeAreaView style={[styles.safeArea, { backgroundColor: '#F5E6FA' }]} edges={['top', 'bottom']}>
+            <SafeAreaView style={[styles.safeArea, { backgroundColor: 'black' }]} edges={['top', 'bottom']}>
                 <ScrollView
-                    style={{ backgroundColor: '#F5E6FA' }}
+                    style={{ backgroundColor: 'black' }}
                     contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 16, paddingTop: 20 }}
                     showsVerticalScrollIndicator={false}
                 >

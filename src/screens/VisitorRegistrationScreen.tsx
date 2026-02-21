@@ -274,9 +274,9 @@ export default function VisitorRegistrationScreen() {
     // ── Auth Guard ──
     if (!authLoading && !user) {
         return (
-            <SafeAreaView style={{ flex: 1, backgroundColor: '#F5E6FA' }}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
                 <ScrollView
-                    style={{ backgroundColor: '#F5E6FA' }}
+                    style={{ backgroundColor: 'black' }}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 16, paddingTop: 20 }}
                 >
@@ -339,9 +339,9 @@ export default function VisitorRegistrationScreen() {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-white">
+        <SafeAreaView className="flex-1 bg-black">
             <ScrollView
-                className="flex-1"
+                className="flex-1 bg-black"
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 20, paddingBottom: 40 }}
             >

@@ -273,84 +273,86 @@ export default function VisitorRegistrationForm({ onBack }: VisitorRegistrationF
 
     if (step === 2) {
         return (
-            <Animated.View entering={FadeIn.duration(400)} className="flex-1 bg-white border-[3px] border-black rounded-[35px] overflow-hidden shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] m-2">
-                <View className="px-6 py-10 items-center">
-                    <View className="mb-6">
-                        <SmoothButton
-                            onPress={handleReturnHome}
-                            buttonStyle="bg-[#FFEB3B] border-[2px] border-black rounded-lg py-2 px-4"
-                            shadowStyle="bg-black rounded-lg"
-                            depth={4}
-                        >
-                            <Text className="text-[10px] font-black" style={{ fontFamily: FONT_BOLD }}>← RETURN HOME</Text>
-                        </SmoothButton>
-                    </View>
-
-                    <View className="mb-10 items-start w-full">
-                        <Text className="text-4xl text-black leading-none" style={{ fontFamily: 'Bicubik' }}>VISITOR</Text>
-                        <Text className="text-4xl text-[#9C27B0] leading-[38px]" style={{ fontFamily: 'Bicubik' }}>REGISTRATION.</Text>
-                    </View>
-
-                    {/* Progress Bar */}
-                    <View className="w-full mb-10">
-                        <View className="w-full h-4 bg-white border-[2px] border-black rounded-full overflow-hidden">
-                            <Animated.View style={[progressBarStyle, { height: '100%', backgroundColor: 'black' }]}>
-                                <View style={{ flexDirection: 'row', height: '100%', opacity: 0.15 }}>
-                                    {[...Array(40)].map((_, i) => (
-                                        <View key={i} style={{ width: 6, height: '100%', backgroundColor: 'white', marginRight: 8, transform: [{ skewX: '-25deg' }] }} />
-                                    ))}
-                                </View>
-                            </Animated.View>
+            <View className="flex-1 bg-black">
+                <Animated.View entering={FadeIn.duration(400)} className="flex-1 bg-white border-[3px] border-black rounded-[35px] overflow-hidden shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] m-2">
+                    <View className="px-6 py-10 items-center">
+                        <View className="mb-6">
+                            <SmoothButton
+                                onPress={handleReturnHome}
+                                buttonStyle="bg-[#FFEB3B] border-[2px] border-black rounded-lg py-2 px-4"
+                                shadowStyle="bg-black rounded-lg"
+                                depth={4}
+                            >
+                                <Text className="text-[10px] font-black" style={{ fontFamily: FONT_BOLD }}>← RETURN HOME</Text>
+                            </SmoothButton>
                         </View>
-                        <View className="flex-row justify-between mt-2 px-1">
-                            {['DETAILS', 'PAYMENT', 'DONE'].map((label, i) => (
-                                <Text key={label} className="text-[9px] font-black text-black" style={{ fontFamily: FONT_BOLD }}>{label}</Text>
-                            ))}
+
+                        <View className="mb-10 items-start w-full">
+                            <Text className="text-4xl text-black leading-none" style={{ fontFamily: 'Bicubik' }}>VISITOR</Text>
+                            <Text className="text-4xl text-[#9C27B0] leading-[38px]" style={{ fontFamily: 'Bicubik' }}>REGISTRATION.</Text>
+                        </View>
+
+                        {/* Progress Bar */}
+                        <View className="w-full mb-10">
+                            <View className="w-full h-4 bg-white border-[2px] border-black rounded-full overflow-hidden">
+                                <Animated.View style={[progressBarStyle, { height: '100%', backgroundColor: 'black' }]}>
+                                    <View style={{ flexDirection: 'row', height: '100%', opacity: 0.15 }}>
+                                        {[...Array(40)].map((_, i) => (
+                                            <View key={i} style={{ width: 6, height: '100%', backgroundColor: 'white', marginRight: 8, transform: [{ skewX: '-25deg' }] }} />
+                                        ))}
+                                    </View>
+                                </Animated.View>
+                            </View>
+                            <View className="flex-row justify-between mt-2 px-1">
+                                {['DETAILS', 'PAYMENT', 'DONE'].map((label, i) => (
+                                    <Text key={label} className="text-[9px] font-black text-black" style={{ fontFamily: FONT_BOLD }}>{label}</Text>
+                                ))}
+                            </View>
+                        </View>
+
+                        <View className="items-center mb-10">
+                            <View className="w-24 h-24 bg-[#00e676] rounded-full items-center justify-center border-[3px] border-black shadow-[0_0_20px_rgba(0,230,118,0.5)]">
+                                <PartyPopper color="white" size={48} />
+                            </View>
+                        </View>
+
+                        <Text className="text-4xl text-black text-center mb-6" style={{ fontFamily: 'Bicubik' }}>THANK YOU!</Text>
+
+                        <Text className="text-center px-4 mb-4" style={{ fontFamily: FONT_MAIN, fontSize: 16, color: 'black', lineHeight: 22 }}>
+                            Thank You for Registering. We will review and send your pass to your email soon.
+                        </Text>
+                        <Text className="text-center px-4 mb-10 text-gray-500" style={{ fontFamily: FONT_MAIN, fontSize: 13 }}>
+                            You can also check your <Text onPress={handleGoToProfile} style={{ fontFamily: FONT_BOLD, color: 'black', textDecorationLine: 'underline' }}>Profile</Text> section for ticket status.
+                        </Text>
+
+                        <View className="w-full gap-4">
+                            <SmoothButton
+                                onPress={handleReturnHome}
+                                buttonStyle="bg-black py-5 rounded-2xl items-center justify-center border-[2px] border-black"
+                                shadowStyle="bg-gray-400 rounded-2xl top-1 left-1"
+                                depth={0}
+                            >
+                                <Text className="text-white font-black uppercase tracking-[2px] text-sm">RETURN HOME</Text>
+                            </SmoothButton>
+
+                            <SmoothButton
+                                onPress={handleGoToProfile}
+                                buttonStyle="bg-white py-5 rounded-2xl items-center justify-center border-[2px] border-black"
+                                shadowStyle="bg-black rounded-2xl top-1.5 left-1.5"
+                                depth={0}
+                            >
+                                <Text className="text-black font-black uppercase tracking-[2px] text-sm">GO TO PROFILE</Text>
+                            </SmoothButton>
                         </View>
                     </View>
-
-                    <View className="items-center mb-10">
-                        <View className="w-24 h-24 bg-[#00e676] rounded-full items-center justify-center border-[3px] border-black shadow-[0_0_20px_rgba(0,230,118,0.5)]">
-                            <PartyPopper color="white" size={48} />
-                        </View>
-                    </View>
-
-                    <Text className="text-4xl text-black text-center mb-6" style={{ fontFamily: 'Bicubik' }}>THANK YOU!</Text>
-
-                    <Text className="text-center px-4 mb-4" style={{ fontFamily: FONT_MAIN, fontSize: 16, color: 'black', lineHeight: 22 }}>
-                        Thank You for Registering. We will review and send your pass to your email soon.
-                    </Text>
-                    <Text className="text-center px-4 mb-10 text-gray-500" style={{ fontFamily: FONT_MAIN, fontSize: 13 }}>
-                        You can also check your <Text onPress={handleGoToProfile} style={{ fontFamily: FONT_BOLD, color: 'black', textDecorationLine: 'underline' }}>Profile</Text> section for ticket status.
-                    </Text>
-
-                    <View className="w-full gap-4">
-                        <SmoothButton
-                            onPress={handleReturnHome}
-                            buttonStyle="bg-black py-5 rounded-2xl items-center justify-center border-[2px] border-black"
-                            shadowStyle="bg-gray-400 rounded-2xl top-1 left-1"
-                            depth={0}
-                        >
-                            <Text className="text-white font-black uppercase tracking-[2px] text-sm">RETURN HOME</Text>
-                        </SmoothButton>
-
-                        <SmoothButton
-                            onPress={handleGoToProfile}
-                            buttonStyle="bg-white py-5 rounded-2xl items-center justify-center border-[2px] border-black"
-                            shadowStyle="bg-black rounded-2xl top-1.5 left-1.5"
-                            depth={0}
-                        >
-                            <Text className="text-black font-black uppercase tracking-[2px] text-sm">GO TO PROFILE</Text>
-                        </SmoothButton>
-                    </View>
-                </View>
-            </Animated.View>
+                </Animated.View>
+            </View>
         );
     }
 
     return (
         <ScrollView
-            className="flex-1"
+            className="flex-1 bg-black"
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 40 }}
         >

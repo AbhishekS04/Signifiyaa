@@ -43,10 +43,10 @@ export default function PaymentsScreen() {
     );
 
     return (
-        <SafeAreaView className="flex-1 bg-[#F5E6FA] pt-3" edges={['top', 'left', 'right']}>
+        <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
             <PageTransition style={{ flex: 1 }}>
                 <ScrollView
-                    style={{ backgroundColor: '#F5E6FA' }}
+                    style={{ backgroundColor: 'black' }}
                     contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 16, paddingTop: 20 }}
                     showsVerticalScrollIndicator={false}
                 >
