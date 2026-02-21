@@ -25,7 +25,7 @@ const S = StyleSheet.create({
 });
 
 // ─── Bundled PlayStore icon (no network request) ────────────────────────────────
-const PLAYSTORE_SOURCE = require('../../assets/icons/playstore.png');
+const PLAYSTORE_SOURCE = require('../../assets/icons/playstore.webp');
 
 const PlayStoreIcon = React.memo(() => (
     <Image

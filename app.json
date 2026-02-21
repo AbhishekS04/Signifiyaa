@@ -4,11 +4,11 @@
     "slug": "signifiya",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon.webp",
     "userInterfaceStyle": "light",
 
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-icon.webp",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
@@ -24,7 +24,7 @@
     "android": {
       "package": "com.abhishek2304.signifiya",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/adaptive-icon.webp",
         "backgroundColor": "#000000"
       },
       "permissions": [

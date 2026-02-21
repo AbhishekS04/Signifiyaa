@@ -236,7 +236,7 @@ const HeroSection = ({ onSignInPress, scrollY }: HeroSectionProps) => {
                         {/* Background Watermark */}
                         <View className="absolute inset-x-0 bottom-0 items-center justify-end opacity-[0.10]" style={{ bottom: -40 }}>
                             <Image
-                                source={require('../../assets/bglogo.png')}
+                                source={require('../../assets/bglogo.webp')}
                                 style={{ width: 600, height: 700, tintColor: 'white' }}
                                 contentFit="contain"
                                 cachePolicy="memory-disk"

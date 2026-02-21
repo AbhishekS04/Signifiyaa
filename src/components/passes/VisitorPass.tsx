@@ -78,14 +78,14 @@ const VisitorPass = ({ data, userName, bookingId, onClose }: VisitorPassProps) =
 
                         {/* Logo */}
                         <Image
-                            source={require('../../../assets/bglogo.png')}
+                            source={require('../../../assets/bglogo.webp')}
                             style={styles.logo}
                             contentFit="contain"
                         />
 
                         {/* Robot Mascot */}
                         <Image
-                            source={require('../../../assets/robo.png')}
+                            source={require('../../../assets/robo.webp')}
                             style={styles.mascot}
                             contentFit="contain"
                         />

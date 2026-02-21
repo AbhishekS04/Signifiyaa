@@ -343,7 +343,7 @@ const PrizesSponsors = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
                         <View>
                             <View style={S.prize1stShadow} />
                             <View className="bg-white border-[3px] border-black items-center justify-center" style={S.prize1stBox}>
-                                <ExpoImage source={require('../../assets/Prizes/1st.avif')} style={S.prize1stImg} contentFit="contain" />
+                                <ExpoImage source={require('../../assets/Prizes/1st.webp')} style={S.prize1stImg} contentFit="contain" />
                                 <Text style={S.fontSoftura} className="text-sm font-bold text-black uppercase mt-2">1st Prize</Text>
                             </View>
                         </View>
@@ -353,14 +353,14 @@ const PrizesSponsors = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
                             <View>
                                 <View style={S.prize23Shadow} />
                                 <View className="bg-white border-[3px] border-black items-center justify-center" style={S.prize23Box}>
-                                    <ExpoImage source={require('../../assets/Prizes/2nd.avif')} style={S.prize23Img} contentFit="contain" />
+                                    <ExpoImage source={require('../../assets/Prizes/2nd.webp')} style={S.prize23Img} contentFit="contain" />
                                     <Text style={S.fontSoftura} className="text-xs font-bold text-black uppercase mt-1">2nd Prize</Text>
                                 </View>
                             </View>
                             <View>
                                 <View style={S.prize23Shadow} />
                                 <View className="bg-white border-[3px] border-black items-center justify-center" style={S.prize23Box}>
-                                    <ExpoImage source={require('../../assets/Prizes/3rd.avif')} style={S.prize23Img} contentFit="contain" />
+                                    <ExpoImage source={require('../../assets/Prizes/3rd.webp')} style={S.prize23Img} contentFit="contain" />
                                     <Text style={S.fontSoftura} className="text-xs font-bold text-black uppercase mt-1">3rd Prize</Text>
                                 </View>
                             </View>

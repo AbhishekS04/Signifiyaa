@@ -178,7 +178,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Keshav Maheshwari",
         role: "EXECUTION CELL",
         desc: "The hands-on executor ensuring plans come alive with precision and speed.",
-        image: require('../../assets/avatar/avatar7.webp'),
+        image: require('../../assets/team/keshav.webp'),
         socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/keshav.maheshwari", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
@@ -187,7 +187,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Sampad Ghosh",
         role: "EXECUTION CELL",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: require('../../assets/avatar/avatar8.webp'),
+        image: require('../../assets/team/Sampad.webp'),
         socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/sampad.ghosh", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
@@ -196,7 +196,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Sudipto Barman",
         role: "EX SUPPORT",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Sudipto',
+        image: require('../../assets/team/Sr.webp'),
         socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/sudipto.barman", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
@@ -205,7 +205,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Titas Sarkar",
         role: "EX SUPPORT",
         desc: "Building decentralized solutions that add a future-ready edge to the fest.",
-        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Titas',
+        image: require('../../assets/team/Titas.webp'),
         socials: {},
         category: 'CORE MEMBER'
     },
