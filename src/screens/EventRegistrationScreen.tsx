@@ -32,6 +32,17 @@ const AVAILABLE_EVENTS = [
     { id: 4, name: 'DIL SE DESIGN', date: 'March 27-28', teamSize: 'Solo', price: 100 },
     { id: 5, name: 'VALORANT TOURNAMENT', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
     { id: 6, name: 'TECH QUIZ', date: 'March 27-28', teamSize: 'Team (2)', price: 50 },
+    { id: 7, name: 'FREE FIRE', date: 'March 27-28', teamSize: 'Team (4)', price: 400 },
+    { id: 8, name: 'EFOOTBALL TOURNAMENT', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
+    { id: 9, name: 'PATH FOLLOWER', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
+    { id: 10, name: 'BGMI', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
+    { id: 11, name: 'TOWER MAKING', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
+    { id: 12, name: 'RE-FAB', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
+    { id: 13, name: 'PATH FOLLOWER', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
+    { id: 14, name: 'BRIDGE MAKING', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
+    { id: 15, name: 'LATHE WAR', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
+    { id: 16, name: 'ROBO TERRAIN', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
+    { id: 17, name: 'ROBO SOCCER', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
 ];
 
 // UPI QR placeholder (replace with your actual UPI QR image)
