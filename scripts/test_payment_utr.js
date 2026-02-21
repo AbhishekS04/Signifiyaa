@@ -81,7 +81,7 @@ async function testVisitorRegistrationUTR() {
         phone: '9876543210',
         college: 'Test Engineering College',
         passType: 'day1',
-        amount: 49,
+        amount: 99,
         status: 'pending',
         paymentProofUrl: testUTR,       // ← This is the UTR / UPI Transaction ID
         bookingId: null,
@@ -118,7 +118,7 @@ async function testVisitorRegistrationUTR() {
         assert(data.name === 'Test Visitor User', `Name matches: "${data.name}"`);
         assert(data.email === testEmail, `Email matches: "${data.email}"`);
         assert(data.passType === 'day1', `Pass type matches: "${data.passType}"`);
-        assert(data.amount === 49, `Amount matches: ${data.amount}`);
+        assert(data.amount === 99, `Amount matches: ${data.amount}`);
         assert(data.status === 'pending', `Status is pending: "${data.status}"`);
         assert(data.userBookingId === 'SGF26-TESTID', `Booking ID matches: "${data.userBookingId}"`);
     } else {
@@ -247,7 +247,7 @@ async function testEdgeCases() {
             phone: '0000000001',
             college: 'Long College',
             passType: 'day1',
-            amount: 49,
+            amount: 99,
             status: 'pending',
             paymentProofUrl: longUTR,
             createdAt: new Date().toISOString(),
@@ -306,7 +306,7 @@ async function testDuplicateUTR() {
             phone: '1111111111',
             college: 'Dup College',
             passType: 'day1',
-            amount: 49,
+            amount: 99,
             status: 'pending',
             paymentProofUrl: duplicateUTR,
             createdAt: new Date().toISOString(),
@@ -326,7 +326,7 @@ async function testDuplicateUTR() {
             phone: '2222222222',
             college: 'Dup College',
             passType: 'day1',
-            amount: 49,
+            amount: 99,
             status: 'pending',
             paymentProofUrl: duplicateUTR,
             createdAt: new Date().toISOString(),
