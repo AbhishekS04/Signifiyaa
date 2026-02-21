@@ -3,20 +3,18 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-const BlinkitFooter = React.memo(() => {
+const Footer = React.memo(() => {
     return (
         <View style={s.container}>
             <View style={s.content}>
                 <Text style={s.mainText}>
-                    Signifiya's{"\n"}last minute app ❤️
+                    SIGNIFIYA 2K26 {"\n"}Where Innovation{"\n"}Meets the Nation 🌍
                 </Text>
 
                 <View style={s.dividerLine} />
 
                 <View style={s.brandRow}>
-                    <Text style={s.brandText}>signifiya</Text>
-                    <View style={s.dot} />
-                    <Text style={s.yearText}>2026</Text>
+                    <Text style={s.brandText}>© 2026 SIGNIFIYA, SOET.</Text>
                 </View>
             </View>
         </View>
@@ -27,35 +25,35 @@ const s = StyleSheet.create({
     container: {
         backgroundColor: '#000',
         paddingTop: 20,
-        paddingBottom: 150,
+        paddingBottom: 20,
         paddingHorizontal: 25,
     },
     content: {
         width: '100%',
     },
     mainText: {
-        fontSize: width * 0.10,
+        fontSize: width * 0.09,
         fontFamily: 'Gilton',
         color: '#333333', // More visible but still muted "Blinkit" style
-        lineHeight: width * 0.18,
+        lineHeight: width * 0.13,
         letterSpacing: -1,
     },
     dividerLine: {
         width: '100%',
         height: 1,
-        backgroundColor: '#1a1a1a',
-        marginTop: 60,
+        backgroundColor: '#333333',
+        marginTop: 20,
         marginBottom: 20,
     },
     brandRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        opacity: 0.4,
+        opacity: 0.9,
     },
     brandText: {
-        fontFamily: 'Gilton',
-        fontSize: 28,
-        color: '#404040',
+        fontFamily: '',
+        fontSize: 18,
+        color: '#333333',
         letterSpacing: 1,
     },
     dot: {
@@ -72,4 +70,4 @@ const s = StyleSheet.create({
     }
 });
 
-export default BlinkitFooter;
+export default Footer;
