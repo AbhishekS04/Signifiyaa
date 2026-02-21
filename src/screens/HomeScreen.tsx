@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState, useRef } from 'react';
-import { View, RefreshControl, FlatList } from 'react-native';
+import { View, RefreshControl, FlatList, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Animated, {
@@ -7,6 +7,7 @@ import Animated, {
     useAnimatedScrollHandler,
     useAnimatedStyle,
 } from 'react-native-reanimated';
+
 import HeroSection from '../components/HeroSection';
 import AboutSection from '../components/AboutSection';
 import GallerySection from '../components/GallerySection';
@@ -21,13 +22,15 @@ import Footer from '../components/Footer';
 import { PageTransition } from '../components/navigation/PageTransition';
 import GlobalMusicButton from '../components/GlobalMusicButton';
 
-// ─── Stable constants hoisted outside render ───────────────────────────────────
+import { getOfferConfig } from '../../remoteConfig.js';
+
+// ─── Stable constants ──────────────────────────────────────────────────────────
 const SAFE_AREA_EDGES = ['top', 'left', 'right'] as const;
 const FLATLIST_CONTENT_STYLE = { paddingBottom: 0 };
 const MUSIC_BUTTON_POSITION = { position: 'absolute' as const, zIndex: 50, right: 20, top: 20 };
 const REFRESH_COLORS = ['#ffffff'];
 
-// ─── Section data (static — never changes, never re-created) ──────────────────
+// ─── Section Types ─────────────────────────────────────────────────────────────
 type SectionKey =
     | 'hero' | 'about' | 'gallery' | 'departmentsEvents'
     | 'prizesSponsors' | 'pastGlimpses' | 'teamSection'
@@ -57,9 +60,20 @@ export default function HomeScreen() {
     const scrollY = useSharedValue(0);
     const navigation = useNavigation();
     const route = useRoute();
-    const [refreshing, setRefreshing] = useState(false);
 
-    // Stable callbacks
+    const [refreshing, setRefreshing] = useState(false);
+    const [offer, setOffer] = useState<any>(null);
+
+    // ─── Load Offer On Mount ───────────────────────────────────────────────────
+    useEffect(() => {
+        async function loadOffer() {
+            const data = await getOfferConfig();
+            setOffer(data);
+        }
+        loadOffer();
+    }, []);
+
+    // ─── Navigation Handlers ───────────────────────────────────────────────────
     const handleSignInPress = useCallback(() => {
         (navigation as any).navigate('Auth');
     }, [navigation]);
@@ -73,7 +87,6 @@ export default function HomeScreen() {
         setTimeout(() => setRefreshing(false), 2000);
     }, []);
 
-    // Scroll-to-top on tab re-press
     useEffect(() => {
         const params = route.params as any;
         if (params?.scrollToTop) {
@@ -82,93 +95,77 @@ export default function HomeScreen() {
         }
     }, [(route.params as any)?.scrollToTop]);
 
-    // 60fps scroll tracking — runs on UI thread via Reanimated
+    // ─── Scroll Tracking ───────────────────────────────────────────────────────
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
             scrollY.value = event.contentOffset.y;
         },
     });
 
-    // Music button follows overscroll — pure UI thread
     const musicButtonStyle = useAnimatedStyle(() => ({
         transform: [{ translateY: scrollY.value < 0 ? -scrollY.value : 0 }],
     }));
 
-    // ─── Section renderer (memoized, keyed by section key) ─────────────────────
-    const renderSection = useCallback(({ item, index }: { item: SectionItem; index: number }) => {
-        let content: React.ReactNode;
-
+    // ─── Section Renderer ──────────────────────────────────────────────────────
+    const renderSection = useCallback(({ item }: { item: SectionItem }) => {
         switch (item.key) {
             case 'hero':
-                content = (
+                return (
                     <View className="mb-4">
                         <HeroSection onSignInPress={handleSignInPress} scrollY={scrollY} />
                     </View>
                 );
-                break;
             case 'about':
-                content = (
+                return (
                     <View className="px-4 gap-4 pb-4">
                         <AboutSection />
                     </View>
                 );
-                break;
             case 'gallery':
-                content = <GallerySection />;
-                break;
+                return <GallerySection />;
             case 'departmentsEvents':
-                content = (
+                return (
                     <View className="px-4 gap-4">
                         <DepartmentsEvents scrollY={scrollY} />
                     </View>
                 );
-                break;
             case 'prizesSponsors':
-                content = (
+                return (
                     <View className="px-4 gap-4">
                         <PrizesSponsors />
                     </View>
                 );
-                break;
             case 'pastGlimpses':
-                content = (
+                return (
                     <View className="px-4 gap-4">
                         <PastGlimpses />
                     </View>
                 );
-                break;
             case 'teamSection':
-                content = (
+                return (
                     <View className="px-4 gap-4">
                         <TeamSection />
                     </View>
                 );
-                break;
             case 'faqSection':
-                content = (
+                return (
                     <View className="px-4 gap-4">
                         <FAQSection />
                     </View>
                 );
-                break;
             case 'newsletterSupport':
-                content = (
+                return (
                     <View className="px-4 gap-4">
                         <NewsletterSupport />
                     </View>
                 );
-                break;
             case 'socialConnect':
-                content = <SocialConnect />;
-                break;
+                return <SocialConnect />;
             case 'footerSection':
-                content = <Footer />;
-                break;
+                return <Footer />;
             default:
-                content = null;
+                return null;
         }
-
-        return content;
     }, [handleSignInPress, scrollY]);
 
     const keyExtractor = useCallback((item: SectionItem) => item.key, []);
@@ -176,11 +173,31 @@ export default function HomeScreen() {
     return (
         <SafeAreaView className="flex-1 bg-black pt-3" edges={SAFE_AREA_EDGES}>
             <PageTransition style={{ flex: 1 }}>
-                {/* Music Button — UI-thread animated, no JS re-renders */}
+
+                {/* Offer Banner */}
+                {offer && (
+                    <View
+                        style={{
+                            backgroundColor: '#FFD700',
+                            padding: 12,
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Text style={{ fontWeight: 'bold', color: '#000', fontSize: 16 }}>
+                            {offer.title}
+                        </Text>
+                        <Text style={{ color: '#000', marginTop: 4 }}>
+                            {offer.message}
+                        </Text>
+                    </View>
+                )}
+
+                {/* Music Button */}
                 <Animated.View style={[musicButtonStyle, MUSIC_BUTTON_POSITION]}>
                     <GlobalMusicButton />
                 </Animated.View>
 
+                {/* Main Scroll Content */}
                 <Animated.FlatList
                     ref={flatListRef as any}
                     data={SECTIONS}
@@ -196,7 +213,6 @@ export default function HomeScreen() {
                     decelerationRate="normal"
                     keyboardShouldPersistTaps="handled"
                     nestedScrollEnabled={true}
-                    // Virtualization tuning — mount only nearby sections
                     initialNumToRender={3}
                     maxToRenderPerBatch={2}
                     windowSize={5}

@@ -48,12 +48,21 @@ const TEAM_MEMBERS: Member[] = [
         category: 'FACULTY'
     },
     {
+        id: 9,
+        name: "Sudipto Barman",
+        role: "FACULTY LEAD",
+        desc: "Turning strategies into action with energy, coordination, and commitment.",
+        image: require('../../assets/team/Sr.webp'),
+        socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/sudipto.barman", github: "https://github.com/" },
+        category: 'CORE MEMBER'
+    },
+    {
         id: 28,
         name: "Mr. Prabhat Das",
         role: "TECH MENTOR",
         desc: "Assistant Professor, ECE, SOET",
         image: require('../../assets/team/Prabhat.webp'),
-        socials: { linkedin: "https://linkedin.com/in/prabhatd/", instagram: "", github: "https://github.com/prabhatdash/" },
+        socials: { linkedin: "https://linkedin.com/in/prabhatd/", github: "https://github.com/prabhatdash/" },
         category: 'FACULTY'
     },
     {
@@ -191,15 +200,7 @@ const TEAM_MEMBERS: Member[] = [
         socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/sampad.ghosh", github: "https://github.com/" },
         category: 'CORE MEMBER'
     },
-    {
-        id: 9,
-        name: "Sudipto Barman",
-        role: "EX SUPPORT",
-        desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: require('../../assets/team/Sr.webp'),
-        socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/sudipto.barman", github: "https://github.com/" },
-        category: 'CORE MEMBER'
-    },
+    
     {
         id: 19,
         name: "Titas Sarkar",
