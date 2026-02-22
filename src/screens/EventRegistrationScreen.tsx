@@ -14,6 +14,7 @@ import Animated, {
     useSharedValue, useAnimatedStyle, withTiming, Easing, withRepeat
 } from 'react-native-reanimated';
 import { useAuth } from '../context/AuthContext';
+import { calculateDiscountedPrice, getActiveDiscount } from '../lib/pricingUtils';
 
 const generateUUID = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -127,10 +128,13 @@ const EventRegistrationScreen = () => {
         );
     };
 
-    const totalPrice = selectedEvents.reduce((sum, id) => {
+    const rawTotalPrice = selectedEvents.reduce((sum, id) => {
         const event = AVAILABLE_EVENTS.find(e => e.id === id);
         return sum + (event ? event.price : 0);
     }, 0);
+
+    const totalPrice = calculateDiscountedPrice(rawTotalPrice);
+    const activeDiscount = getActiveDiscount();
 
     // ── Step 3: Team Members ──
     const [teamMembers, setTeamMembers] = useState([
@@ -716,6 +720,16 @@ const EventRegistrationScreen = () => {
                                             );
                                         })}
                                         <View style={styles.receiptDivider} />
+                                        {activeDiscount && (
+                                            <View style={styles.receiptSummaryRow}>
+                                                <Text style={[styles.receiptSummaryEventName, { fontFamily: FONT_BODY, color: '#A855F7' }]}>
+                                                    {activeDiscount.label} (-{activeDiscount.percentage}%)
+                                                </Text>
+                                                <Text style={[styles.receiptSummaryPrice, { fontFamily: FONT_BODY, color: '#A855F7' }]}>
+                                                    -₹{rawTotalPrice - totalPrice}
+                                                </Text>
+                                            </View>
+                                        )}
                                         <View style={styles.receiptSummaryRow}>
                                             <Text style={[styles.receiptTotalLabel, { fontFamily: FONT_SUB }]}>TOTAL</Text>
                                             <Text style={[styles.receiptTotalValue, { fontFamily: FONT_SUB }]}>₹{totalPrice}</Text>

@@ -25,6 +25,7 @@ import Animated, {
 import { ChevronDown, Check, AlertCircle, X, PartyPopper, Lock, User } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
 import { useAuth } from '../context/AuthContext';
+import { calculateDiscountedPrice, getActiveDiscount } from '../lib/pricingUtils';
 
 const generateUUID = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -223,7 +224,8 @@ export default function VisitorRegistrationScreen() {
 
         setIsLoading(true);
         try {
-            const amount = passType === 'day1' ? 99 : 149;
+            const baseAmount = passType === 'day1' ? 99 : 149;
+            const amount = calculateDiscountedPrice(baseAmount);
 
             const { error } = await supabase.from('visitor_registration').insert({
                 id: generateUUID(),
@@ -243,7 +245,7 @@ export default function VisitorRegistrationScreen() {
             });
 
             if (error) {
-                console.error("Supabase Insert Error:", error);
+                console.error("[VisitorReg] Supabase Insert Error:", JSON.stringify(error, null, 2));
                 throw new Error(error.message);
             }
 
@@ -412,10 +414,18 @@ export default function VisitorRegistrationScreen() {
 
                                 <ShadowDropdown
                                     label="SELECT PASS"
-                                    value={passType === 'day1' ? 'Single Day Pass — ₹99' : 'Dual Day Pass — ₹149'}
+                                    value={passType === 'day1'
+                                        ? `Single Day Pass — ₹${calculateDiscountedPrice(99)}`
+                                        : `Dual Day Pass — ₹${calculateDiscountedPrice(149)}`}
                                     options={[
-                                        { label: 'Single Day Pass — ₹99', value: 'day1' },
-                                        { label: 'Dual Day Pass — ₹149', value: 'dual' }
+                                        {
+                                            label: `Single Day Pass — ₹${calculateDiscountedPrice(99)} ${getActiveDiscount() ? '(OFFER)' : ''}`,
+                                            value: 'day1'
+                                        },
+                                        {
+                                            label: `Dual Day Pass — ₹${calculateDiscountedPrice(149)} ${getActiveDiscount() ? '(OFFER)' : ''}`,
+                                            value: 'dual'
+                                        }
                                     ]}
                                     onSelect={(v: any) => setPassType(v)}
                                     isOpen={isPassDropdownOpen}
@@ -475,12 +485,22 @@ export default function VisitorRegistrationScreen() {
 
                                 <View className="bg-[#f3f4f6] border-[2px] border-black rounded-[25px] p-6 mb-10">
                                     <Text className="text-xs font-black text-gray-500 uppercase mb-2" style={{ fontFamily: FONT_BOLD }}>PAYING FOR: {passType === 'day1' ? 'Single Day Pass' : 'Dual Day Pass'}</Text>
-                                    <Text className="text-5xl font-black text-black" style={{ fontFamily: 'Bicubik' }}>₹{passType === 'day1' ? '99' : '149'}</Text>
+                                    <View className="flex-row items-baseline">
+                                        <Text className="text-5xl font-black text-black" style={{ fontFamily: 'Bicubik' }}>₹{calculateDiscountedPrice(passType === 'day1' ? 99 : 149)}</Text>
+                                        {getActiveDiscount() && (
+                                            <Text className="ml-3 text-xl text-gray-400 line-through" style={{ fontFamily: 'Bicubik' }}>₹{passType === 'day1' ? '99' : '149'}</Text>
+                                        )}
+                                    </View>
+                                    {getActiveDiscount() && (
+                                        <Text className="mt-2 text-[#9C27B0] font-black text-[10px]" style={{ fontFamily: FONT_BOLD }}>
+                                            {getActiveDiscount()?.label} APPLIED!
+                                        </Text>
+                                    )}
                                 </View>
 
                                 <View className="items-center mb-8">
                                     <View className="p-4 bg-white border-[3px] border-black rounded-[25px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                                        <Image source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=8942837703@ikwik&pn=Signifiya&am=${passType === 'day1' ? 99 : 79}` }} style={{ width: 220, height: 220, borderRadius: 10 }} />
+                                        <Image source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=8942837703@ikwik&pn=Signifiya&am=${calculateDiscountedPrice(passType === 'day1' ? 99 : 149)}` }} style={{ width: 220, height: 220, borderRadius: 10 }} />
                                     </View>
                                     <Text className="mt-8 text-black font-black text-sm text-center px-4" style={{ fontFamily: FONT_BOLD }}>Scan this QR code with any UPI app to pay.</Text>
                                 </View>
