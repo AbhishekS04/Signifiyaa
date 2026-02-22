@@ -70,7 +70,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Hrishav Dey",
         role: "EVENT ADVISOR",
         desc: "The force that turns bold ideas into flawlessly executed reality.",
-        image: require('../../assets/avatar/avatar4.webp'),
+        image: require('../../assets/team/Hrishav.webp'),
         socials: { linkedin: "https://www.linkedin.com/in/hrishav-dey-60a8292aa/", instagram: "https://www.instagram.com/hrishav_02/" },
         category: 'CORE MEMBER'
     },
@@ -120,6 +120,15 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
+        id: 13,
+        name: "Garima Roy",
+        role: "DOCUMENTATIONS LEAD",
+        desc: "The mind that captures every milestone and detail with clarity and precision.",
+        image: require('../../assets/team/Garima.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/garima-roy-032277290/", instagram: "https://www.instagram.com/_garimaa.07_", github: "https://github.com/GarimaRoy07" },
+        category: 'CORE MEMBER'
+    },
+    {
         id: 20,
         name: "Ashish R. Das",
         role: "TECH LEAD",
@@ -144,15 +153,6 @@ const TEAM_MEMBERS: Member[] = [
         desc: "Turning strategies into action with energy, coordination, and commitment.",
         image: require('../../assets/team/Abhishek.webp'),
         socials: { linkedin: "https://www.linkedin.com/in/abhi3hekk/", instagram: "https://www.instagram.com/abhi3hekk/", github: "https://github.com/AbhishekS04/" },
-        category: 'CORE MEMBER'
-    },
-    {
-        id: 13,
-        name: "Garima Roy",
-        role: "DOCUMENTATIONS LEAD",
-        desc: "The mind that captures every milestone and detail with clarity and precision.",
-        image: require('../../assets/team/Garima.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/garima-roy-032277290/", instagram: "https://www.instagram.com/_garimaa.07_", github: "https://github.com/GarimaRoy07" },
         category: 'CORE MEMBER'
     },
     {
