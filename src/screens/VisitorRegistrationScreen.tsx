@@ -9,8 +9,8 @@ import {
     Modal,
     ScrollView,
     Image,
-    SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Animated, {
     FadeInDown,
@@ -277,9 +277,9 @@ export default function VisitorRegistrationScreen() {
     // ── Auth Guard ──
     if (!authLoading && !user) {
         return (
-            <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
+            <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: 'black' }}>
                 <ScrollView
-                    style={{ backgroundColor: 'black' }}
+                    style={{ flex: 1, backgroundColor: 'black' }}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 16, paddingTop: 20 }}
                 >
@@ -342,9 +342,9 @@ export default function VisitorRegistrationScreen() {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-black">
+        <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: 'black' }}>
             <ScrollView
-                className="flex-1 bg-black"
+                style={{ flex: 1, backgroundColor: 'black' }}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 20, paddingBottom: 40 }}
             >
