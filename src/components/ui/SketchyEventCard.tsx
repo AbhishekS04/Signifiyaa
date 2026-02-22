@@ -165,35 +165,37 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
             </View>
 
             {/* COORDINATORS (Full Width) */}
-            <View className="flex-row gap-6 w-full px-1">
-                {/* Student Coords */}
-                <View className="flex-1">
-                    <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
-                        Student Coordinators
-                    </Text>
-                    <View>
-                        {item.studentCoordinators?.map((name: string, i: number) => (
-                            <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
-                                {name}
-                            </Text>
-                        )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
+            {item.id !== 1 && item.id !== 20 && (
+                <View className="flex-row gap-6 w-full px-1">
+                    {/* Student Coords */}
+                    <View className="flex-1">
+                        <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
+                            Student Coordinators
+                        </Text>
+                        <View>
+                            {item.studentCoordinators?.map((name: string, i: number) => (
+                                <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
+                                    {name}
+                                </Text>
+                            )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
+                        </View>
                     </View>
-                </View>
 
-                {/* Faculty Coords */}
-                <View className="flex-1">
-                    <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
-                        Faculty Coordinators
-                    </Text>
-                    <View>
-                        {item.facultyCoordinators?.map((name: string, i: number) => (
-                            <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
-                                {name}
-                            </Text>
-                        )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
+                    {/* Faculty Coords */}
+                    <View className="flex-1">
+                        <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
+                            Faculty Coordinators
+                        </Text>
+                        <View>
+                            {item.facultyCoordinators?.map((name: string, i: number) => (
+                                <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
+                                    {name}
+                                </Text>
+                            )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
+                        </View>
                     </View>
                 </View>
-            </View>
+            )}
 
         </View>
     );

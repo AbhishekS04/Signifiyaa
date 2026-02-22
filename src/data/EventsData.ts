@@ -63,7 +63,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '500',
         registrationFeeOutside: '500',
         teamSize: '5',
-        day: 1
+        day: 1,
+        facultyCoordinators: ['Ayushman Bilash Thakur'],
+        studentCoordinators: ['Hrittima Sen']
     },
     {
         id: 3,
@@ -80,7 +82,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '400',
         registrationFeeOutside: '400',
         teamSize: '4',
-        day: 1
+        day: 1,
+        facultyCoordinators: ['Ayushman Bilash Thakur'],
+        studentCoordinators: ['Anis Imtahan Nayan']
     },
     {
         id: 4,
@@ -97,7 +101,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '280',
         registrationFeeOutside: '320',
         teamSize: '4',
-        day: 1
+        day: 1,
+        facultyCoordinators: ['Bodhi Chakraborty', 'Debdutta Pal'],
+        studentCoordinators: ['Sourish Samantha']
     },
     {
         id: 5,
@@ -114,7 +120,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '280',
         registrationFeeOutside: '320',
         teamSize: '4',
-        day: 1
+        day: 1,
+        facultyCoordinators: ['Tirupataiah Kasani', 'Ashish Khaira'],
+        studentCoordinators: ['Barun Jana']
     },
     {
         id: 6,
@@ -131,7 +139,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '210',
         registrationFeeOutside: '250',
         teamSize: '3',
-        day: 1
+        day: 1,
+        facultyCoordinators: ['Rupanwita Das Mahapatra'],
+        studentCoordinators: ['Sumanto Roy']
     },
     {
         id: 7,
@@ -148,11 +158,13 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '280',
         registrationFeeOutside: '320',
         teamSize: '4',
-        day: 1
+        day: 1,
+        facultyCoordinators: ['Hasim Sir', 'Apurba Pal'],
+        studentCoordinators: ['Toufik Islam']
     },
     {
         id: 8,
-        title: 'Circuitronics',
+        title: 'Electrifying Circuits',
         date: 'MARCH 27TH',
         category: 'EEE',
         description: 'Students race against the clock to design, build, and troubleshoot complex circuits.',
@@ -165,7 +177,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '300',
         registrationFeeOutside: '400',
         teamSize: '4',
-        day: 1
+        day: 1,
+        facultyCoordinators: ['Nihar Sir', 'Jeet Banerjee'],
+        studentCoordinators: ['Suraj Rana', 'Somnath Singha Roy']
     },
     {
         id: 9,
@@ -182,7 +196,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '100 / person',
         registrationFeeOutside: '100 / person',
         teamSize: '1-7',
-        day: 1
+        day: 1,
+        facultyCoordinators: ['Anusuya Bera'],
+        studentCoordinators: ['Asmita Di', 'Adityavrdhan']
     },
     {
         id: 10,
@@ -199,7 +215,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '100',
         registrationFeeOutside: '130',
         teamSize: '1',
-        day: 1
+        day: 1,
+        facultyCoordinators: ['Bishal Sir'],
+        studentCoordinators: ['Digant Mishra', 'Suvankar Pramanik']
     },
 
     // ─── DAY 2 EVENTS (MARCH 28TH) ────────────────────────────────
@@ -218,7 +236,8 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '149',
         registrationFeeOutside: '199',
         teamSize: '3',
-        day: 2
+        day: 2,
+        studentCoordinators: ['Preyashee Saha']
     },
     {
         id: 12,
@@ -235,7 +254,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '210',
         registrationFeeOutside: '250',
         teamSize: '3',
-        day: 2
+        day: 2,
+        facultyCoordinators: ['Natraj Mishra', 'N Kumar Sir'],
+        studentCoordinators: ['Soumen Samanta']
     },
     {
         id: 13,
@@ -252,7 +273,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '210',
         registrationFeeOutside: '250',
         teamSize: '3',
-        day: 2
+        day: 2,
+        facultyCoordinators: ['Toufique Ahammad Gazi'],
+        studentCoordinators: ['Baibhab Adhikari']
     },
     {
         id: 14,
@@ -269,7 +292,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '280',
         registrationFeeOutside: '320',
         teamSize: '4',
-        day: 2
+        day: 2,
+        facultyCoordinators: ['Shantanu Sir', 'Argha Sir'],
+        studentCoordinators: ['Arka Gain']
     },
     {
         id: 15,
@@ -286,7 +311,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '210',
         registrationFeeOutside: '250',
         teamSize: '3',
-        day: 2
+        day: 2,
+        facultyCoordinators: ['Rupanwita Das Mahapatra'],
+        studentCoordinators: ['Anurag Biswas']
     },
     {
         id: 16,
@@ -303,7 +330,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '400',
         registrationFeeOutside: '400',
         teamSize: '4',
-        day: 2
+        day: 2,
+        facultyCoordinators: ['Ayushman Bilash Thakur'],
+        studentCoordinators: ['Anubrata Sadukhan']
     },
     {
         id: 17,
@@ -320,7 +349,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '150',
         registrationFeeOutside: '150',
         teamSize: '1',
-        day: 2
+        day: 2,
+        facultyCoordinators: ['Ayushman Bilash Thakur'],
+        studentCoordinators: ['Reyansh Dalui']
     },
     {
         id: 18,
@@ -337,7 +368,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '300',
         registrationFeeOutside: '330',
         teamSize: '3',
-        day: 2
+        day: 2,
+        facultyCoordinators: ['Kausik Sir'],
+        studentCoordinators: ['Arijit De', 'Garima Roy']
     },
     {
         id: 19,
@@ -354,7 +387,9 @@ export const EVENTS_DATA: EventData[] = [
         registrationFeeInHouse: '150',
         registrationFeeOutside: '200',
         teamSize: '1-4',
-        day: 2
+        day: 2,
+        facultyCoordinators: ['Saheb Sir'],
+        studentCoordinators: ['Mrinal', 'Arnab Mondal']
     },
     {
         id: 20,
