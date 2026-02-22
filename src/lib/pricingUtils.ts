@@ -4,36 +4,54 @@ export interface DiscountInfo {
     label: string;
 }
 
+export type DiscountCategory = 'EVENT' | 'VISITOR';
+
 /**
  * Returns the active discount configuration based on current mobile date and time.
- * - Feb 23: 18:00 - 23:59 (6 hours) -> 10% off
- * - Mar 01: 12:00 - 23:59 (12 hours) -> 5% off
- * - Mar 22: 00:00 - 23:59 (24 hours) -> 10% off
  */
-export const getActiveDiscount = (): DiscountInfo | null => {
+export const getActiveDiscount = (category: DiscountCategory = 'EVENT'): DiscountInfo | null => {
     const now = new Date();
     const day = now.getDate();
     const month = now.getMonth() + 1; // 1-indexed (Jan=1, Feb=2...)
     const year = now.getFullYear();
-    const hours = now.getHours();
+    const currentTimeMs = now.getTime();
 
-    // 1. Feb 23rd - 6 hrs (assuming 6:00 PM to 12:00 AM)
-    if (year === 2026 && month === 2 && day === 23) {
-        if (hours >= 18 && hours < 24) {
-            return { discount: 0.10, percentage: 10, label: 'FLASH SALE (6-HOUR)' };
+    const getMs = (m: number, d: number, h: number, min: number = 0) => {
+        return new Date(2026, m - 1, d, h, min).getTime();
+    };
+
+    if (category === 'EVENT') {
+        // 1. Launch Offer – 23rd Feb, 12:00 PM – 6:00 PM (10% OFF)
+        if (currentTimeMs >= getMs(2, 23, 12) && currentTimeMs < getMs(2, 23, 18)) {
+            return { discount: 0.10, percentage: 10, label: 'LAUNCH OFFER (10% OFF)' };
+        }
+
+        // 2. Holi Special – 4th March, 11:00 AM – 11:00 PM (5% OFF)
+        if (currentTimeMs >= getMs(3, 4, 11) && currentTimeMs < getMs(3, 4, 23)) {
+            return { discount: 0.05, percentage: 5, label: 'HOLI FESTIVE SALE (5% OFF)' };
+        }
+
+        // 3. Weekend Special – 15th March, 11:00 AM – 11:00 PM (5% OFF)
+        if (currentTimeMs >= getMs(3, 15, 11) && currentTimeMs < getMs(3, 15, 23)) {
+            return { discount: 0.05, percentage: 5, label: 'WEEKEND BLAST OFFER (5% OFF)' };
+        }
+
+        // 4. Final 24 Hours – 22nd March 12:00 PM to 23rd March 12:00 PM (10% OFF)
+        if (currentTimeMs >= getMs(3, 22, 12) && currentTimeMs < getMs(3, 23, 12)) {
+            return { discount: 0.10, percentage: 10, label: 'LAST CHANCE OFFER (10% OFF)' };
         }
     }
 
-    // 2. 1st March - 12hrs (assuming 12:00 PM to 12:00 AM)
-    if (year === 2026 && month === 3 && day === 1) {
-        if (hours >= 12 && hours < 24) {
-            return { discount: 0.05, percentage: 5, label: 'SPECIAL OFFER (12-HOUR)' };
+    if (category === 'VISITOR') {
+        // 1. Holi sale: 12 hr 10% off
+        if (currentTimeMs >= getMs(3, 4, 11) && currentTimeMs < getMs(3, 4, 23)) {
+            return { discount: 0.10, percentage: 10, label: 'HOLI SALE (10% OFF)' };
         }
-    }
 
-    // 3. 22nd March - 24hrs (Full Day)
-    if (year === 2026 && month === 3 && day === 22) {
-        return { discount: 0.10, percentage: 10, label: 'SUPER SALE (24-HOUR)' };
+        // 2. Last 24 hr sale: 24 hr 10% off
+        if (currentTimeMs >= getMs(3, 22, 12) && currentTimeMs < getMs(3, 23, 12)) {
+            return { discount: 0.10, percentage: 10, label: '24-HOUR SALE (10% OFF)' };
+        }
     }
 
     return null;
@@ -41,11 +59,9 @@ export const getActiveDiscount = (): DiscountInfo | null => {
 
 /**
  * Calculates the price after applying active discounts.
- * @param price The original price
- * @returns The discounted price (rounded down)
  */
-export const calculateDiscountedPrice = (price: number): number => {
-    const offer = getActiveDiscount();
+export const calculateDiscountedPrice = (price: number, category: DiscountCategory = 'EVENT'): number => {
+    const offer = getActiveDiscount(category);
     if (offer) {
         return Math.floor(price * (1 - offer.discount));
     }

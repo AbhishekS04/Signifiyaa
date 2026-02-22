@@ -422,12 +422,12 @@ const DepartmentsEvents = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
     const handleTextLayout = useCallback((e: any) => setTextWidth(e.nativeEvent.layout.width), []);
 
     // Filtered events (memoized)
-    const filteredEvents = useMemo(() =>
-        selectedCategory === 'ALL'
-            ? EVENTS_DATA
-            : EVENTS_DATA.filter(event => event.category === selectedCategory),
-        [selectedCategory],
-    );
+    const filteredEvents = useMemo(() => {
+        const baseEvents = EVENTS_DATA.filter(event => !event.hideFromHome);
+        return selectedCategory === 'ALL'
+            ? baseEvents
+            : baseEvents.filter(event => event.category === selectedCategory);
+    }, [selectedCategory]);
 
     // ─── Filter change (animated transition, NO key-based remount) ─────────────
     const handleFilterChange = useCallback((filter: string) => {

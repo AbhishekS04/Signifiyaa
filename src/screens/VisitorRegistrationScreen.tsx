@@ -22,7 +22,8 @@ import Animated, {
     Easing,
     LinearTransition,
 } from 'react-native-reanimated';
-import { ChevronDown, Check, AlertCircle, X, PartyPopper, Lock, User } from 'lucide-react-native';
+import { ChevronDown, Check, AlertCircle, X, PartyPopper, Lock, User, Copy } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
 import SmoothButton from '../components/ui/SmoothButton';
 import { useAuth } from '../context/AuthContext';
 import { calculateDiscountedPrice, getActiveDiscount } from '../lib/pricingUtils';
@@ -225,7 +226,7 @@ export default function VisitorRegistrationScreen() {
         setIsLoading(true);
         try {
             const baseAmount = passType === 'day1' ? 99 : 149;
-            const amount = calculateDiscountedPrice(baseAmount);
+            const amount = calculateDiscountedPrice(baseAmount, 'VISITOR');
 
             const { error } = await supabase.from('visitor_registration').insert({
                 id: generateUUID(),
@@ -415,15 +416,15 @@ export default function VisitorRegistrationScreen() {
                                 <ShadowDropdown
                                     label="SELECT PASS"
                                     value={passType === 'day1'
-                                        ? `Single Day Pass — ₹${calculateDiscountedPrice(99)}`
-                                        : `Dual Day Pass — ₹${calculateDiscountedPrice(149)}`}
+                                        ? `Single Day Pass — ₹${calculateDiscountedPrice(99, 'VISITOR')}`
+                                        : `Dual Day Pass — ₹${calculateDiscountedPrice(149, 'VISITOR')}`}
                                     options={[
                                         {
-                                            label: `Single Day Pass — ₹${calculateDiscountedPrice(99)} ${getActiveDiscount() ? '(OFFER)' : ''}`,
+                                            label: `Single Day Pass — ₹${calculateDiscountedPrice(99, 'VISITOR')} ${getActiveDiscount('VISITOR') ? '(OFFER)' : ''}`,
                                             value: 'day1'
                                         },
                                         {
-                                            label: `Dual Day Pass — ₹${calculateDiscountedPrice(149)} ${getActiveDiscount() ? '(OFFER)' : ''}`,
+                                            label: `Dual Day Pass — ₹${calculateDiscountedPrice(149, 'VISITOR')} ${getActiveDiscount('VISITOR') ? '(OFFER)' : ''}`,
                                             value: 'dual'
                                         }
                                     ]}
@@ -500,9 +501,21 @@ export default function VisitorRegistrationScreen() {
 
                                 <View className="items-center mb-8">
                                     <View className="p-4 bg-white border-[3px] border-black rounded-[25px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                                        <Image source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=8942837703@ikwik&pn=Signifiya&am=${calculateDiscountedPrice(passType === 'day1' ? 99 : 149)}` }} style={{ width: 220, height: 220, borderRadius: 10 }} />
+                                        <Image source={require('../../assets/QR.webp')} style={{ width: 220, height: 220, borderRadius: 10 }} />
                                     </View>
                                     <Text className="mt-8 text-black font-black text-sm text-center px-4" style={{ fontFamily: FONT_BOLD }}>Scan this QR code with any UPI app to pay.</Text>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            Clipboard.setStringAsync('8100775674-2@ybl');
+                                            showAlert('COPIED', 'UPI ID copied to clipboard!', 'info');
+                                        }}
+                                        className="mt-2 flex-row items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200"
+                                    >
+                                        <Text className="text-gray-500 font-bold text-[10px] text-center" style={{ fontFamily: FONT_BOLD }}>
+                                            UPI ID: 8100775674-2@ybl
+                                        </Text>
+                                        <Copy size={12} color="#6b7280" />
+                                    </TouchableOpacity>
                                 </View>
 
                                 <ShadowInput label="ENTER TRANSACTION / UTR ID" placeholder="Enter 12-digit UTR ID" value={utrId} onChangeText={setUtrId} keyboardType="numeric" subtext={<Text className="text-[#9ca3af] text-[10px]">Usually starts with banking ref no. or 'UPI...'</Text>} />

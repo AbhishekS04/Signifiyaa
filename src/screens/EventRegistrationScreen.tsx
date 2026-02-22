@@ -7,7 +7,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Check, AlertCircle, X, Lock, User } from 'lucide-react-native';
+import { Check, AlertCircle, X, Lock, User, Copy, ChevronDown } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
 import SmoothButton from '../components/ui/SmoothButton';
 import Animated, {
     FadeInDown, Layout, FadeIn,
@@ -27,28 +28,29 @@ const generateUUID = () => {
 
 // ─── Event Data ────────────────────────────────────────────────────────────────
 const AVAILABLE_EVENTS = [
-    { id: 1, name: 'CODING PREMIER LEAGUE', date: 'March 27-28', teamSize: 'Team (1-3)', price: 150 },
-    { id: 2, name: 'HACKATHON 2026', date: 'March 27-28', teamSize: 'Team (2-4)', price: 300 },
-    { id: 3, name: 'ROBO WARS', date: 'March 27-28', teamSize: 'Team (2-5)', price: 200 },
-    { id: 4, name: 'DIL SE DESIGN', date: 'March 27-28', teamSize: 'Solo', price: 100 },
-    { id: 5, name: 'VALORANT TOURNAMENT', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
-    { id: 6, name: 'TECH QUIZ', date: 'March 27-28', teamSize: 'Team (2)', price: 50 },
-    { id: 7, name: 'FREE FIRE', date: 'March 27-28', teamSize: 'Team (4)', price: 400 },
-    { id: 8, name: 'EFOOTBALL TOURNAMENT', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
-    { id: 9, name: 'PATH FOLLOWER', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
-    { id: 10, name: 'BGMI', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
-    { id: 11, name: 'TOWER MAKING', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
-    { id: 12, name: 'RE-FAB', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
-    { id: 13, name: 'PATH FOLLOWER', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
-    { id: 14, name: 'BRIDGE MAKING', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
-    { id: 15, name: 'LATHE WAR', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
-    { id: 16, name: 'ROBO TERRAIN', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
-    { id: 17, name: 'ROBO SOCCER', date: 'March 27-28', teamSize: 'Team (5)', price: 500 },
+    { id: 1, name: 'VALORANT TOURNAMENT', date: 'March 27', teamSize: 'Team (5)', priceInHouse: 500, priceOutside: 500 },
+    { id: 2, name: 'FREE FIRE', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 400, priceOutside: 400 },
+    { id: 3, name: 'CODING PREMIER LEAGUE', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 280, priceOutside: 320 },
+    { id: 4, name: 'REFAB', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 280, priceOutside: 320 },
+    { id: 5, name: 'PATH FOLLOWER', date: 'March 27', teamSize: 'Team (3)', priceInHouse: 210, priceOutside: 250 },
+    { id: 6, name: 'BRIDGE BUILDING', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 280, priceOutside: 320 },
+    { id: 7, name: 'CIRCUITRONICS', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 300, priceOutside: 400 },
+    { id: 8, name: 'DANCE BATTLE', date: 'March 27', teamSize: 'Team (1-7)', priceInHouse: 100, priceOutside: 100 },
+    { id: 9, name: 'ARM WRESTLING', date: 'March 27', teamSize: 'Solo', priceInHouse: 100, priceOutside: 130 },
+    { id: 10, name: 'POWER DEAL', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 149, priceOutside: 199 },
+    { id: 11, name: 'LATHE WAR', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 210, priceOutside: 250 },
+    { id: 12, name: 'DIL SE DESIGN', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 210, priceOutside: 250 },
+    { id: 13, name: 'TOWER MAKING', date: 'March 28', teamSize: 'Team (4)', priceInHouse: 280, priceOutside: 320 },
+    { id: 14, name: 'ROBO TERRAIN', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 210, priceOutside: 250 },
+    { id: 15, name: 'BGMI', date: 'March 28', teamSize: 'Team (4)', priceInHouse: 400, priceOutside: 400 },
+    { id: 16, name: 'E-FOOTBALL', date: 'March 28', teamSize: 'Solo', priceInHouse: 150, priceOutside: 150 },
+    { id: 17, name: 'TREASURE HUNT', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 300, priceOutside: 330 },
+    { id: 18, name: 'RAP BATTLE', date: 'March 28', teamSize: 'Team (1-4)', priceInHouse: 150, priceOutside: 200 },
 ];
 
 // UPI QR placeholder (replace with your actual UPI QR image)
-const UPI_QR_PLACEHOLDER = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=8942837703@ikwik&pn=Signifiya&am=';
-const UPI_ID = '8942837703@ikwik';
+const UPI_QR_PLACEHOLDER = require('../../assets/QR.webp');
+const UPI_ID = '8100775674-2@ybl';
 
 // ─── Fonts ─────────────────────────────────────────────────────────────────────
 const FONT_HEADING = 'BBHBartle';
@@ -109,6 +111,8 @@ const EventRegistrationScreen = () => {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [bookingId, setBookingId] = useState('');
+    const [collegeSelection, setCollegeSelection] = useState('SELECT');
+    const [isCollegeDropdownOpen, setIsCollegeDropdownOpen] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -130,11 +134,12 @@ const EventRegistrationScreen = () => {
 
     const rawTotalPrice = selectedEvents.reduce((sum, id) => {
         const event = AVAILABLE_EVENTS.find(e => e.id === id);
-        return sum + (event ? event.price : 0);
+        const price = collegeSelection === 'Adamas University' ? event?.priceInHouse : event?.priceOutside;
+        return sum + (price || 0);
     }, 0);
 
-    const totalPrice = calculateDiscountedPrice(rawTotalPrice);
-    const activeDiscount = getActiveDiscount();
+    const totalPrice = calculateDiscountedPrice(rawTotalPrice, 'EVENT');
+    const activeDiscount = getActiveDiscount('EVENT');
 
     // ── Step 3: Team Members ──
     const [teamMembers, setTeamMembers] = useState([
@@ -200,7 +205,8 @@ const EventRegistrationScreen = () => {
     const validateLeaderDetails = () => {
         if (!teamName.trim()) { showAlert('MISSING INPUT', 'Please enter your Team Name.', 'error'); return false; }
         if (!leaderName.trim()) { showAlert('MISSING INPUT', "Please enter the Leader's Name.", 'error'); return false; }
-        if (!college.trim()) { showAlert('MISSING INPUT', 'Please enter your College.', 'error'); return false; }
+        if (collegeSelection === 'SELECT') { showAlert('MISSING SELECTION', 'Please select your College.', 'error'); return false; }
+        if (collegeSelection === 'Others' && !college.trim()) { showAlert('MISSING INPUT', 'Please enter your College Name.', 'error'); return false; }
         if (!email.trim()) { showAlert('MISSING INPUT', 'Please enter your Email.', 'error'); return false; }
         if (!phone.trim()) { showAlert('MISSING INPUT', 'Please enter your Phone.', 'error'); return false; }
         if (!bookingId.trim()) { showAlert('MISSING BOOKING ID', 'You must enter your Booking ID to proceed.', 'error'); return false; }
@@ -257,7 +263,7 @@ const EventRegistrationScreen = () => {
                     leaderEmail: email,
                     leaderPhone: phone,
                     leaderBookingId: bookingId || null,
-                    college,
+                    college: collegeSelection === 'Others' ? college : 'Adamas University',
                     totalAmount: totalPrice,
                     status: 'pending',
                     paymentProofUrl: utrId.trim(),
@@ -635,7 +641,80 @@ const EventRegistrationScreen = () => {
                                 <Animated.View entering={FadeInDown} style={{ gap: 14, marginBottom: 8 }}>
                                     <FieldGroup label="TEAM NAME" value={teamName} onChange={setTeamName} placeholder="CODE WARRIORS" />
                                     <FieldGroup label="LEADER NAME" value={leaderName} onChange={setLeaderName} placeholder="JANE DOE" />
-                                    <FieldGroup label="COLLEGE" value={college} onChange={setCollege} placeholder="ADAMAS UNIVERSITY" />
+
+                                    {/* College Selection Dropdown */}
+                                    <View>
+                                        <Text style={[styles.fieldLabel, { fontFamily: 'Softura' }]}>COLLEGE</Text>
+                                        <View style={{ position: 'relative' }}>
+                                            <TouchableOpacity
+                                                onPress={() => setIsCollegeDropdownOpen(!isCollegeDropdownOpen)}
+                                                style={[styles.fieldInputWrap, { height: 48, justifyContent: 'center', paddingHorizontal: 14 }]}
+                                                activeOpacity={0.8}
+                                            >
+                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <Text style={{ fontFamily: 'Gilton', fontSize: 13, color: collegeSelection === 'SELECT' ? '#bbb' : '#111', fontWeight: '600' }}>
+                                                        {collegeSelection}
+                                                    </Text>
+                                                    <ChevronDown color="#000" size={18} style={{ transform: [{ rotate: isCollegeDropdownOpen ? '180deg' : '0deg' }] }} />
+                                                </View>
+                                            </TouchableOpacity>
+
+                                            {isCollegeDropdownOpen && (
+                                                <View style={{
+                                                    position: 'absolute',
+                                                    top: 52,
+                                                    left: 0,
+                                                    right: 0,
+                                                    backgroundColor: 'white',
+                                                    borderWidth: 2,
+                                                    borderColor: 'black',
+                                                    borderRadius: 12,
+                                                    zIndex: 1000,
+                                                    padding: 4,
+                                                    shadowColor: '#000',
+                                                    shadowOffset: { width: 4, height: 4 },
+                                                    shadowOpacity: 1,
+                                                    shadowRadius: 0,
+                                                    elevation: 5
+                                                }}>
+                                                    {['Adamas University', 'Others'].map((option) => (
+                                                        <TouchableOpacity
+                                                            key={option}
+                                                            onPress={() => {
+                                                                setCollegeSelection(option);
+                                                                setIsCollegeDropdownOpen(false);
+                                                                if (option === 'Others' && collegeSelection !== 'Others') {
+                                                                    setCollege('');
+                                                                }
+                                                            }}
+                                                            style={{
+                                                                padding: 12,
+                                                                borderBottomWidth: option === 'Adamas University' ? 1 : 0,
+                                                                borderBottomColor: 'rgba(0,0,0,0.05)',
+                                                                backgroundColor: collegeSelection === option ? '#f8f8f8' : 'white',
+                                                                borderRadius: 8
+                                                            }}
+                                                        >
+                                                            <Text style={{ fontFamily: 'Gilton', fontSize: 13, color: '#111', fontWeight: '600' }}>{option}</Text>
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                </View>
+                                            )}
+                                        </View>
+                                    </View>
+
+                                    {/* Conditional Other College Name Input */}
+                                    {collegeSelection === 'Others' && (
+                                        <Animated.View entering={FadeInDown}>
+                                            <FieldGroup
+                                                label="COLLEGE NAME"
+                                                value={college}
+                                                onChange={setCollege}
+                                                placeholder="ENTER YOUR COLLEGE NAME"
+                                            />
+                                        </Animated.View>
+                                    )}
+
                                     <FieldGroup label="EMAIL" value={email} onChange={setEmail} placeholder="EMAIL@COLLEGE.EDU" keyboardType="email-address" />
                                     <FieldGroup label="PHONE" value={phone} onChange={setPhone} placeholder="9876543210" keyboardType="phone-pad" />
                                     <View>
@@ -668,6 +747,7 @@ const EventRegistrationScreen = () => {
                                             event={event}
                                             selected={selectedEvents.includes(event.id)}
                                             onToggle={() => toggleEvent(event.id)}
+                                            isAdamas={collegeSelection === 'Adamas University'}
                                         />
                                     ))}
                                 </Animated.View>
@@ -715,7 +795,7 @@ const EventRegistrationScreen = () => {
                                                     <Text style={[styles.receiptSummaryEventName, { fontFamily: FONT_BODY }]}>
                                                         {event?.name ? event.name.charAt(0) + event.name.slice(1).toLowerCase() : ''}
                                                     </Text>
-                                                    <Text style={[styles.receiptSummaryPrice, { fontFamily: FONT_BODY }]}>₹{event?.price}</Text>
+                                                    <Text style={[styles.receiptSummaryPrice, { fontFamily: FONT_BODY }]}>₹{collegeSelection === 'Adamas University' ? event?.priceInHouse : event?.priceOutside}</Text>
                                                 </View>
                                             );
                                         })}
@@ -740,19 +820,25 @@ const EventRegistrationScreen = () => {
                                     <View className="items-center mb-8">
                                         <View className="p-4 bg-white border-[3px] border-black rounded-[25px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                                             <Image
-                                                source={{ uri: `${UPI_QR_PLACEHOLDER}${totalPrice}` }}
+                                                source={UPI_QR_PLACEHOLDER}
                                                 style={{ width: 220, height: 220, borderRadius: 10 }}
                                             />
-                                            <View className="absolute top-1/2 left-1/2 ml-[-15px] mt-[-15px] bg-white p-1 rounded-sm border border-gray-100">
-                                                <Image source={{ uri: 'https://i.imgur.com/3g7nmJC.png' }} style={{ width: 24, height: 24 }} />
-                                            </View>
                                         </View>
                                         <Text className="mt-8 text-black font-black text-sm text-center px-4" style={{ fontFamily: FONT_BODY }}>
                                             Scan this QR code with any UPI app to pay.
                                         </Text>
-                                        <Text className="mt-2 text-gray-500 font-bold text-[10px] text-center" style={{ fontFamily: FONT_BODY }}>
-                                            UPI ID: {UPI_ID}
-                                        </Text>
+                                        <TouchableOpacity
+                                            onPress={() => {
+                                                Clipboard.setStringAsync(UPI_ID);
+                                                showAlert('COPIED', 'UPI ID copied to clipboard!', 'info');
+                                            }}
+                                            className="mt-2 flex-row items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200"
+                                        >
+                                            <Text className="text-gray-500 font-bold text-[10px] text-center" style={{ fontFamily: FONT_BODY }}>
+                                                UPI ID: {UPI_ID}
+                                            </Text>
+                                            <Copy size={12} color="#6b7280" />
+                                        </TouchableOpacity>
                                     </View>
 
                                     {/* UTR Input */}
@@ -884,10 +970,11 @@ const SkeletonPulse = () => {
     return <Animated.View style={[animatedStyle, { flex: 1, backgroundColor: 'rgba(0,0,0,0.1)' }]} />;
 };
 
-const EventCard = ({ event, selected, onToggle }: {
-    event: { id: number, name: string, date: string, teamSize: string, price: number },
+const EventCard = ({ event, selected, onToggle, isAdamas }: {
+    event: { id: number, name: string, date: string, teamSize: string, priceInHouse: number, priceOutside: number },
     selected: boolean,
-    onToggle: () => void
+    onToggle: () => void,
+    isAdamas: boolean
 }) => (
     <TouchableOpacity onPress={onToggle} activeOpacity={0.85} style={styles.eventCard}>
         <View style={{ flex: 1 }}>
@@ -895,7 +982,7 @@ const EventCard = ({ event, selected, onToggle }: {
             <Text style={[styles.eventDate, { fontFamily: 'Gilton' }]}>{event.date}</Text>
         </View>
         <View style={[styles.priceBadge, selected && styles.priceBadgeSelected]}>
-            <Text style={[styles.priceText, { fontFamily: 'Softura' }, selected && { color: '#fff' }]}>₹{event.price}</Text>
+            <Text style={[styles.priceText, { fontFamily: 'Softura' }, selected && { color: '#fff' }]}>₹{isAdamas ? event.priceInHouse : event.priceOutside}</Text>
         </View>
     </TouchableOpacity>
 );

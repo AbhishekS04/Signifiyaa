@@ -88,9 +88,20 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                         >
                             <MapPin size={14} color="#ff0000ff" strokeWidth={2.5} style={{ marginRight: 8 }} />
                             <Text className="text-[10px] font-bold uppercase tracking-widest text-black flex-1" style={{ fontFamily: 'monospace' }}>
-                                VENUE: {item.venue || '10k'}
+                                VENUE: {item.venue || 'TBA'}
                             </Text>
                         </View>
+
+                        {/* Team Size (Conditional) */}
+                        {item.teamSize && (
+                            <View className="w-full mt-2">
+                                <View className="bg-[#FFF9C4] border-[2px] border-black rounded-[12px] px-3 py-1.5 shadow-[2px_2px_0px_#000]">
+                                    <Text className="text-[9px] font-bold text-black uppercase" style={{ fontFamily: 'monospace' }}>
+                                        TEAM SIZE: {item.teamSize} MEMBER(S)
+                                    </Text>
+                                </View>
+                            </View>
+                        )}
 
                     </View>
 
