@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
-import { ArrowUpRight, Play } from 'lucide-react-native';
+import { ArrowUpRight } from 'lucide-react-native';
 
 const S = StyleSheet.create({
     fontGilton: { fontFamily: 'Gilton' },
@@ -42,8 +42,8 @@ const NewsletterSupport = React.memo(() => {
                 {/* --- Card 1: Newsletter (Purple) --- */}
                 <View className={`bg-[#E1BEE7] rounded-[30px] pb-12 ${isSmallDevice ? 'p-6' : 'p-8'}`}>
 
-                    {/* Header Typography Mix + Play Icon */}
-                    <View className="mb-4 relative">
+                    {/* Header Typography Mix */}
+                    <View className="mb-4">
                         <Text className={`text-black leading-[0.9] ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
                             <Text style={S.fontGilton}>OUR </Text>
                             <Text style={S.fontGilton}>OFFICIAL</Text>
@@ -54,9 +54,6 @@ const NewsletterSupport = React.memo(() => {
                         <Text className={`text-black leading-[0.9] -mt-1 ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`}>
                             <Text style={S.fontGilton}>PARTNER </Text>
                         </Text>
-                        <View style={{ position: 'absolute', right: 0, top: 20 }}>
-                            <Play size={36} color="black" fill="black" strokeWidth={2} />
-                        </View>
                     </View>
 
                     {/* Subtext */}
