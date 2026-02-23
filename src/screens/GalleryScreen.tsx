@@ -97,43 +97,35 @@ const ListFooter = React.memo(() => (
 
 /* ── memoized marquee — focus-aware, pauses when screen loses focus ── */
 const Marquee = React.memo(({ isFocused }: { isFocused: boolean }) => {
-    const measuredRef = useRef(false);
-    const widthRef = useRef(0);
+    const [measuredWidth, setMeasuredWidth] = useState(0);
     const translateX = useSharedValue(0);
 
     const handleLayout = useCallback((e: any) => {
-        if (measuredRef.current) return;
         const w = e.nativeEvent.layout.width;
-        if (w > 0) {
-            measuredRef.current = true;
-            widthRef.current = w;
-            // Initial start handled by the isFocused effect below
+        // Use a threshold to ensure we don't pick up a truncated width
+        if (w > 50 && measuredWidth === 0) {
+            setMeasuredWidth(w);
         }
-    }, []);
+    }, [measuredWidth]);
 
     useEffect(() => {
-        if (isFocused && widthRef.current > 0) {
+        if (isFocused && measuredWidth > 0) {
+            const duration = measuredWidth * 15; // Slightly faster for better vibe
+
+            translateX.value = 0;
             translateX.value = withRepeat(
-                withTiming(-widthRef.current, { duration: 4000, easing: Easing.linear }),
+                withTiming(-measuredWidth, {
+                    duration: duration,
+                    easing: Easing.linear
+                }),
                 -1,
-                false,
+                false
             );
         } else {
             cancelAnimation(translateX);
         }
         return () => { cancelAnimation(translateX); };
-    }, [isFocused]);
-
-    // Also kick off when width first measured (if focused)
-    useEffect(() => {
-        if (widthRef.current > 0 && isFocused) {
-            translateX.value = withRepeat(
-                withTiming(-widthRef.current, { duration: 4000, easing: Easing.linear }),
-                -1,
-                false,
-            );
-        }
-    }, [widthRef.current]);
+    }, [isFocused, measuredWidth]);
 
     const marqueeStyle = useAnimatedStyle(() => ({
         transform: [{ translateX: translateX.value }],
@@ -142,10 +134,14 @@ const Marquee = React.memo(({ isFocused }: { isFocused: boolean }) => {
     return (
         <View style={s.marqueeOuter}>
             <Animated.View style={[marqueeStyle, s.marqueeRow]}>
-                {/* Hidden copy for measuring one segment */}
-                <Text onLayout={handleLayout} style={[s.marqueeHidden, s.marqueeFont]}>
+                {/* Measuring block - rendered in row to get its natural width */}
+                <Text
+                    onLayout={handleLayout}
+                    style={[s.marqueeFont, s.marqueeText, { position: 'absolute', opacity: 0 }]}
+                >
                     {MARQUEE_TEXT}
                 </Text>
+                {/* Render enough copies to fill screen and allow seamless loop */}
                 {Array.from({ length: MARQUEE_COPIES }).map((_, i) => (
                     <Text key={i} style={[s.marqueeText, s.marqueeFont]}>{MARQUEE_TEXT}</Text>
                 ))}
@@ -389,7 +385,7 @@ const s = StyleSheet.create({
         shadowRadius: 0,
         elevation: 4,
     },
-    marqueeRow: { flexDirection: 'row', width: 2500 },
+    marqueeRow: { flexDirection: 'row', width: 5000, flexWrap: 'nowrap' },
     marqueeHidden: { position: 'absolute', opacity: 0 },
     marqueeText: { color: '#000', fontSize: 18, letterSpacing: 3 },
     marqueeFont: { fontFamily: 'Gilton' },
