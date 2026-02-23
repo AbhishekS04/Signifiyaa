@@ -189,7 +189,7 @@ export const EVENTS_DATA: EventData[] = [
         teamSize: '1/2/3/4/5/6/7',
         day: 1,
         facultyCoordinators: ['Anusuya Bera'],
-        studentCoordinators: ['Asmita Ghosh', 'Aditya vrdhan']
+        studentCoordinators: ['Asmita Ghosh', 'Adityavardhan Singh']
     },
     {
         id: 10,
