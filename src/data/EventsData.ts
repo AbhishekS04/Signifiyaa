@@ -152,7 +152,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '280',
         teamSize: '4',
         day: 1,
-        facultyCoordinators: ['Dr. Hasim Ali Khan', 'Dr . Apurba Paul'],
+        facultyCoordinators: ['Dr. Hasim Ali Khan', 'Dr. Apurba Paul'],
         studentCoordinators: ['Toufik Islam']
     },
     {
@@ -244,7 +244,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '219',
         teamSize: '3',
         day: 2,
-        facultyCoordinators: ['Natraj Mishra', 'N Kumar Sir'],
+        facultyCoordinators: ['Dr. Nataraj Mishra', 'Dr. Nitesh kumar'],
         studentCoordinators: ['Soumen Samanta']
     },
     {
