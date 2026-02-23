@@ -243,7 +243,7 @@ const EventsScreen = () => {
                     maxToRenderPerBatch={6}
                     windowSize={5}
                     onScrollToIndexFailed={(info) => {
-                        const wait = new Promise(resolve => setTimeout(resolve, 500));
+                        const wait = new Promise(resolve => setTimeout(() => resolve(undefined), 500));
                         wait.then(() => {
                             flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
                         });
