@@ -225,7 +225,7 @@ export default function VisitorRegistrationScreen() {
 
         setIsLoading(true);
         try {
-            const baseAmount = passType === 'day1' ? 99 : 149;
+            const baseAmount = passType === 'day1' ? 49 : 79;
             const amount = calculateDiscountedPrice(baseAmount, 'VISITOR');
 
             const { error } = await supabase.from('visitor_registration').insert({
@@ -416,15 +416,15 @@ export default function VisitorRegistrationScreen() {
                                 <ShadowDropdown
                                     label="SELECT PASS"
                                     value={passType === 'day1'
-                                        ? `Single Day Pass — ₹${calculateDiscountedPrice(99, 'VISITOR')}`
-                                        : `Dual Day Pass — ₹${calculateDiscountedPrice(149, 'VISITOR')}`}
+                                        ? `Single Day Pass — ₹${calculateDiscountedPrice(49, 'VISITOR')}`
+                                        : `Dual Day Pass — ₹${calculateDiscountedPrice(79, 'VISITOR')}`}
                                     options={[
                                         {
-                                            label: `Single Day Pass — ₹${calculateDiscountedPrice(99, 'VISITOR')} ${getActiveDiscount('VISITOR') ? '(OFFER)' : ''}`,
+                                            label: `Single Day Pass — ₹${calculateDiscountedPrice(49, 'VISITOR')} ${getActiveDiscount('VISITOR') ? '(OFFER)' : ''}`,
                                             value: 'day1'
                                         },
                                         {
-                                            label: `Dual Day Pass — ₹${calculateDiscountedPrice(149, 'VISITOR')} ${getActiveDiscount('VISITOR') ? '(OFFER)' : ''}`,
+                                            label: `Dual Day Pass — ₹${calculateDiscountedPrice(79, 'VISITOR')} ${getActiveDiscount('VISITOR') ? '(OFFER)' : ''}`,
                                             value: 'dual'
                                         }
                                     ]}
@@ -487,9 +487,9 @@ export default function VisitorRegistrationScreen() {
                                 <View className="bg-[#f3f4f6] border-[2px] border-black rounded-[25px] p-6 mb-10">
                                     <Text className="text-xs font-black text-gray-500 uppercase mb-2" style={{ fontFamily: FONT_BOLD }}>PAYING FOR: {passType === 'day1' ? 'Single Day Pass' : 'Dual Day Pass'}</Text>
                                     <View className="flex-row items-baseline">
-                                        <Text className="text-5xl font-black text-black" style={{ fontFamily: 'Bicubik' }}>₹{calculateDiscountedPrice(passType === 'day1' ? 99 : 149)}</Text>
+                                        <Text className="text-5xl font-black text-black" style={{ fontFamily: 'Bicubik' }}>₹{calculateDiscountedPrice(passType === 'day1' ? 49 : 79)}</Text>
                                         {getActiveDiscount() && (
-                                            <Text className="ml-3 text-xl text-gray-400 line-through" style={{ fontFamily: 'Bicubik' }}>₹{passType === 'day1' ? '99' : '149'}</Text>
+                                            <Text className="ml-3 text-xl text-gray-400 line-through" style={{ fontFamily: 'Bicubik' }}>₹{passType === 'day1' ? '49' : '79'}</Text>
                                         )}
                                     </View>
                                     {getActiveDiscount() && (
