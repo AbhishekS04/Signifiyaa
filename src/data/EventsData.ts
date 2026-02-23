@@ -152,7 +152,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '280',
         teamSize: '4',
         day: 1,
-        facultyCoordinators: ['Hasim Sir', 'Apurba Pal'],
+        facultyCoordinators: ['Dr. Hasim Ali Khan', 'Dr . Apurba Paul'],
         studentCoordinators: ['Toufik Islam']
     },
     {
@@ -244,7 +244,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '219',
         teamSize: '3',
         day: 2,
-        facultyCoordinators: ['Dr. Nataraj Mishra ', 'Dr. Nitesh kumar'],
+        facultyCoordinators: ['Natraj Mishra', 'N Kumar Sir'],
         studentCoordinators: ['Soumen Samanta']
     },
     {
@@ -280,7 +280,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '280',
         teamSize: '4',
         day: 2,
-        facultyCoordinators: ['Shantanu Haldar', 'Argha Kamal Guha'],
+        facultyCoordinators: ['Shantanu Haldar', 'Dr. Argha kamal Guha '],
         studentCoordinators: ['Arka Gain']
     },
     {
