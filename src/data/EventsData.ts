@@ -227,7 +227,7 @@ export const EVENTS_DATA: EventData[] = [
         teamSize: '3',
         day: 2,
         facultyCoordinators: ['Soodipa chakraborty'],
-        studentCoordinators: ['Preyashee Saha']
+        studentCoordinators: ['Preyashee Saha','Archita Khan']
     },
     {
         id: 12,
