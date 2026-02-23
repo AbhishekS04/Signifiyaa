@@ -1,54 +1,77 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
-import { Plus, Minus } from 'lucide-react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
+import { Plus } from 'lucide-react-native';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withSpring,
     withTiming,
-    interpolate,
-    Extrapolation,
+    Easing,
     FadeIn,
-    measure,
-    runOnUI,
-    useAnimatedRef,
-    interpolateColor
+    FadeOut,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-// Note: SmoothButton is NOT used here to allow full control over the accordion layout
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
-const FAQ_FONTS = {
-    QUESTION: 'Softura',
-    ANSWER: 'Gilton'
-};
+// ─── Static constants (module scope) ────────────────────────────────────────────
+const FONT_QUESTION = 'Softura';
+const FONT_ANSWER = 'Gilton';
+const COLOR_INACTIVE = '#E0B0FF';
+const COLOR_ACTIVE = '#FF8A80';
+
+const S = StyleSheet.create({
+    fontQuestion: { fontFamily: FONT_QUESTION },
+    fontAnswer: { fontFamily: FONT_ANSWER },
+    fontGilton: { fontFamily: 'Gilton' },
+    iconCircle: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        borderWidth: 2,
+        borderColor: 'black',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    answerOverflow: { overflow: 'hidden' },
+});
 
 const FAQS = [
-    { id: 1, question: 'WHAT IS SIGNIFIYA?', answer: 'Signifiya is the annual tech fest of the School of Engineering and Technology, Adamas University.' },
-    { id: 2, question: 'HOW DO I GET STARTED?', answer: 'Simply register on the app, browse events, and sign up for the ones you are interested in.' },
-    { id: 3, question: 'IS MY DATA SECURE?', answer: 'Yes, we prioritize user privacy and data security with industry-standard practices.' },
-    { id: 4, question: 'ARE THERE ANY FEES?', answer: 'Most events are free, but some flagship competitions may have a nominal registration fee.' },
-    { id: 5, question: 'HOW CAN I CONTACT SUPPORT?', answer: 'You can reach out to us via the contact section in the app or email us directly.' },
+    { id: 1, question: 'WHAT IS SIGNIFIYA?', answer: 'SIGNIFIYA 2026 is the largest student-driven Techfest of SOET, designed to give students a platform to showcase technical skills, creativity, teamwork, and leadership. It is a two-day event where students compete, collaborate, and learn beyond the classroom.' },
+    { id: 2, question: 'Why should I participate in SIGNIFIYA 2026?', answer: 'Participation in SIGNIFIYA allows students to apply theoretical knowledge in real competitive scenarios, explore interests beyond their core discipline, develop confidence, communication, and leadership skills, gain exposure to inter-college competition and peer learning. It is both a learning experience and a personal growth opportunity.' },
+    { id: 3, question: 'What kind of events can students take part in?', answer: 'Students can participate in technical events such as robotics, coding challenges, circuit design, and core engineering competitions, gaming events including BGMI and Valorant, non-technical events like dance battles, rap battles, treasure hunts, and arm wrestling. This variety ensures opportunities for students from all interests and skill levels.' },
+    { id: 4, question: 'Can students from different branches participate together?', answer: 'Yes. SIGNIFIYA actively encourages interdisciplinary participation. Many events allow or require team participation across different branches, promoting collaboration, coordination, and shared problem-solving.' },
+    { id: 5, question: 'Is SIGNIFIYA beneficial for first-year and non-technical students?', answer: 'Yes. The inclusion of non-technical and cultural events ensures that students from all years and backgrounds can participate, contribute, and feel involved in the fest.' },
+    { id: 6, question: 'Is SIGNIFIYA only for Adamas University students?', answer: 'No. While Adamas University students form the core participant group, SIGNIFIYA is also open to students from other universities, engineering colleges, polytechnics, and schools, making it a large inter-institutional event.' },
 ];
 
-const FAQSection = () => {
+const FAQSection = React.memo(() => {
+    const enterOpacity = useSharedValue(0);
+    const enterTranslateY = useSharedValue(30);
+
+    useEffect(() => {
+        enterOpacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
+        enterTranslateY.value = withSpring(0, { damping: 14, stiffness: 100 });
+    }, []);
+
+    const entranceStyle = useAnimatedStyle(() => ({
+        opacity: enterOpacity.value,
+        transform: [{ translateY: enterTranslateY.value }],
+    }));
+
     return (
+        <Animated.View style={entranceStyle}>
         <Animated.View
             className="bg-[#F3E5F5] rounded-[30px] px-6 py-10 mb-10 mx-2 border-2 border-black"
         >
             <View className="mb-8">
                 <Text className={`text-black text-center leading-tight ${isSmallDevice ? 'text-2xl' : 'text-3xl'}`}
-                    style={{
-                        fontFamily: FAQ_FONTS.QUESTION,
-                    }}
+                    style={S.fontQuestion}
                 >FREQUENTLY ASKED QUESTIONS</Text>
 
                 <Text className="text-gray-500 text-center leading-5 pr-6 pl-2 pt-5 pb-5"
-                    style={{
-                        fontFamily: 'Gilton',
-                    }}>
+                    style={S.fontGilton}>
                     <Text className='text-red-500'>Got questions</Text>
                     <Text className='text-red-500'>? </Text>
 
@@ -59,71 +82,57 @@ const FAQSection = () => {
                 </Text>
             </View>
 
-            {/* Intermediate List Container - Matches Parent physics for smooth propagation */}
-            <Animated.View
-                className="gap-4"
-            >
-                {FAQS.map((faq, index) => (
-                    <Animated.View
-                        key={faq.id}
-                    >
-                        <AccordionItem question={faq.question} answer={faq.answer} />
-                    </Animated.View>
+            <Animated.View className="gap-4">
+                {FAQS.map((faq) => (
+                    <AccordionItem key={faq.id} question={faq.question} answer={faq.answer} />
                 ))}
             </Animated.View>
         </Animated.View>
+        </Animated.View>
     );
-};
+});
 
-const AccordionItem = ({ question, answer }: { question: string, answer: string }) => {
+// ─── Layout transition configs (module scope) ──────────────────────────────────
+const ANSWER_ENTER = FadeIn.duration(150).delay(50);
+const ANSWER_EXIT = FadeOut.duration(150);
+
+const AccordionItem = React.memo(({ question, answer }: { question: string; answer: string }) => {
     const [isOpen, setIsOpen] = useState(false);
 
-    // Animation Values
     const rotation = useSharedValue(0);
-    const buttonOffset = useSharedValue(-4); // Initial depth
+    const buttonOffset = useSharedValue(-4);
 
-    const toggleOpen = () => {
-        const nextState = !isOpen;
-        setIsOpen(nextState);
+    const toggleOpen = useCallback(() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setIsOpen((prev) => {
+            const nextState = !prev;
 
-        if (nextState) {
-            // Rotate 45deg to turn Plus into Cross (X)
-            rotation.value = withSpring(45, { damping: 12, stiffness: 120 });
-            buttonOffset.value = withSpring(0, { damping: 15, stiffness: 150 }); // Press down
-        } else {
-            rotation.value = withSpring(0, { damping: 12, stiffness: 120 });
-            buttonOffset.value = withSpring(-4, { damping: 15, stiffness: 150 }); // Pop up
-        }
-    };
+            if (nextState) {
+                rotation.value = withSpring(45, { damping: 12, stiffness: 120 });
+                buttonOffset.value = withSpring(0, { damping: 15, stiffness: 150 });
+            } else {
+                rotation.value = withSpring(0, { damping: 12, stiffness: 120 });
+                buttonOffset.value = withSpring(-4, { damping: 15, stiffness: 150 });
+            }
+            return nextState;
+        });
+    }, [rotation, buttonOffset]);
 
     const iconStyle = useAnimatedStyle(() => ({
-        transform: [{ rotate: `${rotation.value}deg` }]
+        transform: [{ rotate: `${rotation.value}deg` }],
     }));
 
-    // Interpolate color based on rotation (0 to 45)
-    const iconContainerStyle = useAnimatedStyle(() => {
-        const backgroundColor = interpolateColor(
-            rotation.value,
-            [0, 45],
-            ['#E0B0FF', '#FF8A80'] // Purple -> Red
-        );
-        return { backgroundColor };
-    });
+    // Discrete color switch — avoids per-frame interpolateColor math
+    const iconContainerStyle = useAnimatedStyle(() => ({
+        backgroundColor: rotation.value > 22.5 ? COLOR_ACTIVE : COLOR_INACTIVE,
+    }));
 
     const cardStyle = useAnimatedStyle(() => ({
-        transform: [{ translateY: buttonOffset.value }]
+        transform: [{ translateY: buttonOffset.value }],
     }));
 
-    // CHILD PHYSICS: Fast and Crisp (Stiffness 250, Damping 30)
-    // Ensures child shrinks BEFORE parent collapses to prevent clipping, but with minimal bounce.
-
     return (
-        // OUTER CONTAINER (Shadow)
-        <Animated.View
-            className="relative mb-3 bg-black rounded-xl"
-        >
-            {/* INNER CONTAINER (White Card) */}
+        <Animated.View className="relative mb-3 bg-black rounded-xl">
             <Animated.View
                 className="bg-white border-[3px] border-black rounded-xl overflow-hidden"
                 style={cardStyle}
@@ -135,40 +144,27 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
                 >
                     <Text
                         className="text-lg text-black w-[80%] leading-6 uppercase"
-                        style={{ fontFamily: FAQ_FONTS.QUESTION }}
+                        style={S.fontQuestion}
                     >
                         {question}
                     </Text>
 
-                    <Animated.View style={[
-                        {
-                            width: 32,
-                            height: 32,
-                            borderRadius: 16,
-                            borderWidth: 2,
-                            borderColor: 'black',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        },
-                        iconContainerStyle,
-                        iconStyle
-                    ]}>
+                    <Animated.View style={[S.iconCircle, iconContainerStyle, iconStyle]}>
                         <Plus size={18} color="black" strokeWidth={3} />
                     </Animated.View>
                 </TouchableOpacity>
 
-                {/* Answer Content */}
                 {isOpen && (
                     <Animated.View
-                        entering={FadeIn.duration(150).delay(50)}
-                        exiting={FadeIn.duration(0)}
-                        style={{ overflow: 'hidden' }}
+                        entering={ANSWER_ENTER}
+                        exiting={ANSWER_EXIT}
+                        style={S.answerOverflow}
                     >
                         <View className="px-5 pb-5 pt-0">
                             <View className="border-t-[1px] border-black/10 pt-4">
                                 <Text
                                     className="text-gray-800 text-base leading-6"
-                                    style={{ fontFamily: FAQ_FONTS.ANSWER }}
+                                    style={S.fontAnswer}
                                 >
                                     {answer}
                                 </Text>
@@ -179,6 +175,6 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
             </Animated.View>
         </Animated.View>
     );
-};
+});
 
 export default FAQSection;

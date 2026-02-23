@@ -1,32 +1,46 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import {
     View,
     Text,
     TextInput,
     TouchableOpacity,
     Platform,
+    Modal,
+    ScrollView,
+    Image,
+    Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Animated, {
-    FadeInUp,
     FadeInDown,
     FadeIn,
     ZoomIn,
     useSharedValue,
     useAnimatedStyle,
     withTiming,
-    withRepeat,
     Easing,
     LinearTransition,
 } from 'react-native-reanimated';
-import { ChevronDown, Check } from 'lucide-react-native';
+import { ChevronDown, Check, AlertCircle, X, PartyPopper } from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
+import { useAuth } from '../context/AuthContext';
+import { calculateDiscountedPrice, getActiveDiscount } from '../lib/pricingUtils';
+
+// Helper to generate UUID if DB default is missing
+const generateUUID = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
+};
 
 const FONT_MAIN = 'Gilton';
 const FONT_BOLD = 'Gilton';
 
 // Helper Components
-const ShadowInput = ({ label, placeholder, value, onChangeText, subtext, editable = true }: any) => (
+const ShadowInput = ({ label, placeholder, value, onChangeText, subtext, editable = true, keyboardType = 'default', multiline = false, numberOfLines = 1 }: any) => (
     <View className="mb-5">
         <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>
             {label}
@@ -50,8 +64,11 @@ const ShadowInput = ({ label, placeholder, value, onChangeText, subtext, editabl
                 placeholder={placeholder}
                 placeholderTextColor="#9ca3af"
                 editable={editable}
-                className="w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-white"
-                style={{ fontFamily: FONT_MAIN, color: 'black' }}
+                keyboardType={keyboardType}
+                multiline={multiline}
+                numberOfLines={numberOfLines}
+                className={`w-full border-[2.5px] border-black rounded-xl px-4 py-3 text-sm bg-white ${multiline ? 'min-h-[80px] pt-3' : ''}`}
+                style={{ fontFamily: FONT_MAIN, color: 'black', textAlignVertical: multiline ? 'top' : 'center' }}
             />
         </View>
         {subtext && (
@@ -62,21 +79,67 @@ const ShadowInput = ({ label, placeholder, value, onChangeText, subtext, editabl
     </View>
 );
 
+const ShadowDropdown = ({ label, value, options, onSelect, isOpen, setIsOpen }: any) => (
+    <View className="mb-5 flex-1">
+        <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>
+            {label}
+        </Text>
+        <View style={{ position: 'relative' }}>
+            <View style={{ position: 'absolute', top: 4, left: 4, right: -4, bottom: -4, backgroundColor: 'black', borderRadius: 12, zIndex: -1 }} />
+            <View className="overflow-hidden bg-white border-[2.5px] border-black rounded-xl">
+                <TouchableOpacity
+                    onPress={() => setIsOpen(!isOpen)}
+                    className="w-full px-4 py-3 flex-row justify-between items-center"
+                    activeOpacity={0.8}
+                >
+                    <Text className="text-[13px] uppercase" style={{ fontFamily: 'Gilton' }}>
+                        {value || 'SELECT'}
+                    </Text>
+                    <ChevronDown
+                        color="black"
+                        size={18}
+                        style={{ transform: [{ rotate: isOpen ? '180deg' : '0deg' }] }}
+                    />
+                </TouchableOpacity>
+
+                {isOpen && (
+                    <View className="border-t-[1.5px] border-black/10 bg-gray-50/50 max-h-40">
+                        <ScrollView nestedScrollEnabled>
+                            {options.map((option: any) => (
+                                <TouchableOpacity
+                                    key={option.value || option}
+                                    onPress={() => {
+                                        onSelect(option.value || option);
+                                        setIsOpen(false);
+                                    }}
+                                    className="px-4 py-3 border-b border-black/5"
+                                >
+                                    <Text className="text-[13px] uppercase" style={{ fontFamily: 'Gilton' }}>{option.label || option}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
+            </View>
+        </View>
+    </View>
+);
+
 interface VisitorRegistrationFormProps {
     onBack: () => void;
 }
 
 export default function VisitorRegistrationForm({ onBack }: VisitorRegistrationFormProps) {
     const navigation = useNavigation<any>();
-    const [step, setStep] = useState(0); // 0: Details, 1: Payment, 2: Done
-    const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const { user } = useAuth();
 
-    // Dropdown States
-    const [isPassDropdownOpen, setIsPassDropdownOpen] = useState(false);
-    const [isStateDropdownOpen, setIsStateDropdownOpen] = useState(false);
+    const [step, setStep] = useState(0); // 0: Details, 1: Payment, 2: Success
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Form Data
     const [bookingId, setBookingId] = useState('');
+    const [passType, setPassType] = useState('day1');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -84,14 +147,32 @@ export default function VisitorRegistrationForm({ onBack }: VisitorRegistrationF
     const [college, setCollege] = useState('');
     const [address, setAddress] = useState('');
     const [city, setCity] = useState('');
-    const [state, setSelectedState] = useState('West Bengal');
-    const [country, setSelectedCountry] = useState('India');
-    const [passType, setPassType] = useState('Single day pass — ₹49');
+    const [state, setState] = useState('');
+    const [country, setCountry] = useState('India');
+    const [utrId, setUtrId] = useState('');
+
+    // Dropdown States
+    const [isPassDropdownOpen, setIsPassDropdownOpen] = useState(false);
+    const [isStateDropdownOpen, setIsStateDropdownOpen] = useState(false);
+    const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+
+    // Pre-fill from user context
+    useEffect(() => {
+        if (user) {
+            if (user.name) {
+                const names = user.name.split(' ');
+                setFirstName(names[0] || '');
+                setLastName(names.slice(1).join(' ') || '');
+            }
+            if (user.email) setEmail(user.email);
+            if (user.mobileNo) setPhone(user.mobileNo);
+            if (user.collegeName) setCollege(user.collegeName);
+            if (user.bookingId) setBookingId(user.bookingId);
+        }
+    }, [user]);
 
     // Progress Animation
     const progressWidth = useSharedValue(0.33);
-    const liquidAnim = useSharedValue(0);
-
     useEffect(() => {
         const target = step === 0 ? 0.33 : step === 1 ? 0.66 : 1.0;
         progressWidth.value = withTiming(target, {
@@ -100,291 +181,439 @@ export default function VisitorRegistrationForm({ onBack }: VisitorRegistrationF
         });
     }, [step]);
 
-    useEffect(() => {
-        liquidAnim.value = withRepeat(
-            withTiming(40, { duration: 1500, easing: Easing.linear }),
-            -1,
-            false
-        );
-        return () => {
-            liquidAnim.value = 0;
-        };
-    }, []);
-
     const progressBarStyle = useAnimatedStyle(() => ({
         width: `${progressWidth.value * 100}%`,
     }));
 
-    const liquidStyle = useAnimatedStyle(() => ({
-        transform: [{ translateX: liquidAnim.value }],
-    }));
+    // --- Alert State ---
+    const [alertConfig, setAlertConfig] = useState<{ visible: boolean; title: string; message: string; type?: 'error' | 'success' | 'info' }>({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'info'
+    });
 
-    const handleContinue = () => {
-        if (step < 2) {
-            setStep(step + 1);
-        } else {
-            onBack();
+    const showAlert = (title: string, message: string, type: 'error' | 'success' | 'info' = 'error') => {
+        setAlertConfig({ visible: true, title, message, type });
+    };
+
+    const hideAlert = () => {
+        setAlertConfig(prev => ({ ...prev, visible: false }));
+    };
+
+    const validateDetails = () => {
+        if (!bookingId.trim()) { showAlert("Missing Detail", "Booking ID is required."); return false; }
+        if (!firstName.trim()) { showAlert("Missing Detail", "First Name is required."); return false; }
+        if (!lastName.trim()) { showAlert("Missing Detail", "Last Name is required."); return false; }
+        if (!email.trim() || !email.includes('@')) { showAlert("Invalid Email", "Please enter a valid email address."); return false; }
+        if (!phone.trim() || phone.length < 10) { showAlert("Invalid Phone", "Please enter a valid 10-digit phone number."); return false; }
+        if (!college.trim()) { showAlert("Missing Detail", "College Name is required."); return false; }
+        if (!address.trim()) { showAlert("Missing Detail", "Address is required."); return false; }
+        if (!city.trim()) { showAlert("Missing Detail", "City is required."); return false; }
+        if (!state) { showAlert("Missing Detail", "Please select a State."); return false; }
+        if (!acceptedTerms) { showAlert("Terms Required", "Please accept the terms and conditions."); return false; }
+        return true;
+    };
+
+    const handleContinueToPayment = () => {
+        if (validateDetails()) {
+            setStep(1);
         }
     };
 
-    const handleBackPress = () => {
-        if (step === 0) {
-            onBack();
-        } else {
-            setStep(step - 1);
+    const handleSubmitPayment = async () => {
+        if (!utrId.trim() || utrId.length < 12) {
+            showAlert("Invalid UTR", "Please enter a valid 12-digit Transaction/UTR ID.");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const baseAmount = passType === 'day1' ? 99 : 149;
+            const amount = calculateDiscountedPrice(baseAmount);
+
+            const { error } = await supabase.from('visitor_registration').insert({
+                id: generateUUID(),
+                name: `${firstName} ${lastName}`.trim(),
+                email: email,
+                phone: phone,
+                college: college,
+                passType: passType,
+                amount: amount,
+                status: 'pending',
+                paymentProofUrl: utrId,
+                bookingId: bookingId, // Saved to legacy field
+                userBookingId: bookingId,
+                userId: user?.id || null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            });
+
+            if (error) {
+                console.error("Supabase Insert Error:", error);
+                throw new Error(error.message);
+            }
+
+            setStep(2);
+        } catch (err: any) {
+            console.error("Save Error:", err);
+            showAlert("Submission Failed", err.message || "Something went wrong while saving your details.", "error");
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    return (
-        <Animated.View
-            entering={ZoomIn.duration(400)}
-            className="w-full bg-white border-[3px] border-black rounded-[30px] overflow-hidden shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]"
-        >
-            <View className="px-6 py-8">
-                {/* Return Button */}
-                <View className="mb-6">
-                    <SmoothButton
-                        onPress={handleBackPress}
-                        buttonStyle="bg-[#FFEB3B] border-[2.5px] border-black rounded-xl py-3 px-5"
-                        shadowStyle="bg-black rounded-xl"
-                        depth={5}
-                    >
-                        <View className="flex-row items-center justify-center">
-                            <Text className="text-[17px] mr-2" style={{ fontFamily: FONT_BOLD }}>←</Text>
-                            <Text className="text-[12px] uppercase" style={{ fontFamily: FONT_BOLD }}>{step === 0 ? 'Back' : 'Previous'}</Text>
-                        </View>
-                    </SmoothButton>
-                </View>
+    const handleReturnHome = () => {
+        onBack();
+    };
 
-                {/* Title Section */}
-                <View className="mb-8">
-                    <Text className="text-4xl text-black leading-none" style={{ fontFamily: 'Bicubik' }}>VISITOR</Text>
-                    <Text className="text-4xl text-[#9C27B0] leading-[38px]" style={{ fontFamily: 'Bicubik' }}>REGISTRATION.</Text>
-                </View>
+    const handleGoToProfile = () => {
+        navigation.navigate('Main', { screen: 'Profile' });
+    };
 
-                {/* Progress Bar */}
-                <View className="mb-8">
-                    <View className="w-full h-5 bg-white border-[2.5px] border-black rounded-full overflow-hidden flex-row">
-                        <Animated.View
-                            style={[
-                                progressBarStyle,
-                                {
-                                    height: '100%',
-                                    backgroundColor: '#1a1a1a',
-                                    position: 'relative',
-                                    overflow: 'hidden'
-                                }
-                            ]}
-                        >
-                            <Animated.View
-                                style={[
-                                    liquidStyle,
-                                    {
-                                        flexDirection: 'row',
-                                        height: '100%',
-                                        opacity: 0.3
-                                    }
-                                ]}
+    const INDIAN_STATES = ["West Bengal"];
+
+    if (step === 2) {
+        return (
+            <View className="flex-1 bg-black">
+                <Animated.View entering={FadeIn.duration(400)} className="flex-1 bg-white border-[3px] border-black rounded-[35px] overflow-hidden shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] m-2">
+                    <View className="px-6 py-10 items-center">
+                        <View className="mb-6">
+                            <SmoothButton
+                                onPress={handleReturnHome}
+                                buttonStyle="bg-[#FFEB3B] border-[2px] border-black rounded-lg py-2 px-4"
+                                shadowStyle="bg-black rounded-lg"
+                                depth={4}
                             >
-                                {[...Array(40)].map((_, i) => (
-                                    <View
-                                        key={i}
-                                        style={{
-                                            width: 12,
-                                            height: '100%',
-                                            backgroundColor: 'white',
-                                            marginRight: 10,
-                                            transform: [{ skewX: '-25deg' }]
-                                        }}
-                                    />
-                                ))}
-                            </Animated.View>
-                        </Animated.View>
-                    </View>
-                    <View className="flex-row justify-between mt-3 px-1">
-                        {['DETAILS', 'PAYMENT', 'DONE'].map((label, i) => (
-                            <Text
-                                key={label}
-                                className={`text-[11px] uppercase ${step >= i ? 'text-black' : 'text-gray-300'}`}
-                                style={{ fontFamily: 'Gilton' }}
-                            >
-                                {label}
-                            </Text>
-                        ))}
-                    </View>
-                </View>
-
-                {/* Message Box */}
-                <Animated.View layout={LinearTransition.duration(400)} className="relative mb-8">
-                    <View style={{ position: 'absolute', top: 5, left: 5, width: '100%', height: '100%', backgroundColor: 'black', borderRadius: 20 }} />
-                    <View className="bg-[#D1E9FF] border-[2.5px] border-black rounded-[20px] p-5 flex-row items-center">
-                        <Text className="text-lg mr-3">📣</Text>
-                        <Text className="text-[13px] uppercase leading-4 flex-1" style={{ fontFamily: 'Gilton' }}>
-                            HEY THERE! FILL IN YOUR DETAILS TO GET STARTED.
-                        </Text>
-                    </View>
-                </Animated.View>
-
-                {/* Form Content */}
-                {step === 0 && (
-                    <Animated.View entering={FadeInDown.duration(400)} layout={LinearTransition.duration(400)}>
-                        <ShadowInput
-                            label="YOUR BOOKING ID"
-                            placeholder="SGF26-XXXXXXXX"
-                            value={bookingId}
-                            onChangeText={setBookingId}
-                            subtext={
-                                <Text style={{ fontFamily: FONT_MAIN, fontSize: 10, color: '#6b7280', lineHeight: 14 }}>
-                                    Find it in <Text onPress={() => navigation.navigate('Main', { screen: 'Profile' })} style={{ fontFamily: FONT_BOLD, color: '#3B82F6', textDecorationLine: 'underline' }}>Profile</Text>. Sign in and visit Profile first if you don't have one.
-                                </Text>
-                            }
-                        />
-
-                        {/* PASS SELECTOR */}
-                        <View className="mb-5">
-                            <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>
-                                SELECT PASS
-                            </Text>
-                            <Animated.View layout={LinearTransition.duration(400)} style={{ position: 'relative' }}>
-                                <View style={{ position: 'absolute', top: 4, left: 4, right: -4, bottom: -4, backgroundColor: 'black', borderRadius: 12, zIndex: -1 }} />
-                                <View className="overflow-hidden bg-white border-[2.5px] border-black rounded-xl">
-                                    <TouchableOpacity
-                                        onPress={() => setIsPassDropdownOpen(!isPassDropdownOpen)}
-                                        className="w-full px-4 py-3 flex-row justify-between items-center"
-                                        activeOpacity={0.8}
-                                    >
-                                        <Text className="text-[13px]" style={{ fontFamily: 'Gilton' }}>{passType}</Text>
-                                        <ChevronDown
-                                            color="black"
-                                            size={18}
-                                            style={{ transform: [{ rotate: isPassDropdownOpen ? '180deg' : '0deg' }] }}
-                                        />
-                                    </TouchableOpacity>
-
-                                    {isPassDropdownOpen && (
-                                        <View className="border-t-[1.5px] border-black/10 bg-gray-50/50">
-                                            {['Single day pass — ₹49', 'Dual day pass — ₹79'].map((type) => (
-                                                <TouchableOpacity
-                                                    key={type}
-                                                    onPress={() => {
-                                                        setPassType(type);
-                                                        setIsPassDropdownOpen(false);
-                                                    }}
-                                                    className="px-4 py-3 border-b border-black/5"
-                                                >
-                                                    <Text className="text-[13px]" style={{ fontFamily: 'Gilton' }}>{type}</Text>
-                                                </TouchableOpacity>
-                                            ))}
-                                        </View>
-                                    )}
-                                </View>
-                            </Animated.View>
+                                <Text className="text-[10px] font-black" style={{ fontFamily: FONT_BOLD }}>← RETURN HOME</Text>
+                            </SmoothButton>
                         </View>
 
-                        <View className="flex-row gap-4">
-                            <View className="flex-1">
-                                <ShadowInput label="FIRST NAME" placeholder="Abhishek" value={firstName} onChangeText={setFirstName} />
-                            </View>
-                            <View className="flex-1">
-                                <ShadowInput label="LAST NAME" placeholder="Singh" value={lastName} onChangeText={setLastName} />
-                            </View>
+                        <View className="mb-10 items-start w-full">
+                            <Text className="text-4xl text-black leading-none" style={{ fontFamily: 'Bicubik' }}>VISITOR</Text>
+                            <Text className="text-4xl text-[#9C27B0] leading-[38px]" style={{ fontFamily: 'Bicubik' }}>REGISTRATION.</Text>
                         </View>
 
-                        <ShadowInput label="EMAIL ADDRESS" placeholder="signifiya@gmail.com" value={email} onChangeText={setEmail} />
-                        <ShadowInput label="PHONE NUMBER" placeholder="9883511660" value={phone} onChangeText={setPhone} />
-                        <ShadowInput label="COLLEGE NAME" placeholder="Adamas University" value={college} onChangeText={setCollege} />
-                        <ShadowInput label="ADDRESS" placeholder="STREET, AREA" value={address} onChangeText={setAddress} />
-                        <ShadowInput label="CITY" placeholder="Kolkata" value={city} onChangeText={setCity} />
-
-                        <View className="flex-row gap-4">
-                            {/* STATE SELECTOR */}
-                            <View className="flex-1">
-                                <Text className="text-[10px] uppercase mb-1.5 tracking-widest pl-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>
-                                    STATE
-                                </Text>
-                                <Animated.View layout={LinearTransition.duration(400)} style={{ position: 'relative' }}>
-                                    <View style={{ position: 'absolute', top: 4, left: 4, right: -4, bottom: -4, backgroundColor: 'black', borderRadius: 12, zIndex: -1 }} />
-                                    <View className="overflow-hidden bg-white border-[2.5px] border-black rounded-xl">
-                                        <TouchableOpacity
-                                            onPress={() => setIsStateDropdownOpen(!isStateDropdownOpen)}
-                                            className="w-full px-4 py-3 flex-row justify-between items-center"
-                                        >
-                                            <Text className="text-[13px]" style={{ fontFamily: 'Gilton' }}>{state}</Text>
-                                            <ChevronDown size={14} color="black" style={{ transform: [{ rotate: isStateDropdownOpen ? '180deg' : '0deg' }] }} />
-                                        </TouchableOpacity>
-                                        {isStateDropdownOpen && (
-                                            <View className="border-t-[1.5px] border-black/10">
-                                                {['West Bengal', 'Others'].map(s => (
-                                                    <TouchableOpacity key={s} onPress={() => { setSelectedState(s); setIsStateDropdownOpen(false); }} className="px-4 py-2 border-b border-black/5">
-                                                        <Text className="text-[13px]" style={{ fontFamily: 'Gilton' }}>{s}</Text>
-                                                    </TouchableOpacity>
-                                                ))}
-                                            </View>
-                                        )}
+                        {/* Progress Bar */}
+                        <View className="w-full mb-10">
+                            <View className="w-full h-4 bg-white border-[2px] border-black rounded-full overflow-hidden">
+                                <Animated.View style={[progressBarStyle, { height: '100%', backgroundColor: 'black' }]}>
+                                    <View style={{ flexDirection: 'row', height: '100%', opacity: 0.15 }}>
+                                        {[...Array(40)].map((_, i) => (
+                                            <View key={i} style={{ width: 6, height: '100%', backgroundColor: 'white', marginRight: 8, transform: [{ skewX: '-25deg' }] }} />
+                                        ))}
                                     </View>
                                 </Animated.View>
                             </View>
-
-                            {/* FIXED COUNTRY */}
-                            <View className="flex-1">
-                                <ShadowInput label="COUNTRY" placeholder="India" value={country} editable={false} />
+                            <View className="flex-row justify-between mt-2 px-1">
+                                {['DETAILS', 'PAYMENT', 'DONE'].map((label, i) => (
+                                    <Text key={label} className="text-[9px] font-black text-black" style={{ fontFamily: FONT_BOLD }}>{label}</Text>
+                                ))}
                             </View>
                         </View>
 
-                        {/* Terms Checkbox */}
-                        <TouchableOpacity
-                            onPress={() => setAcceptedTerms(!acceptedTerms)}
-                            className="flex-row items-center mt-3 mb-8 bg-gray-50 border-[1.5px] border-dashed border-gray-300 rounded-xl p-4"
-                        >
-                            <View className={`w-6 h-6 rounded-full border-2 border-black items-center justify-center mr-3 ${acceptedTerms ? 'bg-black' : 'bg-white'}`}>
-                                {acceptedTerms && <Check color="white" size={14} strokeWidth={4} />}
+                        <View className="items-center mb-10">
+                            <View className="w-24 h-24 bg-[#00e676] rounded-full items-center justify-center border-[3px] border-black shadow-[0_0_20px_rgba(0,230,118,0.5)]">
+                                <PartyPopper color="white" size={48} />
                             </View>
-                            <Text className="text-[11px] uppercase font-black tracking-tighter" style={{ fontFamily: FONT_BOLD }}>
-                                I ACCEPT THE TERMS AND CONDITIONS
-                            </Text>
-                        </TouchableOpacity>
-                    </Animated.View>
-                )}
-
-                {step === 1 && (
-                    <Animated.View entering={FadeInDown.duration(600)} layout={LinearTransition.duration(400)} className="items-center py-10">
-                        <Text className="text-xl text-center mb-6" style={{ fontFamily: 'Gilton' }}>Payment Summary</Text>
-                        <View className="w-full bg-[#F5E6FA] border-[2.5px] border-black rounded-2xl p-6 items-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                            <Text className="text-[11px] uppercase mb-2" style={{ fontFamily: 'Gilton' }}>Total Amount</Text>
-                            <Text className="text-5xl" style={{ fontFamily: 'Bicubik' }}>
-                                {passType.includes('79') ? '₹79.00' : '₹49.00'}
-                            </Text>
                         </View>
-                    </Animated.View>
-                )}
 
-                {step === 2 && (
-                    <Animated.View entering={FadeInDown.duration(600)} layout={LinearTransition.duration(400)} className="items-center py-10">
-                        <View className="w-20 h-20 bg-green-500 rounded-full items-center justify-center border-[3px] border-black mb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                            <Check color="white" size={40} strokeWidth={4} />
+                        <Text className="text-4xl text-black text-center mb-6" style={{ fontFamily: 'Bicubik' }}>THANK YOU!</Text>
+
+                        <Text className="text-center px-4 mb-4" style={{ fontFamily: FONT_MAIN, fontSize: 16, color: 'black', lineHeight: 22 }}>
+                            Thank You for Registering. We will review and send your pass to your email soon.
+                        </Text>
+                        <Text className="text-center px-4 mb-10 text-gray-500" style={{ fontFamily: FONT_MAIN, fontSize: 13 }}>
+                            You can also check your <Text onPress={handleGoToProfile} style={{ fontFamily: FONT_BOLD, color: 'black', textDecorationLine: 'underline' }}>Profile</Text> section for ticket status.
+                        </Text>
+
+                        <View className="w-full gap-4">
+                            <SmoothButton
+                                onPress={handleReturnHome}
+                                buttonStyle="bg-black py-5 rounded-2xl items-center justify-center border-[2px] border-black"
+                                shadowStyle="bg-gray-400 rounded-2xl top-1 left-1"
+                                depth={0}
+                            >
+                                <Text className="text-white font-black uppercase tracking-[2px] text-sm">RETURN HOME</Text>
+                            </SmoothButton>
+
+                            <SmoothButton
+                                onPress={handleGoToProfile}
+                                buttonStyle="bg-white py-5 rounded-2xl items-center justify-center border-[2px] border-black"
+                                shadowStyle="bg-black rounded-2xl top-1.5 left-1.5"
+                                depth={0}
+                            >
+                                <Text className="text-black font-black uppercase tracking-[2px] text-sm">GO TO PROFILE</Text>
+                            </SmoothButton>
                         </View>
-                        <Text className="text-3xl text-center mb-3" style={{ fontFamily: 'Bicubik' }}>SUCCESS!</Text>
-                        <Text className="text-center text-gray-700 px-8 text-[14px]" style={{ fontFamily: 'Gilton' }}>
-                            Your visitor registration is complete. Welcome to Signifiya'26!
-                        </Text>
-                    </Animated.View>
-                )}
-
-                {/* Continue Button */}
-                <View className="mt-8">
-                    <SmoothButton
-                        onPress={handleContinue}
-                        buttonStyle={`${step === 0 ? 'bg-black' : step === 1 ? 'bg-[#9C27B0]' : 'bg-green-600'} rounded-[24px] py-5 items-center justify-center border-[2.5px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]`}
-                        shadowStyle="bg-black rounded-[24px]"
-                        depth={7}
-                        disabled={step === 0 && !acceptedTerms}
-                    >
-                        <Text className="text-white text-[18px] uppercase tracking-widest" style={{ fontFamily: 'Gilton' }}>
-                            {step === 0 ? 'Continue to Payment' : step === 1 ? 'Confirm Payment' : 'Finish'} →
-                        </Text>
-                    </SmoothButton>
-                </View>
+                    </View>
+                </Animated.View>
             </View>
-        </Animated.View>
+        );
+    }
+
+    return (
+        <ScrollView
+            className="flex-1 bg-black"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 40 }}
+        >
+            <Animated.View
+                entering={FadeInDown.duration(400)}
+                className="w-full bg-white border-[3px] border-black rounded-[35px] overflow-hidden shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]"
+            >
+                <View className="px-6 py-8">
+                    {/* Header Return Button */}
+                    <View className="mb-6">
+                        <SmoothButton
+                            onPress={step === 0 ? handleReturnHome : () => setStep(0)}
+                            buttonStyle="bg-[#FFEB3B] border-[2px] border-black rounded-lg py-2 px-4"
+                            shadowStyle="bg-black rounded-lg"
+                            depth={4}
+                        >
+                            <Text className="text-[10px] font-black" style={{ fontFamily: FONT_BOLD }}>← RETURN HOME</Text>
+                        </SmoothButton>
+                    </View>
+
+                    {/* Title Section */}
+                    <View className="mb-10">
+                        <Text className="text-4xl text-black leading-none" style={{ fontFamily: 'Bicubik' }}>VISITOR</Text>
+                        <Text className="text-4xl text-[#9C27B0] leading-[38px]" style={{ fontFamily: 'Bicubik' }}>REGISTRATION.</Text>
+                    </View>
+
+                    {/* Progress Bar */}
+                    <View className="mb-10">
+                        <View className="w-full h-4 bg-white border-[2px] border-black rounded-full overflow-hidden">
+                            <Animated.View style={[progressBarStyle, { height: '100%', backgroundColor: 'black' }]}>
+                                <View style={{ flexDirection: 'row', height: '100%', opacity: 0.15 }}>
+                                    {[...Array(40)].map((_, i) => (
+                                        <View key={i} style={{ width: 6, height: '100%', backgroundColor: 'white', marginRight: 8, transform: [{ skewX: '-25deg' }] }} />
+                                    ))}
+                                </View>
+                            </Animated.View>
+                        </View>
+                        <View className="flex-row justify-between mt-2 px-1">
+                            {['DETAILS', 'PAYMENT', 'DONE'].map((label, i) => (
+                                <Text key={label} className={`text-[9px] font-black ${step >= i ? 'text-black' : 'text-gray-300'}`} style={{ fontFamily: FONT_BOLD }}>{label}</Text>
+                            ))}
+                        </View>
+                    </View>
+
+                    {step === 0 ? (
+                        <Animated.View entering={FadeInDown.duration(400)}>
+                            {/* Alert Box */}
+                            <View className="relative mb-8">
+                                <View style={{ position: 'absolute', top: 5, left: 5, width: '100%', height: '100%', backgroundColor: 'black', borderRadius: 20 }} />
+                                <View className="bg-[#D1E9FF] border-[2.5px] border-black rounded-[20px] p-5 flex-row items-center">
+                                    <Text className="text-lg mr-3">👋</Text>
+                                    <Text className="text-[12px] uppercase leading-4 flex-1 font-black" style={{ fontFamily: 'Gilton' }}>
+                                        HEY THERE! FILL IN YOUR DETAILS TO GET STARTED.
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <ShadowInput
+                                label="YOUR BOOKING ID"
+                                placeholder="SGF26-XXXXXXXX"
+                                value={bookingId}
+                                onChangeText={setBookingId}
+                                subtext={
+                                    <Text style={{ fontFamily: FONT_MAIN, fontSize: 10, color: '#6b7280', lineHeight: 14 }}>
+                                        Find it in <Text onPress={handleGoToProfile} style={{ fontFamily: FONT_BOLD, color: 'black', textDecorationLine: 'underline' }}>Profile</Text>. Sign in and visit Profile first if you don't have one.
+                                    </Text>
+                                }
+                            />
+
+                            <ShadowDropdown
+                                label="SELECT PASS"
+                                value={passType === 'day1'
+                                    ? `Single Day Pass — ₹${calculateDiscountedPrice(99)}`
+                                    : `Dual Day Pass — ₹${calculateDiscountedPrice(149)}`}
+                                options={[
+                                    {
+                                        label: `Single Day Pass — ₹${calculateDiscountedPrice(99)} ${getActiveDiscount() ? '(OFFER)' : ''}`,
+                                        value: 'day1'
+                                    },
+                                    {
+                                        label: `Dual Day Pass — ₹${calculateDiscountedPrice(149)} ${getActiveDiscount() ? '(OFFER)' : ''}`,
+                                        value: 'dual'
+                                    }
+                                ]}
+                                onSelect={(v: any) => setPassType(v)}
+                                isOpen={isPassDropdownOpen}
+                                setIsOpen={setIsPassDropdownOpen}
+                            />
+
+                            <View className="flex-row gap-4">
+                                <View className="flex-1">
+                                    <ShadowInput label="FIRST NAME" placeholder="JOHN" value={firstName} onChangeText={setFirstName} />
+                                </View>
+                                <View className="flex-1">
+                                    <ShadowInput label="LAST NAME" placeholder="DOE" value={lastName} onChangeText={setLastName} />
+                                </View>
+                            </View>
+
+                            <ShadowInput label="EMAIL ADDRESS" placeholder="JOHN@EXAMPLE.COM" value={email} onChangeText={setEmail} keyboardType="email-address" />
+                            <ShadowInput label="PHONE NUMBER" placeholder="9876543210" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+                            <ShadowInput label="COLLEGE NAME" placeholder="INSTITUTE OF TECHNOLOGY" value={college} onChangeText={setCollege} />
+
+                            <ShadowInput
+                                label="ADDRESS"
+                                placeholder="STREET, AREA"
+                                value={address}
+                                onChangeText={setAddress}
+                                multiline
+                                numberOfLines={3}
+                            />
+
+                            <ShadowInput label="CITY" placeholder="CITY" value={city} onChangeText={setCity} />
+
+                            <View className="flex-row gap-4">
+                                <ShadowDropdown
+                                    label="STATE"
+                                    value={state}
+                                    options={INDIAN_STATES}
+                                    onSelect={(v: any) => setState(v)}
+                                    isOpen={isStateDropdownOpen}
+                                    setIsOpen={setIsStateDropdownOpen}
+                                />
+                                <ShadowDropdown
+                                    label="COUNTRY"
+                                    value={country}
+                                    options={['India', 'Others']}
+                                    onSelect={(v: any) => setCountry(v)}
+                                    isOpen={isCountryDropdownOpen}
+                                    setIsOpen={setIsCountryDropdownOpen}
+                                />
+                            </View>
+
+                            {/* Terms Checkbox */}
+                            <TouchableOpacity
+                                onPress={() => setAcceptedTerms(!acceptedTerms)}
+                                className="flex-row items-center mt-3 mb-8 bg-white border-[2px] border-dashed border-gray-300 rounded-xl p-5"
+                            >
+                                <View className={`w-8 h-8 rounded-full border-[2.5px] border-black items-center justify-center mr-4 ${acceptedTerms ? 'bg-black' : 'bg-white'}`}>
+                                    {acceptedTerms && <Check color="white" size={18} strokeWidth={4} />}
+                                </View>
+                                <Text className="text-[11px] uppercase font-black tracking-tight flex-1" style={{ fontFamily: FONT_BOLD }}>
+                                    I ACCEPT THE TERMS AND CONDITIONS
+                                </Text>
+                            </TouchableOpacity>
+
+                            <SmoothButton
+                                onPress={handleContinueToPayment}
+                                buttonStyle="bg-black py-5 rounded-[24px] items-center justify-center border-[2.5px] border-black"
+                                shadowStyle="bg-[#A855F7] rounded-[24px] top-1.5 left-1.5"
+                                depth={0}
+                            >
+                                <Text className="text-white text-[16px] font-black uppercase tracking-[2px]">
+                                    CONTINUE TO PAYMENT →
+                                </Text>
+                            </SmoothButton>
+                        </Animated.View>
+                    ) : (
+                        <Animated.View entering={FadeInDown.duration(400)}>
+                            <TouchableOpacity onPress={() => setStep(0)} className="mb-6">
+                                <Text className="text-xs font-black uppercase text-gray-400" style={{ fontFamily: FONT_BOLD }}>← EDIT DETAILS</Text>
+                            </TouchableOpacity>
+
+                            {/* Payment Info Box */}
+                            <View className="bg-[#f3f4f6] border-[2px] border-black rounded-[25px] p-6 mb-10">
+                                <Text className="text-xs font-black text-gray-500 uppercase mb-2" style={{ fontFamily: FONT_BOLD }}>PAYING FOR: {passType === 'day1' ? 'Single Day Pass' : 'Dual Day Pass'}</Text>
+                                <View className="flex-row items-baseline">
+                                    <Text className="text-5xl font-black text-black" style={{ fontFamily: 'Bicubik' }}>₹{calculateDiscountedPrice(passType === 'day1' ? 99 : 149)}</Text>
+                                    {getActiveDiscount() && (
+                                        <Text className="ml-3 text-xl text-gray-400 line-through" style={{ fontFamily: 'Bicubik' }}>₹{passType === 'day1' ? 99 : 149}</Text>
+                                    )}
+                                </View>
+                                {getActiveDiscount() && (
+                                    <Text className="mt-2 text-[#9C27B0] font-black text-[10px]" style={{ fontFamily: FONT_BOLD }}>
+                                        {getActiveDiscount()?.label} APPLIED!
+                                    </Text>
+                                )}
+                            </View>
+
+                            {/* QR Code Section */}
+                            <View className="items-center mb-8">
+                                <View className="p-4 bg-white border-[3px] border-black rounded-[25px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                                    <Image
+                                        source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=8942837703@ikwik&pn=Signifiya&am=${calculateDiscountedPrice(passType === 'day1' ? 99 : 149)}` }}
+                                        style={{ width: 220, height: 220, borderRadius: 10 }}
+                                    />
+                                    <View className="absolute top-1/2 left-1/2 ml-[-15px] mt-[-15px] bg-white p-1 rounded-sm border border-gray-100">
+                                        <Image source={{ uri: 'https://i.imgur.com/3g7nmJC.png' }} style={{ width: 24, height: 24 }} />
+                                    </View>
+                                </View>
+                                <Text className="mt-8 text-black font-black text-sm text-center px-4" style={{ fontFamily: FONT_BOLD }}>
+                                    Scan this QR code with any UPI app to pay.
+                                </Text>
+                            </View>
+
+                            <ShadowInput
+                                label="ENTER TRANSACTION / UTR ID"
+                                placeholder="Enter 12-digit UTR ID"
+                                value={utrId}
+                                onChangeText={setUtrId}
+                                keyboardType="numeric"
+                                subtext={
+                                    <Text style={{ fontFamily: FONT_MAIN, fontSize: 10, color: '#9ca3af', lineHeight: 14 }}>
+                                        Usually starts with banking ref no. or 'UPI...'
+                                    </Text>
+                                }
+                            />
+
+                            <View className="mt-8">
+                                <SmoothButton
+                                    onPress={handleSubmitPayment}
+                                    buttonStyle="bg-[#5eead4] py-5 rounded-[24px] items-center justify-center border-[2.5px] border-black"
+                                    shadowStyle="bg-gray-500 rounded-[24px] top-1.5 left-1.5"
+                                    depth={0}
+                                    disabled={isLoading}
+                                >
+                                    <Text className="text-black text-[16px] font-black uppercase tracking-[2px]">
+                                        {isLoading ? 'SUBMITTING...' : 'SUBMIT PAYMENT DETAILS →'}
+                                    </Text>
+                                </SmoothButton>
+                            </View>
+                        </Animated.View>
+                    )}
+                </View>
+            </Animated.View>
+
+            {/* Alert Modal */}
+            <Modal
+                visible={alertConfig.visible}
+                transparent
+                animationType="fade"
+                onRequestClose={hideAlert}
+            >
+                <View className="flex-1 bg-black/50 items-center justify-center p-6">
+                    <Animated.View entering={FadeIn} className="bg-white rounded-3xl border-[3px] border-black w-full max-w-sm overflow-hidden shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
+                        <View className={`p-6 ${alertConfig.type === 'error' ? 'bg-red-100' : alertConfig.type === 'success' ? 'bg-green-100' : 'bg-blue-100'}`}>
+                            <View className="flex-row items-center justify-between mb-4">
+                                <View className="flex-row items-center">
+                                    <AlertCircle color={alertConfig.type === 'error' ? '#DC2626' : '#059669'} size={24} />
+                                    <Text className="text-xl font-bold ml-3" style={{ fontFamily: FONT_BOLD }}>{alertConfig.title}</Text>
+                                </View>
+                                <TouchableOpacity onPress={hideAlert}>
+                                    <X color="black" size={24} />
+                                </TouchableOpacity>
+                            </View>
+                            <Text className="text-sm text-gray-800 leading-5" style={{ fontFamily: FONT_MAIN }}>{alertConfig.message}</Text>
+                        </View>
+                        <View className="p-4">
+                            <SmoothButton
+                                onPress={hideAlert}
+                                buttonStyle="bg-black rounded-xl py-3"
+                                shadowStyle="bg-black rounded-xl"
+                                depth={4}
+                            >
+                                <Text className="text-white text-center uppercase font-bold" style={{ fontFamily: FONT_BOLD }}>Got It</Text>
+                            </SmoothButton>
+                        </View>
+                    </Animated.View>
+                </View>
+            </Modal>
+        </ScrollView>
     );
 }

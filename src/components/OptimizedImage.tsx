@@ -1,24 +1,34 @@
 import React from 'react';
-import { Image, ImageProps } from 'react-native';
+import { Image, ImageProps } from 'expo-image';
+import { StyleProp, ImageStyle } from 'react-native';
+
+interface OptimizedImageProps {
+    source: any;
+    style?: StyleProp<ImageStyle>;
+    className?: string;
+    contentFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+    [key: string]: any;
+}
 
 /**
- * Optimized Image component that prevents re-renders during scroll
- * and uses progressive loading for better performance
+ * Optimized Image component using expo-image for:
+ * - Memory + disk caching
+ * - Smooth crossfade transitions
+ * - BlurHash placeholders
+ * - Hardware-accelerated rendering
  */
-const OptimizedImage = React.memo((props: ImageProps) => {
+const OptimizedImage = React.memo(({ source, style, contentFit = 'cover', ...rest }: OptimizedImageProps) => {
     return (
         <Image
-            {...props}
-            // Progressive loading - show low quality first, then high quality
-            progressiveRenderingEnabled={true}
-            // Fade in smoothly when loaded
-            fadeDuration={150}
+            source={source}
+            style={style}
+            contentFit={contentFit}
+            cachePolicy="memory-disk"
+            transition={200}
+            recyclingKey={typeof source === 'object' && source?.uri ? source.uri : undefined}
+            {...rest}
         />
     );
-}, (prevProps, nextProps) => {
-    // Only re-render if source URI changes
-    return prevProps.source === nextProps.source &&
-        prevProps.style === nextProps.style;
 });
 
 OptimizedImage.displayName = 'OptimizedImage';

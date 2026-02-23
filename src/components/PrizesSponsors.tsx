@@ -1,176 +1,276 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { View, Text, Dimensions, StyleSheet } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import SmoothButton from './ui/SmoothButton';
 import SponsorModal from './SponsorModal';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
+    useAnimatedReaction,
     withRepeat,
     withTiming,
     withDelay,
-    withSequence,
+    withSpring,
+    interpolate,
+    cancelAnimation,
+    runOnJS,
     Easing,
-    interpolate
+    FadeInDown,
+    type SharedValue,
 } from 'react-native-reanimated';
 
-const { height, width } = Dimensions.get('window');
-const isSmallDevice = width < 380;
+// ─── Constants (hoisted — zero per-render cost) ────────────────────────────────
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
+const IS_SMALL = SCREEN_WIDTH < 380;
 
-// Realistic Paper Money with Curved Bend and Natural Physics
+// ─── Static data arrays (module scope — stable references forever) ─────────────
+const SPONSORS = Object.freeze([
+    { name: 'Arun Ice Creams', logo: require('../../assets/Sponsers/arun.avif') },
+    { name: 'Axis Bank', logo: require('../../assets/Sponsers/axis.avif') },
+    { name: 'Burger King', logo: require('../../assets/Sponsers/burgerking.avif') },
+    { name: "Domino's", logo: require('../../assets/Sponsers/Domino.avif') },
+    { name: 'Jawa Yezdi', logo: require('../../assets/Sponsers/jawa.avif') },
+    { name: 'Nikon', logo: require('../../assets/Sponsers/nikon.avif') },
+    { name: 'Red Bull', logo: require('../../assets/Sponsers/Redbull.avif') },
+]);
+
+const COMMUNITY_PARTNERS = Object.freeze([
+    { name: 'CSI', logo: require('../../assets/Community_Partners/Spnl1.avif') },
+    { name: 'ACM', logo: require('../../assets/Community_Partners/Spnl2.avif') },
+    { name: 'Cerkle', logo: require('../../assets/Community_Partners/Spnl3.avif') },
+]);
+
+// Pre-compute bill configurations at module scope (pure data, no hooks)
+const BILL_COUNT = 8; // Reduced from 12 — decorative, fewer is fine
+const MONEY_BILL_CONFIGS = Object.freeze(
+    Array.from({ length: BILL_COUNT }, (_, i) => {
+        const wave = Math.floor(i / 4);
+        const posInWave = i % 4;
+        return Object.freeze({
+            delay: wave * 3000 + posInWave * 200,
+            startX: Math.random() * (SCREEN_WIDTH - 60),
+            drift: 40 + Math.random() * 50,
+            size: 0.7 + Math.random() * 0.4,
+            opacity: 0.4 + Math.random() * 0.35,
+            fallDuration: 4000 + Math.random() * 2000,
+        });
+    })
+);
+
+// ─── StyleSheet (created once, shared across all renders) ──────────────────────
+const S = StyleSheet.create({
+    // Fonts
+    fontBBH: { fontFamily: 'BBHBartle' },
+    fontGilton: { fontFamily: 'Gilton' },
+    fontSoftura: { fontFamily: 'Softura' },
+    // Buddy card shadow
+    buddyShadow: {
+        shadowColor: '#000',
+        shadowOffset: { width: 6, height: 6 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+    },
+    // Prize shadow boxes
+    prize1stShadow: {
+        position: 'absolute', top: 7, left: 7,
+        width: IS_SMALL ? 160 : 190,
+        height: IS_SMALL ? 160 : 190,
+        backgroundColor: '#000', borderRadius: 28,
+    },
+    prize1stBox: {
+        width: IS_SMALL ? 160 : 190,
+        height: IS_SMALL ? 160 : 190,
+        borderRadius: 28,
+    },
+    prize1stImg: {
+        width: IS_SMALL ? 90 : 110,
+        height: IS_SMALL ? 90 : 110,
+    },
+    prize23Shadow: {
+        position: 'absolute', top: 6, left: 6,
+        width: IS_SMALL ? 120 : 140,
+        height: IS_SMALL ? 120 : 140,
+        backgroundColor: '#000', borderRadius: 22,
+    },
+    prize23Box: {
+        width: IS_SMALL ? 120 : 140,
+        height: IS_SMALL ? 120 : 140,
+        borderRadius: 22,
+    },
+    prize23Img: {
+        width: IS_SMALL ? 60 : 75,
+        height: IS_SMALL ? 60 : 75,
+    },
+    // Sponsor grid
+    sponsorGridGap: { gap: 12 },
+    sponsorCardWrap: { position: 'relative' as const, marginBottom: 4 },
+    sponsorShadow: {
+        position: 'absolute' as const, top: 5, left: 5,
+        width: (SCREEN_WIDTH - 72) / 2,
+        height: 76,
+        backgroundColor: '#000',
+        borderRadius: 16,
+    },
+    sponsorCard: {
+        width: (SCREEN_WIDTH - 72) / 2,
+        height: 76,
+        borderRadius: 16,
+    },
+    sponsorLogo: { width: '78%' as any, height: '68%' as any },
+    // Community partner
+    partnerImg: { width: '100%' as any, height: '100%' as any },
+    partnersSkew: { fontFamily: 'Gilton', transform: [{ skewX: '-10deg' }] },
+    // CTA
+    ctaContainer: { width: '100%' as any },
+    // MoneyBill
+    billAbsolute: { position: 'absolute' as const },
+});
+
+// ─── MoneyBill (single shared progress → visibility-aware, pauses off-screen) ─
 const MoneyBill = React.memo(({
     delay,
     startX,
     drift,
     size,
     opacity,
-    swaySpeed,
-    turbulence
+    fallDuration,
+    paused,
 }: {
     delay: number;
     startX: number;
     drift: number;
     size: number;
     opacity: number;
-    swaySpeed: number;
-    turbulence: number;
+    fallDuration: number;
+    paused: boolean;
 }) => {
-    const translateY = useSharedValue(-100);
-    const translateX = useSharedValue(0);
-    const rotateZ = useSharedValue(0); // Only gentle flutter
+    const progress = useSharedValue(0);
+    const wasRunningRef = useRef(false);
 
     useEffect(() => {
-        // Faster falling for smooth flow effect
-        translateY.value = withDelay(
-            delay,
-            withRepeat(
-                withTiming(height + 150, {
-                    duration: 4000 + Math.random() * 2000, // 4-6 seconds (much faster)
-                    easing: Easing.bezier(0.42, 0, 0.58, 1),
-                }),
-                -1,
-                false
-            )
-        );
-
-        // Gentle horizontal drift (minimal)
-        translateX.value = withDelay(
-            delay,
-            withRepeat(
-                withSequence(
-                    withTiming(drift * 0.3, {
-                        duration: 1500,
-                        easing: Easing.inOut(Easing.ease),
-                    }),
-                    withTiming(-drift * 0.3, {
-                        duration: 1500,
-                        easing: Easing.inOut(Easing.ease),
-                    })
-                ),
-                -1,
-                true
-            )
-        );
-
-        // Subtle flutter only (no complex 3D rotations)
-        rotateZ.value = withDelay(
-            delay,
-            withRepeat(
-                withSequence(
-                    withTiming(8, {
-                        duration: 1200,
-                        easing: Easing.inOut(Easing.sin),
-                    }),
-                    withTiming(-8, {
-                        duration: 1200,
-                        easing: Easing.inOut(Easing.sin),
-                    })
-                ),
-                -1,
-                true
-            )
-        );
-    }, []);
+        if (paused) {
+            // Stop running animation — preserves current progress value
+            cancelAnimation(progress);
+            wasRunningRef.current = false;
+        } else {
+            // Start / restart animation
+            progress.value = withDelay(
+                wasRunningRef.current ? 0 : delay, // skip initial delay on resume
+                withRepeat(
+                    withTiming(1, { duration: fallDuration, easing: Easing.bezier(0.42, 0, 0.58, 1) }),
+                    -1,
+                    false
+                )
+            );
+            wasRunningRef.current = true;
+        }
+        return () => cancelAnimation(progress);
+    }, [paused]);
 
     const animatedStyle = useAnimatedStyle(() => {
+        const p = progress.value;
         return {
             transform: [
-                { translateY: translateY.value },
-                { translateX: translateX.value },
-                { rotateZ: `${rotateZ.value}deg` }, // Only subtle flutter
+                { translateY: interpolate(p, [0, 1], [-100, SCREEN_HEIGHT + 150]) },
+                { translateX: interpolate(p, [0, 0.25, 0.5, 0.75, 1], [0, drift * 0.3, 0, -drift * 0.3, 0]) },
+                { rotateZ: `${interpolate(p, [0, 0.25, 0.5, 0.75, 1], [0, 8, 0, -8, 0])}deg` },
             ],
         };
     });
 
+    // Pre-computed static style (size/position don't change)
+    const billStyle = useMemo(() => ({
+        ...S.billAbsolute,
+        left: startX,
+        width: 44 * size,
+        height: 22 * size,
+        opacity,
+    }), [startX, size, opacity]);
+
+    const fontSize = useMemo(() => ({ fontSize: 12 * size }), [size]);
+
     return (
-        <Animated.View
-            style={[
-                animatedStyle,
-                {
-                    position: 'absolute',
-                    left: startX,
-                    width: 44 * size,
-                    height: 22 * size,
-                    opacity: opacity,
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 3 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 5,
-                }
-            ]}
-            className="bg-[#4CAF50] rounded-sm"
-        >
-            {/* Rupee note with detail */}
-            <View className="w-full h-full border-2 border-[#2E7D32] items-center justify-center bg-gradient-to-br from-[#66BB6A] to-[#4CAF50]">
-                <Text style={{ fontSize: 12 * size }} className="font-bold text-white">₹</Text>
+        <Animated.View style={[animatedStyle, billStyle]} className="bg-[#4CAF50] rounded-sm">
+            <View className="w-full h-full border-2 border-[#2E7D32] items-center justify-center">
+                <Text style={fontSize} className="font-bold text-white">₹</Text>
             </View>
         </Animated.View>
     );
 });
 
-const PrizesSponsors = () => {
-    // LOTS of money flowing in waves/bursts
-    const moneyBills = React.useMemo(() => Array.from({ length: 25 }, (_, i) => {
-        const wave = Math.floor(i / 8); // Group into waves of 8 bills
-        const positionInWave = i % 8;
+// ─── SponsorCard (memoized, stable style refs) ────────────────────────────────
+const SponsorCard = React.memo(({ logo }: { logo: any }) => (
+    <View style={S.sponsorCardWrap}>
+        <View style={S.sponsorShadow} />
+        <View className="bg-white border-[2px] border-black items-center justify-center" style={S.sponsorCard}>
+            <ExpoImage source={logo} style={S.sponsorLogo} contentFit="contain" cachePolicy="memory-disk" transition={200} />
+        </View>
+    </View>
+));
 
-        return {
-            delay: wave * 3000 + positionInWave * 150, // Waves every 3s, bills 150ms apart
-            startX: (Math.random() * (width - 60)),
-            drift: 40 + Math.random() * 50,
-            size: 0.7 + Math.random() * 0.4,
-            opacity: 0.4 + Math.random() * 0.35,
-            swaySpeed: 3000 + Math.random() * 2000, // 3-5 seconds (faster)
-            turbulence: 10 + Math.random() * 20,
-        };
-    }), []);
+// ─── PartnerCard (memoized) ────────────────────────────────────────────────────
+const PartnerCard = React.memo(({ logo }: { logo: any }) => (
+    <View className="w-40 h-24 items-center justify-center">
+        <ExpoImage source={logo} style={S.partnerImg} contentFit="contain" cachePolicy="memory-disk" transition={200} />
+    </View>
+));
 
-    // ============================================
-    // SPONSORS DATA (Easy to update)
-    // ============================================
-    // how to use:
-    // 1. Upload your logo to `assets/sponsors/google.png`
-    // 2. Import it: `import googleLogo from '../../assets/sponsors/google.png'`
-    // 3. Or use a URL: `logo: 'https://example.com/logo.png'`
-    const SPONSORS = [
-        { name: 'RoyalEnfield', logo: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/c332f625-7ac1-46d4-9dac-c479487b1760.png' },
-        { name: 'DadaBoudi', logo: 'https://rdxqqgntmtzvqsmepmls.supabase.co/storage/v1/object/public/assets/original/78ff25cb-b1a8-487e-a798-eba73a0745d9.png' },
-        { name: 'Amazon', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/2560px-Amazon_logo.svg.png' },
-        { name: 'Meta', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Meta-Logo.png/800px-Meta-Logo.png' },
-        { name: 'Spotify', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Spotify_logo_with_text.svg/2560px-Spotify_logo_with_text.svg.png' },
-        { name: 'Tesla', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tesla_logo.png/1200px-Tesla_logo.png' },
-        { name: 'DadaBoudi', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tesla_logo.png/1200px-Tesla_logo.png' },
-        { name: 'Tesla', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tesla_logo.png/1200px-Tesla_logo.png' },
-    ];
+// ─── Main Component ────────────────────────────────────────────────────────────
+const PrizesSponsors = ({ scrollY }: { scrollY?: SharedValue<number> }) => {
+    const enterOpacity = useSharedValue(0);
+    const enterTranslateY = useSharedValue(30);
+
+    // ── Visibility tracking (same pattern as DepartmentsEvents) ──
+    const [isSectionVisible, setIsSectionVisible] = useState(true);
+    const sectionYShared = useSharedValue(0);
+    const sectionHeightShared = useSharedValue(0);
+
+    useAnimatedReaction(
+        () => {
+            if (!scrollY) return true;
+            const y = scrollY.value;
+            const sY = sectionYShared.value;
+            const sH = sectionHeightShared.value;
+            return (y + SCREEN_HEIGHT > sY + 100) && (y < sY + sH - 100);
+        },
+        (visible, prev) => {
+            if (visible !== prev) {
+                runOnJS(setIsSectionVisible)(visible);
+            }
+        },
+        [scrollY],
+    );
+
+    const handleSectionLayout = useCallback((e: any) => {
+        const { y, height } = e.nativeEvent.layout;
+        sectionYShared.value = y;
+        sectionHeightShared.value = height;
+    }, [sectionYShared, sectionHeightShared]);
+
+    useEffect(() => {
+        enterOpacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
+        enterTranslateY.value = withSpring(0, { damping: 14, stiffness: 100 });
+    }, []);
+
+    const entranceStyle = useAnimatedStyle(() => ({
+        opacity: enterOpacity.value,
+        transform: [{ translateY: enterTranslateY.value }],
+    }));
 
     const [isSponsorModalVisible, setSponsorModalVisible] = useState(false);
 
-    return (
-        <View className="w-full pb-8">
-            {/* Section A: Prize Pool Card with Floating Money */}
-            <View className="bg-[#E8EAF6] rounded-3xl p-8 items-center relative overflow-hidden border-[3px] border-black shadow-sm mb-6">
+    const openModal = useCallback(() => setSponsorModalVisible(true), []);
+    const closeModal = useCallback(() => setSponsorModalVisible(false), []);
 
-                {/* ULTRA-LIGHT FLOATING MONEY ANIMATION */}
-                {moneyBills.map((bill, index) => (
+    const billsPaused = !isSectionVisible;
+
+    return (
+        <Animated.View style={entranceStyle}>
+        <View className="w-full pb-8" onLayout={handleSectionLayout}>
+
+            {/* ── Section A: Prize Pool Card ── */}
+            <View className="bg-[#E8EAF6] rounded-3xl p-8 items-center relative overflow-hidden border-[3px] border-black shadow-sm mb-6">
+                {MONEY_BILL_CONFIGS.map((bill, index) => (
                     <MoneyBill
                         key={index}
                         delay={bill.delay}
@@ -178,105 +278,151 @@ const PrizesSponsors = () => {
                         drift={bill.drift}
                         size={bill.size}
                         opacity={bill.opacity}
-                        swaySpeed={bill.swaySpeed}
-                        turbulence={bill.turbulence}
+                        fallDuration={bill.fallDuration}
+                        paused={billsPaused}
                     />
                 ))}
 
-                {/* Content (Above the money rain) */}
                 <View className="z-10">
-                    {/* Massive Typography Block */}
                     <View className="items-center mb-4">
-                        <Text className={`leading-[50px] text-black ${isSmallDevice ? 'text-[30px]' : 'text-[50px]'}`}
-                            style={{
-                                fontFamily: 'BBHBartle',
-                            }}
+                        <Text
+                            className={`leading-[50px] text-black ${IS_SMALL ? 'text-[30px]' : 'text-[50px]'}`}
+                            style={S.fontBBH}
                         >
-                            120K+
+                            200K+
                         </Text>
-                        <Text className={`leading-[50px] text-black -mt-2 ${isSmallDevice ? 'text-[30px]' : 'text-[50px]'}`}
-                            style={{
-                                fontFamily: 'BBHBartle',
-                            }}
+                        <Text
+                            className={`leading-[50px] text-black -mt-2 ${IS_SMALL ? 'text-[30px]' : 'text-[50px]'}`}
+                            style={S.fontBBH}
                         >
                             INR
                         </Text>
-                        <Text className="text-xl text-black mt-1 tracking-widest uppercase"
-                            style={{
-                                fontFamily: 'Gilton',
-                            }}>
+                        <Text
+                            className="text-xl text-black mt-1 tracking-widest uppercase"
+                            style={S.fontGilton}
+                        >
                             IN PRIZE POOL
                         </Text>
                     </View>
-
-                    {/* Footer Text with sparkle */}
-                    <Text className="text-gray-800 text-center uppercase text-sm tracking-wide"
-                        style={{
-                            fontFamily: 'Softura',
-                        }}>
+                    <Text
+                        className="text-gray-800 text-center uppercase text-sm tracking-wide"
+                        style={S.fontSoftura}
+                    >
                         GOODIES, MERCHES &{'\n'}MANY MORE...
                     </Text>
                 </View>
             </View>
 
-            {/* Section B: Our Sponsors Card */}
+            {/* ── Section A.5: Signifiya Buddy Card ── */}
+            <View
+                className="bg-[#D1FAE5] rounded-3xl pt-10 pb-8 px-8 items-center justify-center relative overflow-hidden border-[3px] border-black mb-8"
+                style={S.buddyShadow}
+            >
+                <Animated.View entering={FadeInDown.delay(200).springify()} className="items-center w-full z-10">
+
+                    {/* Title */}
+                    <View className="items-center mb-10">
+                        <Text
+                            style={S.fontGilton}
+                            className={`text-black uppercase tracking-tight ${IS_SMALL ? 'text-4xl' : 'text-6xl'}`}
+                        >
+                            Signifiya
+                        </Text>
+                        <Text
+                            style={S.fontGilton}
+                            className={`text-black uppercase -mt-2 ${IS_SMALL ? 'text-4xl' : 'text-6xl'}`}
+                        >
+                            Buddy
+                        </Text>
+                    </View>
+
+                    {/* Prize boxes */}
+                    <View className="w-full items-center gap-6">
+
+                        {/* 1st Prize */}
+                        <View>
+                            <View style={S.prize1stShadow} />
+                            <View className="bg-white border-[3px] border-black items-center justify-center" style={S.prize1stBox}>
+                                <ExpoImage source={require('../../assets/Prizes/1st.webp')} style={S.prize1stImg} contentFit="contain" />
+                                <Text style={S.fontSoftura} className="text-sm font-bold text-black uppercase mt-2">1st Prize</Text>
+                            </View>
+                        </View>
+
+                        {/* 2nd & 3rd Prize row */}
+                        <View className="flex-row gap-6 w-full justify-center">
+                            <View>
+                                <View style={S.prize23Shadow} />
+                                <View className="bg-white border-[3px] border-black items-center justify-center" style={S.prize23Box}>
+                                    <ExpoImage source={require('../../assets/Prizes/2nd.webp')} style={S.prize23Img} contentFit="contain" />
+                                    <Text style={S.fontSoftura} className="text-xs font-bold text-black uppercase mt-1">2nd Prize</Text>
+                                </View>
+                            </View>
+                            <View>
+                                <View style={S.prize23Shadow} />
+                                <View className="bg-white border-[3px] border-black items-center justify-center" style={S.prize23Box}>
+                                    <ExpoImage source={require('../../assets/Prizes/3rd.webp')} style={S.prize23Img} contentFit="contain" />
+                                    <Text style={S.fontSoftura} className="text-xs font-bold text-black uppercase mt-1">3rd Prize</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+                </Animated.View>
+            </View>
+
+            {/* ── Section B: Sponsors Card ── */}
             <View className="bg-white rounded-3xl p-6 border-[3px] border-black shadow-sm">
 
                 {/* Header */}
-                <View className="items-center mb-8">
-                    <View className="flex-row items-baseline">
-                        <View className="items-center">
-                            <Text className={`text-black ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`} style={{
-                                fontFamily: 'Gilton',
-                            }}>OUR</Text>
-                            <Text className={`text-black -mt-2 ${isSmallDevice ? 'text-4xl' : 'text-5xl'}`} style={{
-                                fontFamily: 'Gilton',
-                            }}>SPONSORS</Text>
-                        </View>
+                <View className="items-center mb-6">
+                    <View className="items-center">
+                        <Text className={`text-black ${IS_SMALL ? 'text-4xl' : 'text-5xl'}`} style={S.fontGilton}>CURRENT</Text>
+                        <Text className={`text-black -mt-2 ${IS_SMALL ? 'text-4xl' : 'text-5xl'}`} style={S.fontGilton}>SPONSORS</Text>
                     </View>
-                    <Text className="text-gray-500 text-lg mt-1 text-center" style={{
-                        fontFamily: 'Softura',
-                    }}>
+                    <Text className="text-gray-500 text-lg mt-1 text-center" style={S.fontSoftura}>
                         Powered by the best in the industry
                     </Text>
                 </View>
 
-                {/* Sponsor Grid - Professional Layout */}
-                <View className="flex-row flex-wrap justify-center gap-8 mb-10 pt-4">
+                {/* Sponsor Logo Grid */}
+                <View className="flex-row flex-wrap justify-center mb-8" style={S.sponsorGridGap}>
                     {SPONSORS.map((sponsor, index) => (
-                        <View
-                            key={index}
-                            className="w-[45%] h-32 items-center justify-center p-0"
-                        >
-                            <Image
-                                source={{ uri: sponsor.logo }}
-                                className="w-full h-full"
-                                resizeMode="contain"
-                            />
-                        </View>
+                        <SponsorCard key={index} logo={sponsor.logo} />
                     ))}
                 </View>
 
-                {/* Action Button */}
+                {/* Horizontal separator */}
+                <View className="w-full h-[3px] bg-black mb-8" />
+
+                {/* Community Partners */}
+                <View className="items-center mb-10">
+                    <Text className="text-black text-4xl uppercase" style={S.fontGilton}>COMMUNITY</Text>
+                    <Text className="text-black text-4xl uppercase -mt-2" style={S.partnersSkew}>PARTNERS</Text>
+                </View>
+
+                <View className="items-center gap-12 mb-10">
+                    {COMMUNITY_PARTNERS.map((partner, index) => (
+                        <PartnerCard key={index} logo={partner.logo} />
+                    ))}
+                </View>
+
+                {/* CTA Button */}
                 <SmoothButton
-                    onPress={() => setSponsorModalVisible(true)}
-                    containerStyle={{ width: '100%' }}
+                    onPress={openModal}
+                    containerStyle={S.ctaContainer}
                     buttonStyle="bg-black py-4 rounded-full items-center"
                     shadowStyle="bg-black rounded-full"
                     depth={1}
                 >
-                    <Text className="text-white text-lg"
-                        style={{
-                            fontFamily: 'Softura',
-                        }}>
-                        BECOME A SPONSOR
-                    </Text>
+                    <Text className="text-white text-lg" style={S.fontSoftura}>BECOME A SPONSOR</Text>
                 </SmoothButton>
 
-                <SponsorModal visible={isSponsorModalVisible} onClose={() => setSponsorModalVisible(false)} />
-
+                {/* Conditional mount — zero overhead when hidden */}
+                {isSponsorModalVisible && (
+                    <SponsorModal visible={isSponsorModalVisible} onClose={closeModal} />
+                )}
             </View>
         </View>
+        </Animated.View>
     );
 };
 

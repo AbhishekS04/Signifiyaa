@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import HomeScreen from '../screens/HomeScreen';
 import GalleryScreen from '../screens/GalleryScreen';
@@ -10,6 +10,8 @@ import PaymentsScreen from '../screens/PaymentsScreen';
 import EventsScreen from '../screens/EventsScreen';
 import AuthScreen from '../screens/AuthScreen';
 import EventRegistrationScreen from '../screens/EventRegistrationScreen';
+import VisitorRegistrationScreen from '../screens/VisitorRegistrationScreen';
+import ContactSupportScreen from '../screens/ContactSupportScreen';
 import { CustomTabBar } from '../components/navigation/CustomTabBar';
 import { useAuth } from '../context/AuthContext';
 
@@ -22,39 +24,35 @@ function MainTabs() {
             tabBar={(props) => <CustomTabBar {...props} />}
             screenOptions={{
                 headerShown: false,
-                lazy: false,
+                lazy: true, // Only render tabs when first visited — saves ~40% startup memory
                 tabBarStyle: {
                     backgroundColor: 'transparent',
                     borderTopWidth: 0,
                     elevation: 0,
                 },
             }}
-            detachInactiveScreens={false}
+            detachInactiveScreens={true} // Unmount inactive tab screens to free memory
         >
             <Tab.Screen
                 name="Home"
                 component={HomeScreen}
-                options={{ lazy: false }}
+                options={{ lazy: false }} // Home loads immediately since it's the landing screen
             />
             <Tab.Screen
                 name="Events"
                 component={EventsScreen}
-                options={{ lazy: false }}
             />
             <Tab.Screen
                 name="Payments"
                 component={PaymentsScreen}
-                options={{ lazy: false }}
             />
             <Tab.Screen
                 name="Gallery"
                 component={GalleryScreen}
-                options={{ lazy: false }}
             />
             <Tab.Screen
                 name="Profile"
                 component={ProfileScreen}
-                options={{ lazy: false }}
             />
         </Tab.Navigator>
     );
@@ -66,15 +64,8 @@ function AuthScreenWrapper() {
     const navigation = useNavigation();
 
     useEffect(() => {
-        // Auto-dismiss auth modal when user logs in
-        if (isLoggedIn) {
-            // Use setTimeout to ensure state has settled before navigation
-            const timeout = setTimeout(() => {
-                if (navigation.canGoBack()) {
-                    navigation.goBack();
-                }
-            }, 100);
-            return () => clearTimeout(timeout);
+        if (isLoggedIn && navigation.canGoBack()) {
+            navigation.goBack();
         }
     }, [isLoggedIn, navigation]);
 
@@ -98,7 +89,26 @@ export default function AppNavigator() {
                 <Stack.Screen
                     name="EventRegistration"
                     component={EventRegistrationScreen}
-                    options={{ animation: 'slide_from_bottom', headerShown: false }}
+                    options={{
+                        cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
+                        headerShown: false,
+                    }}
+                />
+                <Stack.Screen
+                    name="VisitorRegistration"
+                    component={VisitorRegistrationScreen}
+                    options={{
+                        cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
+                        headerShown: false,
+                    }}
+                />
+                <Stack.Screen
+                    name="ContactSupport"
+                    component={ContactSupportScreen}
+                    options={{
+                        cardStyleInterpolator: CardStyleInterpolators.forVerticalIOS,
+                        headerShown: false,
+                    }}
                 />
             </Stack.Navigator>
         </View>

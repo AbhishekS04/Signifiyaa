@@ -1,19 +1,67 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Image, Platform, StyleSheet, Alert, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Platform, Alert, ActivityIndicator, RefreshControl, Modal, Dimensions, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Copy, Check, ChevronDown, Calendar, Ticket, Lock, User } from 'lucide-react-native';
+import {
+    Copy,
+    Check,
+    ChevronDown,
+    Calendar,
+    Ticket,
+    Lock,
+    User,
+    Clock,
+    CheckCircle2,
+    QrCode,
+    Download,
+    X,
+    UserCircle2,
+    CalendarDays
+} from 'lucide-react-native';
 import SmoothButton from '../components/ui/SmoothButton';
-import Animated, { FadeIn, Easing, useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS, cancelAnimation } from 'react-native-reanimated';
+import Animated, { FadeIn, Easing, useSharedValue, useAnimatedStyle, withTiming, runOnJS, cancelAnimation, FadeOut } from 'react-native-reanimated';
 import { PageTransition } from '../components/navigation/PageTransition';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import AvatarChooserModal, { AVATAR_MAP } from '../components/ui/AvatarChooserModal';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Path, Circle } from 'react-native-svg';
+import EventPass from '../components/passes/EventPass';
+import VisitorPass from '../components/passes/VisitorPass';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Font Constants
 const FONT_MAIN = 'Gilton';
-const FONT_BOLD = 'Gilton'; // Assuming Gilton has bold weight or is used for headings
+const FONT_BOLD = 'Gilton';
+
+interface VisitorRegistration {
+    id: string;
+    name: string;
+    email: string;
+    passType: string;
+    status: 'pending' | 'approved';
+    userBookingId: string;
+    createdAt: string;
+    amount: number;
+}
+
+interface EventRegistration {
+    id: string;
+    teamName: string;
+    status: 'pending' | 'approved';
+    leaderBookingId: string;
+    createdAt: string;
+    participant_team_event: {
+        event: {
+            name: string;
+            date?: string;
+        }
+    }[];
+}
 
 // Helper Component for 3D Shadow (Manual Implementation for reliability)
 const ShadowCard = ({ children, style, shadowOffset = 8 }: { children: React.ReactNode, style?: any, shadowOffset?: number }) => {
@@ -76,8 +124,90 @@ const ProfileScreen = () => {
     const [gender, setGender] = useState(profile?.gender || 'Male');
     const bookingId = profile?.bookingId || user?.bookingId || 'NOT-ASSIGNED';
 
+    const [visitorRegistrations, setVisitorRegistrations] = useState<VisitorRegistration[]>([]);
+    const [eventRegistrations, setEventRegistrations] = useState<EventRegistration[]>([]);
+    const [isFetchingReg, setIsFetchingReg] = useState(false);
+    const [selectedPass, setSelectedPass] = useState<{ type: 'visitor' | 'event', data: any } | null>(null);
+
+    const fetchRegistrations = useCallback(async () => {
+        if (!user?.email) return;
+        setIsFetchingReg(true);
+        try {
+            // Fetch visitor registrations
+            const { data: vData, error: vError } = await supabase.from('visitor_registration')
+                .select('*')
+                .eq('email', user.email)
+                .order('createdAt', { ascending: false });
+
+            // Fetch event registrations
+            const { data: eData, error: eError } = await supabase.from('participant_team')
+                .select(`
+                    *,
+                    participant_team_event (
+                        event (
+                            name,
+                            date
+                        )
+                    ),
+                    participant_team_member (*)
+                `)
+                .eq('leaderEmail', user.email)
+                .order('createdAt', { ascending: false });
+
+            if (vError) console.error('Error fetching visitor regs:', vError);
+            if (eError) console.error('Error fetching event regs:', eError);
+
+            // Normalize status: Map 'verified' to 'approved' so the UI logic works correctly
+            const normalizedVData = (vData || []).map(v => ({
+                ...v,
+                status: v.status === 'verified' ? 'approved' : v.status
+            })) as VisitorRegistration[];
+
+            const normalizedEData = (eData as any || []).map((e: any) => ({
+                ...e,
+                status: e.status === 'verified' ? 'approved' : e.status
+            })) as EventRegistration[];
+
+            // Dummy Data for Visual Testing
+            const dummyVisitor: VisitorRegistration = {
+                id: 'dummy-v-101',
+                name: user?.name || 'Sayan Mukherjee',
+                email: user?.email || '',
+                passType: 'dual',
+                status: 'approved',
+                userBookingId: bookingId,
+                createdAt: new Date().toISOString(),
+                amount: 79
+            };
+
+            const dummyEvent: EventRegistration = {
+                id: 'dummy-e-101',
+                teamName: 'DUMMY VOLTAGE SQUAD',
+                status: 'approved',
+                leaderBookingId: bookingId,
+                createdAt: new Date().toISOString(),
+                participant_team_event: [
+                    {
+                        event: {
+                            name: 'DUMMY TECH SUMMIT',
+                            date: 'MAR 27'
+                        }
+                    }
+                ]
+            };
+
+            setVisitorRegistrations([dummyVisitor, ...normalizedVData]);
+            setEventRegistrations([dummyEvent, ...normalizedEData]);
+
+        } catch (err) {
+            console.error('Fetch exception:', err);
+        } finally {
+            setIsFetchingReg(false);
+        }
+    }, [user?.email, bookingId]);
+
     // Update state when profile loads
-    React.useEffect(() => {
+    useEffect(() => {
         if (profile) {
             setName(profile.name || user?.name || '');
             setMobile(profile.mobileNo || '');
@@ -88,6 +218,7 @@ const ProfileScreen = () => {
         }
         if (user) {
             setEmail(user.email || '');
+            fetchRegistrations();
         }
     }, [profile, user]);
 
@@ -121,15 +252,13 @@ const ProfileScreen = () => {
     const [showCopyToast, setShowCopyToast] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
 
-    // ... existing code ...
-
-    const handleCopyBookingId = async () => {
+    const handleCopyBookingId = useCallback(async () => {
         if (bookingId) {
             await Clipboard.setStringAsync(bookingId);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); // Haptic Feedback
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             setShowCopyToast(true);
         }
-    };
+    }, [bookingId]);
     const avatarToastY = useSharedValue(-100);
     const copyToastY = useSharedValue(-100);
 
@@ -140,6 +269,11 @@ const ProfileScreen = () => {
     const flipRotation = useSharedValue(0);
     const { updateProfile } = useAuth();
 
+    // Ref-managed timers — prevents leaks from nested timeouts
+    const copyTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const avatarTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+    const flipTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
     // Copy Toast Animation
     React.useEffect(() => {
         if (showCopyToast) {
@@ -148,11 +282,17 @@ const ProfileScreen = () => {
                 easing: Easing.out(Easing.poly(4))
             });
 
-            const timer = setTimeout(() => {
+            const t1 = setTimeout(() => {
                 copyToastY.value = withTiming(-100, { duration: 300 });
-                setTimeout(() => setShowCopyToast(false), 300);
+                const t2 = setTimeout(() => setShowCopyToast(false), 300);
+                copyTimers.current.push(t2);
             }, 2000);
-            return () => clearTimeout(timer);
+            copyTimers.current.push(t1);
+
+            return () => {
+                copyTimers.current.forEach(clearTimeout);
+                copyTimers.current = [];
+            };
         }
     }, [showCopyToast]);
 
@@ -160,7 +300,7 @@ const ProfileScreen = () => {
         transform: [{ translateY: copyToastY.value }],
     }));
 
-    const handleLogoutPressIn = () => {
+    const handleLogoutPressIn = useCallback(() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         setIsHolding(true);
         holdProgress.value = withTiming(1, { duration: 2000, easing: Easing.linear }, (finished) => {
@@ -168,19 +308,19 @@ const ProfileScreen = () => {
                 runOnJS(triggerLogout)();
             }
         });
-    };
+    }, [holdProgress]);
 
-    const handleLogoutPressOut = () => {
+    const handleLogoutPressOut = useCallback(() => {
         setIsHolding(false);
         cancelAnimation(holdProgress);
         holdProgress.value = withTiming(0, { duration: 300 });
-    };
+    }, [holdProgress]);
 
-    const triggerLogout = () => {
+    const triggerLogout = useCallback(() => {
         // Strong feedback on completion as requested
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         signOut();
-    };
+    }, [signOut]);
 
     const holdProgressStyle = useAnimatedStyle(() => ({
         width: `${holdProgress.value * 100}%`,
@@ -189,17 +329,22 @@ const ProfileScreen = () => {
     // Avatar Toast Animation
     React.useEffect(() => {
         if (showAvatarToast) {
-            // Smooth slide in (no bounce)
             avatarToastY.value = withTiming(Platform.OS === 'ios' ? 60 : 40, {
                 duration: 400,
                 easing: Easing.out(Easing.poly(4))
             });
 
-            const timer = setTimeout(() => {
+            const t1 = setTimeout(() => {
                 avatarToastY.value = withTiming(-100, { duration: 300 });
-                setTimeout(() => setShowAvatarToast(false), 300);
+                const t2 = setTimeout(() => setShowAvatarToast(false), 300);
+                avatarTimers.current.push(t2);
             }, 2000);
-            return () => clearTimeout(timer);
+            avatarTimers.current.push(t1);
+
+            return () => {
+                avatarTimers.current.forEach(clearTimeout);
+                avatarTimers.current = [];
+            };
         }
     }, [showAvatarToast]);
 
@@ -207,23 +352,26 @@ const ProfileScreen = () => {
         transform: [{ translateY: avatarToastY.value }],
     }));
 
+    // Removed artificial 800ms loading delay — wastes startup time with no functional purpose
     React.useEffect(() => {
-        // Simulate loading to give the "app feel"
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 800);
-        return () => clearTimeout(timer);
+        setIsLoading(false);
     }, []);
 
     // Button flip animation
     React.useEffect(() => {
         if (showSuccess) {
             flipRotation.value = withTiming(180, { duration: 400, easing: Easing.inOut(Easing.ease) });
-            const timer = setTimeout(() => {
+            const t1 = setTimeout(() => {
                 flipRotation.value = withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) });
-                setTimeout(() => setShowSuccess(false), 400);
+                const t2 = setTimeout(() => setShowSuccess(false), 400);
+                flipTimers.current.push(t2);
             }, 2000);
-            return () => clearTimeout(timer);
+            flipTimers.current.push(t1);
+
+            return () => {
+                flipTimers.current.forEach(clearTimeout);
+                flipTimers.current = [];
+            };
         }
     }, [showSuccess]);
 
@@ -231,11 +379,9 @@ const ProfileScreen = () => {
         transform: [{ rotateX: `${flipRotation.value}deg` }],
     }));
 
-    const onRefresh = async () => {
+    const onRefresh = useCallback(async () => {
         setRefreshing(true);
         try {
-            // Import supabase at the top if needed, but we can use it directly here
-            const { supabase } = await import('../lib/supabase');
             const { data: freshProfile, error } = await supabase
                 .from('user')
                 .select('bookingId, mobileNo, collegeName, gender, name, image')
@@ -248,16 +394,16 @@ const ProfileScreen = () => {
                 setMobile(freshProfile.mobileNo || '');
                 setCollege(freshProfile.collegeName || '');
                 setGender(freshProfile.gender || 'Male');
-                console.log('✓ Profile refreshed from server');
             }
+            await fetchRegistrations();
         } catch (error) {
-            console.error('Refresh error:', error);
+            // Silent fail - user can retry
         } finally {
             setRefreshing(false);
         }
-    };
+    }, [user?.email, user?.name, fetchRegistrations]);
 
-    const handleAvatarSelect = async (avatarId: string) => {
+    const handleAvatarSelect = useCallback(async (avatarId: string) => {
         try {
             // Update immediately in UI
             await updateProfile({
@@ -269,9 +415,9 @@ const ProfileScreen = () => {
         } catch (error) {
             Alert.alert("Error", "Failed to update avatar");
         }
-    };
+    }, [updateProfile]);
 
-    const handleSave = async () => {
+    const handleSave = useCallback(async () => {
         setIsSaving(true);
         try {
             await updateProfile({
@@ -286,7 +432,7 @@ const ProfileScreen = () => {
             setIsSaving(false);
             Alert.alert('Error', 'Failed to update profile');
         }
-    };
+    }, [name, mobile, college, gender, updateProfile]);
 
     if (isLoading) {
         return (
@@ -398,8 +544,10 @@ const ProfileScreen = () => {
                                             {imageSource ? (
                                                 <Image
                                                     source={imageSource}
-                                                    className="w-full h-full"
-                                                    resizeMode="cover"
+                                                    style={{ width: '100%', height: '100%' }}
+                                                    contentFit="cover"
+                                                    cachePolicy="memory-disk"
+                                                    transition={150}
                                                 />
                                             ) : (
                                                 <View className="w-full h-full items-center justify-center bg-gray-200">
@@ -494,10 +642,74 @@ const ProfileScreen = () => {
                                         <View className="bg-[#E0B0FF] p-2 rounded-full border-[2px] border-black"><Calendar color="black" size={20} /></View>
                                         <Text className="text-xl uppercase flex-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>REGISTERED{'\n'}EVENTS</Text>
                                     </View>
-                                    <View className="h-[2px] bg-black w-full mb-8 rounded-full" />
-                                    <View className="items-center justify-center py-4">
-                                        <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Events Found</Text>
-                                    </View>
+                                    <View className="h-[2px] bg-black w-full mb-6 rounded-full" />
+
+                                    {eventRegistrations.length > 0 ? (
+                                        <View className="gap-4">
+                                            {eventRegistrations.map((reg) => (
+                                                <View key={reg.id} className="bg-[#F8F9FA] p-4 rounded-2xl border-2 border-dashed border-black/20">
+                                                    <View className="flex-row justify-between items-start mb-2">
+                                                        <View className="flex-1">
+                                                            <Text className="text-sm text-black mb-1" style={{ fontFamily: FONT_BOLD }}>
+                                                                {reg.teamName}
+                                                            </Text>
+                                                            <View className="flex-row items-center gap-1">
+                                                                <CalendarDays size={12} color="#6b7280" />
+                                                                <Text className="text-[10px] text-gray-500" style={{ fontFamily: FONT_MAIN }}>
+                                                                    {new Date(reg.createdAt).toLocaleDateString()}
+                                                                </Text>
+                                                            </View>
+                                                        </View>
+                                                        <View className={`px-2 py-1 rounded-full border ${reg.status === 'approved' ? 'bg-green-100 border-green-500/30' : 'bg-orange-100 border-orange-500/30'}`}>
+                                                            <View className="flex-row items-center gap-1">
+                                                                {reg.status === 'approved' ? (
+                                                                    <CheckCircle2 size={10} color="#22c55e" />
+                                                                ) : (
+                                                                    <Clock size={10} color="#f97316" />
+                                                                )}
+                                                                <Text className={`text-[8px] font-bold uppercase ${reg.status === 'approved' ? 'text-green-600' : 'text-orange-600'}`}>
+                                                                    {reg.status}
+                                                                </Text>
+                                                            </View>
+                                                        </View>
+                                                    </View>
+
+                                                    <View className="flex-row flex-wrap gap-2 mb-3">
+                                                        {reg.participant_team_event.map((ev, i) => (
+                                                            <View key={i} className="bg-black/5 px-2 py-1 rounded-md">
+                                                                <Text className="text-[8px] text-black/60 uppercase" style={{ fontFamily: FONT_BOLD }}>
+                                                                    {ev.event?.name}
+                                                                </Text>
+                                                            </View>
+                                                        ))}
+                                                    </View>
+
+                                                    {reg.status === 'approved' ? (
+                                                        <TouchableOpacity
+                                                            onPress={() => setSelectedPass({ type: 'event', data: reg })}
+                                                            className="bg-black py-2 rounded-xl flex-row items-center justify-center gap-2"
+                                                        >
+                                                            <QrCode size={14} color="white" />
+                                                            <Text className="text-white text-[10px] font-bold uppercase tracking-widest">VIEW PASS</Text>
+                                                        </TouchableOpacity>
+                                                    ) : (
+                                                        <View className="bg-gray-200 py-2 rounded-xl flex-row items-center justify-center gap-2 opacity-50">
+                                                            <Clock size={14} color="#6b7280" />
+                                                            <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">PENDING APPROVAL</Text>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            ))}
+                                        </View>
+                                    ) : (
+                                        <View className="items-center justify-center py-4">
+                                            {isFetchingReg ? (
+                                                <ActivityIndicator size="small" color="#000" />
+                                            ) : (
+                                                <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Events Found</Text>
+                                            )}
+                                        </View>
+                                    )}
                                 </ShadowCard>
                             </Animated.View>
 
@@ -508,11 +720,64 @@ const ProfileScreen = () => {
                                         <View className="bg-[#E0B0FF] p-2 rounded-full border-[2px] border-black"><Ticket color="black" size={20} /></View>
                                         <Text className="text-xl uppercase flex-1" style={{ fontFamily: FONT_BOLD, color: 'black' }}>MY PASSES</Text>
                                     </View>
-                                    <View className="h-[2px] bg-black w-full mb-8 rounded-full" />
-                                    <View className="items-center justify-center py-4">
-                                        <Lock color="#d1d5db" size={48} strokeWidth={1.5} className="mb-3" />
-                                        <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Passes Found</Text>
-                                    </View>
+                                    <View className="h-[2px] bg-black w-full mb-6 rounded-full" />
+
+                                    {visitorRegistrations.length > 0 ? (
+                                        <View className="gap-4">
+                                            {visitorRegistrations.map((reg) => (
+                                                <View key={reg.id} className="bg-[#F8F9FA] p-4 rounded-2xl border-2 border-dashed border-black/20">
+                                                    <View className="flex-row justify-between items-start mb-3">
+                                                        <View>
+                                                            <Text className="text-[10px] text-gray-500 uppercase mb-1" style={{ fontFamily: FONT_BOLD }}>
+                                                                VISITOR PASS
+                                                            </Text>
+                                                            <Text className="text-sm text-black" style={{ fontFamily: FONT_BOLD }}>
+                                                                {reg.passType === 'day1' ? 'Single Day Pass' : 'Combo Pass'}
+                                                            </Text>
+                                                        </View>
+                                                        <View className={`px-2 py-1 rounded-full border ${reg.status === 'approved' ? 'bg-green-100 border-green-500/30' : 'bg-orange-100 border-orange-500/30'}`}>
+                                                            <View className="flex-row items-center gap-1">
+                                                                {reg.status === 'approved' ? (
+                                                                    <CheckCircle2 size={10} color="#22c55e" />
+                                                                ) : (
+                                                                    <Clock size={10} color="#f97316" />
+                                                                )}
+                                                                <Text className={`text-[8px] font-bold uppercase ${reg.status === 'approved' ? 'text-green-600' : 'text-orange-600'}`}>
+                                                                    {reg.status}
+                                                                </Text>
+                                                            </View>
+                                                        </View>
+                                                    </View>
+
+                                                    {reg.status === 'approved' ? (
+                                                        <TouchableOpacity
+                                                            onPress={() => setSelectedPass({ type: 'visitor', data: reg })}
+                                                            className="bg-black py-2 rounded-xl flex-row items-center justify-center gap-2"
+                                                        >
+                                                            <QrCode size={14} color="white" />
+                                                            <Text className="text-white text-[10px] font-bold uppercase tracking-widest">VIEW PASS</Text>
+                                                        </TouchableOpacity>
+                                                    ) : (
+                                                        <View className="bg-gray-200 py-2 rounded-xl flex-row items-center justify-center gap-2 opacity-50">
+                                                            <Clock size={14} color="#6b7280" />
+                                                            <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">PENDING APPROVAL</Text>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            ))}
+                                        </View>
+                                    ) : (
+                                        <View className="items-center justify-center py-4">
+                                            {isFetchingReg ? (
+                                                <ActivityIndicator size="small" color="#000" />
+                                            ) : (
+                                                <>
+                                                    <Lock color="#d1d5db" size={48} strokeWidth={1.5} className="mb-3" />
+                                                    <Text className="text-sm mb-1" style={{ fontFamily: FONT_MAIN, color: '#6b7280' }}>No Passes Found</Text>
+                                                </>
+                                            )}
+                                        </View>
+                                    )}
                                 </ShadowCard>
                             </Animated.View>
 
@@ -572,8 +837,66 @@ const ProfileScreen = () => {
                 onSelect={handleAvatarSelect}
                 currentAvatarId={rawImage || undefined}
             />
+
+            <PassModal
+                visible={!!selectedPass}
+                type={selectedPass?.type || 'visitor'}
+                data={selectedPass?.data}
+                onClose={() => setSelectedPass(null)}
+                userName={name}
+                bookingId={bookingId}
+            />
         </SafeAreaView >
     );
 };
+
+const PassModal = ({ visible, type, data, onClose, userName, bookingId }: {
+    visible: boolean,
+    type: 'visitor' | 'event',
+    data: any,
+    onClose: () => void,
+    userName: string,
+    bookingId: string
+}) => {
+    if (!data) return null;
+
+    return (
+        <Modal
+            visible={visible}
+            transparent
+            animationType="fade"
+            statusBarTranslucent
+            onRequestClose={onClose}
+        >
+            <View style={passStyles.overlay}>
+                {type === 'event' ? (
+                    <EventPass
+                        data={data}
+                        userName={userName}
+                        bookingId={bookingId}
+                        onClose={onClose}
+                    />
+                ) : (
+                    <VisitorPass
+                        data={data}
+                        userName={userName}
+                        bookingId={bookingId}
+                        onClose={onClose}
+                    />
+                )}
+            </View>
+        </Modal>
+    );
+};
+
+const passStyles = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.9)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+    },
+});
 
 export default ProfileScreen;

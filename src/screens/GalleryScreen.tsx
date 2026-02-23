@@ -1,5 +1,5 @@
-import React, { useState, useEffect, memo } from 'react';
-import { View, Text, FlatList, Dimensions, Platform } from 'react-native';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from 'react';
+import { View, Text, Platform, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
@@ -7,239 +7,331 @@ import Animated, {
     useAnimatedStyle,
     withRepeat,
     withTiming,
-    Easing
+    cancelAnimation,
+    Easing,
+    useAnimatedScrollHandler,
+    useAnimatedRef,
 } from 'react-native-reanimated';
+import { useIsFocused } from '@react-navigation/native';
 
-// Import footer components as requested
+// Components
 import SmoothButton from '../components/ui/SmoothButton';
-import SocialConnect from '../components/SocialConnect';
-import FooterSection from '../components/FooterSection';
+import NewsletterSupport from '../components/NewsletterSupport';
 import { PageTransition } from '../components/navigation/PageTransition';
 import GlobalMusicButton from '../components/GlobalMusicButton';
-
-// Mock Data matching the reference image
-import { GALLERY_ITEMS, GALLERY_FILTERS } from '../data/GalleryData';
 import GalleryCard from '../components/GalleryCard';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+// Data
+import { GALLERY_ITEMS, GALLERY_FILTERS } from '../data/GalleryData';
+import type { GalleryItem } from '../data/GalleryData';
 
-// Extracted Filter Button with Tactile Click (Font Configurable)
-const FilterButton = memo(({ label, isActive, onPress, font }: { label: string, isActive: boolean, onPress: () => void, font: string }) => (
-    <SmoothButton
-        onPress={onPress}
-        containerStyle={{ minWidth: 100 }}
-        buttonStyle={`px-8 py-2.5 border-[2.5px] border-black rounded-2xl items-center ${isActive ? 'bg-[#9d4edd]' : 'bg-white'}`}
-        shadowStyle="bg-black rounded-2xl"
-        depth={6}
-    >
-        <Text className={`uppercase text-[13px] tracking-widest ${isActive ? 'text-white' : 'text-black'}`} style={{ fontFamily: font }}>
-            {label}
-        </Text>
-    </SmoothButton>
-));
+/* ── module-scope constants ───────────────────────────────── */
+const MARQUEE_TEXT = '★ CAPTURING MOMENTS ★ MAKING MEMORIES ★ SIGNIFIYA 2026 ★';
+const MARQUEE_COPIES = 8;
 
-const GalleryScreen = () => {
-    const [selectedFilter, setSelectedFilter] = useState('ALL');
+/** Pre-computed font lookup — avoids `.find()` on every render */
+const FILTER_FONT_MAP: Record<string, string> = Object.fromEntries(
+    GALLERY_FILTERS.map(f => [f.label, f.font]),
+);
 
-    // Marquee State
-    const [textWidth, setTextWidth] = useState(0);
-    const translateX = useSharedValue(0);
-    const MARQUEE_TEXT = "★ CAPTURING MOMENTS ★ MAKING MEMORIES ★ SIGNIFIYA 2026 ★";
+/* ── sub-components ───────────────────────────────────────── */
 
-    useEffect(() => {
-        if (textWidth > 0) {
-            translateX.value = withRepeat(
-                withTiming(-textWidth, {
-                    duration: 4000,
-                    easing: Easing.linear,
-                }),
-                -1,
-                false
-            );
-        }
-    }, [textWidth]);
+const FilterButton = React.memo(({ label, isActive, onPress }: {
+    label: string; isActive: boolean; onPress: () => void;
+}) => {
+    const scale = useSharedValue(1);
 
-    const marqueeStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{ translateX: translateX.value }],
-        };
-    });
+    useLayoutEffect(() => {
+        scale.value = isActive ? 1.05 : 1;
+    }, [isActive]);
 
-    // Single Active Image State
-    const [activeImageId, setActiveImageId] = useState<string | null>(null);
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+    }));
 
-    const handleCardToggle = (id: string) => {
-        setActiveImageId(id);
+    const handlePressIn = () => {
+        scale.value = 0.95;
+        onPress();
+    };
+    const handlePressOut = () => {
+        scale.value = isActive ? 1.05 : 1;
+    };
+    const handlePress = () => {
+        scale.value = 1.05;
     };
 
-    const filteredItems = selectedFilter === 'ALL'
-        ? GALLERY_ITEMS
-        : GALLERY_ITEMS.filter(item => item.tag === selectedFilter);
+    const font = FILTER_FONT_MAP[label] ?? 'Gilton';
 
-    // Helper to get font for a specific filter label
-    const getFilterFont = (label: string) => {
-        return GALLERY_FILTERS.find(f => f.label === label)?.font || 'Gilton';
-    }
-
-    const renderItem = ({ item }: { item: typeof GALLERY_ITEMS[0] }) => (
-        <GalleryCard
-            item={item}
-            isActive={activeImageId === item.id}
-            onToggle={() => handleCardToggle(item.id)}
-        />
-    );
-
-    const ListHeaderComponent = () => (
-        <View>
-            {/* Main Purple Block Header */}
-            <LinearGradient
-                colors={['#4a0e95', '#9844b2', '#c489d8', '#e6c8f0']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                className="mx-4 my-2 rounded-[30px] overflow-hidden pt-12 pb-16 items-center"
-                style={{ minHeight: 500 }}
+    return (
+        <Animated.View style={animatedStyle}>
+            <SmoothButton
+                onPress={handlePress}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                containerStyle={s.filterBtnContainer}
+                buttonStyle={`px-8 py-2.5 border-[2.5px] border-black rounded-2xl items-center ${isActive ? 'bg-[#9d4edd]' : 'bg-white'}`}
+                shadowStyle="bg-black rounded-2xl"
+                depth={6}
             >
-                {/* Title */}
-                <Text className="text-white text-6xl tracking-tighter mb-12 shadow-sm"
-                    style={{ fontFamily: 'Gilton' }}>
-                    GALLERY
-                </Text>
-
-                {/* 3D Neubrutalist Vertical Stacked Cards */}
-                <View className="items-center mb-10">
-                    {[2022, 2023, 2024, 2025].map((year, idx) => {
-                        const isHighlighted = year === 2025;
-                        return (
-                            <View key={year} className="w-52 h-14 relative mb-[-4px]" style={{ zIndex: (idx + 1) * 10 }}>
-                                <View className={`absolute top-1.5 left-1.5 w-48 h-12 rounded-md ${isHighlighted ? 'bg-[#5b21b6]' : 'bg-black'}`} />
-                                <View className={`w-48 h-12 border-[3px] border-black rounded-md items-center justify-center ${isHighlighted ? 'bg-black' : 'bg-white'}`}>
-                                    <Text className={`text-xl tracking-widest ${isHighlighted ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'Gilton' }}>
-                                        EST. {year}
-                                    </Text>
-                                </View>
-                            </View>
-                        );
-                    })}
-                </View>
-
-                {/* Subtitle */}
-                <View className="items-center mt-8">
-                    <Text className="text-white text-lg opacity-90 tracking-tight" style={{ fontFamily: 'Gilton' }}>
-                        A collection of chaotic, beautiful, and
-                    </Text>
-                    <View className="flex-row items-center mt-1">
-                        <View className="bg-black px-2 py-0.5 mr-1 rotate-[-2deg] rounded-sm">
-                            <Text className="text-white text-lg tracking-wide" style={{ fontFamily: 'Gilton' }}>unforgettable</Text>
-                        </View>
-                        <Text className="text-white text-lg opacity-90 tracking-tight" style={{ fontFamily: 'Gilton' }}>moments.</Text>
-                    </View>
-                </View>
-            </LinearGradient>
-
-            {/* Mannequin Section (Yellow Tilted Marquee) */}
-            <View className="mt-8 px-4">
-                <View
-                    className="bg-[#FFEB3B] border-[3px] border-black py-3 overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-                    style={{ transform: [{ rotate: '-1.5deg' }] }}
+                <Text
+                    className={`uppercase text-[13px] tracking-widest ${isActive ? 'text-white' : 'text-black'}`}
+                    style={{ fontFamily: font }}
                 >
-                    <Animated.View style={[marqueeStyle, { flexDirection: 'row', width: 2500 }]}>
-                        <Text
-                            onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
-                            className="absolute opacity-0 text-black text-lg tracking-widest"
-                            style={{ fontFamily: 'Gilton' }}
-                        >
-                            {MARQUEE_TEXT}
-                        </Text>
-                        {[...Array(8)].map((_, i) => (
-                            <Text key={i} className="text-black text-lg tracking-widest" style={{ fontFamily: 'Gilton' }}>
-                                {MARQUEE_TEXT}
+                    {label}
+                </Text>
+            </SmoothButton>
+        </Animated.View>
+    );
+});
+
+const ItemSeparator = React.memo(() => <View style={s.separator} />);
+
+const ListFooter = React.memo(() => (
+    <View style={s.footerWrap}>
+        <View style={s.footerInner}>
+            <NewsletterSupport />
+        </View>
+        <View style={s.footerPad} />
+    </View>
+));
+
+/* ── memoized marquee — focus-aware, pauses when screen loses focus ── */
+const Marquee = React.memo(({ isFocused }: { isFocused: boolean }) => {
+    const measuredRef = useRef(false);
+    const widthRef = useRef(0);
+    const translateX = useSharedValue(0);
+
+    const handleLayout = useCallback((e: any) => {
+        if (measuredRef.current) return;
+        const w = e.nativeEvent.layout.width;
+        if (w > 0) {
+            measuredRef.current = true;
+            widthRef.current = w;
+            // Initial start handled by the isFocused effect below
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isFocused && widthRef.current > 0) {
+            translateX.value = withRepeat(
+                withTiming(-widthRef.current, { duration: 4000, easing: Easing.linear }),
+                -1,
+                false,
+            );
+        } else {
+            cancelAnimation(translateX);
+        }
+        return () => { cancelAnimation(translateX); };
+    }, [isFocused]);
+
+    // Also kick off when width first measured (if focused)
+    useEffect(() => {
+        if (widthRef.current > 0 && isFocused) {
+            translateX.value = withRepeat(
+                withTiming(-widthRef.current, { duration: 4000, easing: Easing.linear }),
+                -1,
+                false,
+            );
+        }
+    }, [widthRef.current]);
+
+    const marqueeStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: translateX.value }],
+    }));
+
+    return (
+        <View style={s.marqueeOuter}>
+            <Animated.View style={[marqueeStyle, s.marqueeRow]}>
+                {/* Hidden copy for measuring one segment */}
+                <Text onLayout={handleLayout} style={[s.marqueeHidden, s.marqueeFont]}>
+                    {MARQUEE_TEXT}
+                </Text>
+                {Array.from({ length: MARQUEE_COPIES }).map((_, i) => (
+                    <Text key={i} style={[s.marqueeText, s.marqueeFont]}>{MARQUEE_TEXT}</Text>
+                ))}
+            </Animated.View>
+        </View>
+    );
+});
+
+/* ── memoized header — only re-renders on selectedFilter change ─ */
+interface GalleryHeaderProps {
+    selectedFilter: string;
+    filterHandlers: (() => void)[];
+    elasticStyle: any;
+    isFocused: boolean;
+}
+
+const GalleryHeader = React.memo(({ selectedFilter, filterHandlers, elasticStyle, isFocused }: GalleryHeaderProps) => (
+    <View>
+        {/* Purple Block Header */}
+        <LinearGradient
+            colors={['#4a0e95', '#9844b2', '#c489d8', '#e6c8f0']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            className="mx-4 my-2 rounded-[30px] overflow-hidden pt-12 pb-16 items-center"
+            style={s.gradientMin}
+        >
+            <Text className="text-white text-6xl tracking-tighter mb-12 shadow-sm" style={s.gilton}>
+                GALLERY
+            </Text>
+
+            {/* Year cards */}
+            <View className="items-center mb-10">
+                {YEAR_CARDS.map(({ year, highlight }, idx) => (
+                    <View key={year} className="w-52 h-14 relative mb-[-4px]" style={{ zIndex: (idx + 1) * 10 }}>
+                        <View className={`absolute top-1.5 left-1.5 w-48 h-12 rounded-md ${highlight ? 'bg-[#5b21b6]' : 'bg-black'}`} />
+                        <View className={`w-48 h-12 border-[3px] border-black rounded-md items-center justify-center ${highlight ? 'bg-black' : 'bg-white'}`}>
+                            <Text className={`text-xl tracking-widest ${highlight ? 'text-white' : 'text-black'}`} style={s.gilton}>
+                                EST. {year}
                             </Text>
-                        ))}
-                    </Animated.View>
-                </View>
+                        </View>
+                    </View>
+                ))}
             </View>
 
-            {/* Filter Container Start */}
-            <View className="mx-4 mt-8 bg-white border-x-[3px] border-t-[3px] border-black rounded-t-[30px] p-6 pb-0">
-                <View className="items-center mb-6">
-                    {/* Row 1: ALL, TECH */}
-                    <View className="flex-row gap-4 mb-4">
-                        <FilterButton
-                            label="ALL"
-                            isActive={selectedFilter === 'ALL'}
-                            onPress={() => setSelectedFilter('ALL')}
-                            font={getFilterFont('ALL')}
-                        />
-                        <FilterButton
-                            label="TECH"
-                            isActive={selectedFilter === 'TECH'}
-                            onPress={() => setSelectedFilter('TECH')}
-                            font={getFilterFont('TECH')}
-                        />
+            {/* Subtitle */}
+            <View className="items-center mt-8">
+                <Text className="text-white text-lg opacity-90 tracking-tight" style={s.gilton}>
+                    A collection of chaotic, beautiful, and
+                </Text>
+                <View style={s.subtitleRow}>
+                    <View style={s.subtitleTag}>
+                        <Text className="text-white text-lg tracking-wide" style={s.gilton}>unforgettable</Text>
                     </View>
-
-                    {/* Row 2: CULTURAL, VIBES */}
-                    <View className="flex-row gap-4 mb-4">
-                        <FilterButton
-                            label="CULTURAL"
-                            isActive={selectedFilter === 'CULTURAL'}
-                            onPress={() => setSelectedFilter('CULTURAL')}
-                            font={getFilterFont('CULTURAL')}
-                        />
-                        <FilterButton
-                            label="VIBES"
-                            isActive={selectedFilter === 'VIBES'}
-                            onPress={() => setSelectedFilter('VIBES')}
-                            font={getFilterFont('VIBES')}
-                        />
-                    </View>
-
-                    {/* Row 3: BTS */}
-                    <View className="flex-row">
-                        <FilterButton
-                            label="BTS"
-                            isActive={selectedFilter === 'BTS'}
-                            onPress={() => setSelectedFilter('BTS')}
-                            font={getFilterFont('BTS')}
-                        />
-                    </View>
+                    <Text className="text-white text-lg opacity-90 tracking-tight" style={s.gilton}>moments.</Text>
                 </View>
             </View>
+        </LinearGradient>
+
+        {/* Marquee — focus-aware, pauses when screen is not active */}
+        <View style={s.marqueePad}>
+            <Marquee isFocused={isFocused} />
         </View>
+
+        {/* Filter grid */}
+        <Animated.View style={elasticStyle} className="mx-4 mt-8 bg-white border-[3px] border-black rounded-[30px] p-6 pb-0">
+            <View style={s.filterGrid}>
+                <View style={s.filterRow}>
+                    <FilterButton label="ALL" isActive={selectedFilter === 'ALL'} onPress={filterHandlers[0]} />
+                    <FilterButton label="TECH" isActive={selectedFilter === 'TECH'} onPress={filterHandlers[1]} />
+                </View>
+                <View style={s.filterRow}>
+                    <FilterButton label="CULTURAL" isActive={selectedFilter === 'CULTURAL'} onPress={filterHandlers[2]} />
+                    <FilterButton label="VIBES" isActive={selectedFilter === 'VIBES'} onPress={filterHandlers[3]} />
+                </View>
+                <View style={s.filterRowSingle}>
+                    <FilterButton label="BTS" isActive={selectedFilter === 'BTS'} onPress={filterHandlers[4]} />
+                </View>
+            </View>
+        </Animated.View>
+    </View>
+));
+
+const YEAR_CARDS = Object.freeze([
+    { year: 2022, highlight: false },
+    { year: 2023, highlight: false },
+    { year: 2024, highlight: false },
+    { year: 2025, highlight: true },
+]);
+
+/* ── gallery item row — wraps GalleryCard with stable onToggle ─ */
+const GalleryRow = React.memo(({ item, onToggle }: {
+    item: GalleryItem; onToggle: (id: string) => void;
+}) => {
+    const handleToggle = useCallback(() => onToggle(item.id), [onToggle, item.id]);
+    return (
+        <View style={s.cardPad}>
+            <GalleryCard item={item} isActive={false} onToggle={handleToggle} />
+        </View>
+    );
+});
+
+/* ── main screen ──────────────────────────────────────────── */
+const GalleryScreen: React.FC = () => {
+    const scrollRef = useAnimatedRef<Animated.FlatList<any>>();
+    const scrollY = useSharedValue(0);
+    const isFocused = useIsFocused();
+
+    const scrollHandler = useAnimatedScrollHandler({
+        onScroll: (event) => {
+            scrollY.value = event.contentOffset.y;
+        },
+    }, []);
+
+    const elasticStyle = useAnimatedStyle(() => {
+        'worklet';
+        const y = scrollY.value < 0 ? -scrollY.value * 0.6 : 0;
+        return { transform: [{ translateY: y }] };
+    }, []);
+
+    const [selectedFilter, setSelectedFilter] = useState('ALL');
+
+    const handleFilterPress = useCallback((label: string) => {
+        setSelectedFilter(label);
+    }, []);
+
+    /** Pre-bound per-filter handlers — stable array, avoids inline closures in header */
+    const filterHandlers = useMemo(
+        () => GALLERY_FILTERS.map(f => () => handleFilterPress(f.label)),
+        [handleFilterPress],
     );
 
-    const ListFooterComponent = () => (
-        <View className="mx-4 bg-white border-x-[3px] border-b-[3px] border-black rounded-b-[30px] p-6 pt-0 mb-12">
-            <View className="h-6" />
-            <SocialConnect />
-            <FooterSection />
-        </View>
-    );
+    const handleCardToggle = useCallback((id: string) => {
+        // Toggle is now local to each card; this callback kept for potential cross-card logic
+    }, []);
+
+    /* Filter logic — pre-grouped once, selected by key */
+    const itemsByFilter = useMemo(() => {
+        const grouped: Record<string, GalleryItem[]> = { ALL: GALLERY_ITEMS };
+        GALLERY_ITEMS.forEach(item => {
+            (grouped[item.tag] ??= []).push(item);
+        });
+        return grouped;
+    }, []);
+
+    const filteredItems = itemsByFilter[selectedFilter] ?? GALLERY_ITEMS;
+
+    /* Stable renderItem — zero dependency on active state */
+    const renderItem = useCallback(({ item }: { item: GalleryItem }) => (
+        <GalleryRow item={item} onToggle={handleCardToggle} />
+    ), [handleCardToggle]);
+
+    const keyExtractor = useCallback((item: GalleryItem) => item.id, []);
+
+    const listHeader = useMemo(() => (
+        <GalleryHeader
+            selectedFilter={selectedFilter}
+            filterHandlers={filterHandlers}
+            elasticStyle={elasticStyle}
+            isFocused={isFocused}
+        />
+    ), [selectedFilter, filterHandlers, elasticStyle, isFocused]);
+
+    const renderListHeader = useCallback(() => listHeader, [listHeader]);
 
     return (
         <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
             <PageTransition style={{ flex: 1 }}>
                 <GlobalMusicButton />
-                <View className="flex-1 bg-black">
-                    <FlatList
+                <View style={s.flex1bg}>
+                    <Animated.FlatList
+                        ref={scrollRef}
+                        onScroll={scrollHandler}
+                        scrollEventThrottle={1}
                         data={filteredItems}
                         renderItem={renderItem}
-                        keyExtractor={(item) => item.id}
-                        ListHeaderComponent={ListHeaderComponent}
-                        ListFooterComponent={ListFooterComponent}
-                        contentContainerStyle={{ paddingBottom: 40 }}
+                        keyExtractor={keyExtractor}
+                        ListHeaderComponent={renderListHeader}
+                        ListFooterComponent={ListFooter}
                         showsVerticalScrollIndicator={false}
                         removeClippedSubviews={Platform.OS === 'android'}
-                        initialNumToRender={4}
-                        maxToRenderPerBatch={4}
+                        initialNumToRender={2}
+                        maxToRenderPerBatch={2}
+                        updateCellsBatchingPeriod={50}
                         windowSize={5}
-                        getItemLayout={(_, index) => ({
-                            length: 450,
-                            offset: 450 * index,
-                            index,
-                        })}
-                        ItemSeparatorComponent={() => <View className="h-10 bg-white mx-4 border-x-[3px] border-black" />}
-                        style={{ flex: 1 }}
+                        ItemSeparatorComponent={ItemSeparator}
+                        style={s.flex1}
                     />
                 </View>
             </PageTransition>
@@ -248,3 +340,57 @@ const GalleryScreen = () => {
 };
 
 export default GalleryScreen;
+
+/* ── styles ───────────────────────────────────────────────── */
+const s = StyleSheet.create({
+    flex1: { flex: 1 },
+    flex1bg: { flex: 1, backgroundColor: '#000' },
+    separator: { height: 40 },
+    cardPad: { paddingHorizontal: 16 },
+    gilton: { fontFamily: 'Gilton' },
+
+    /* filter button */
+    filterBtnContainer: { minWidth: 100 },
+    filterGrid: { alignItems: 'center', marginBottom: 24 },
+    filterRow: { flexDirection: 'row', gap: 16, marginBottom: 16 },
+    filterRowSingle: { flexDirection: 'row' },
+
+    /* footer */
+    footerWrap: { marginTop: 32, backgroundColor: '#000' },
+    footerInner: { paddingHorizontal: 16, gap: 16 },
+    footerPad: { height: 0 },
+
+    /* gradient */
+    gradientMin: { minHeight: 500 },
+
+    /* subtitle */
+    subtitleRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+    subtitleTag: {
+        backgroundColor: '#000',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        marginRight: 4,
+        borderRadius: 2,
+        transform: [{ rotate: '-2deg' }],
+    },
+
+    /* marquee */
+    marqueePad: { marginTop: 32, paddingHorizontal: 16, marginBottom: 16 },
+    marqueeOuter: {
+        backgroundColor: '#FFEB3B',
+        borderWidth: 3,
+        borderColor: '#000',
+        paddingVertical: 12,
+        overflow: 'hidden',
+        transform: [{ rotate: '-1.5deg' }],
+        shadowColor: '#000',
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+        elevation: 4,
+    },
+    marqueeRow: { flexDirection: 'row', width: 2500 },
+    marqueeHidden: { position: 'absolute', opacity: 0 },
+    marqueeText: { color: '#000', fontSize: 18, letterSpacing: 3 },
+    marqueeFont: { fontFamily: 'Gilton' },
+});

@@ -1,61 +1,48 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
+import { View, Text, Dimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowDown } from 'lucide-react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    useAnimatedReaction,
+    withRepeat,
+    withTiming,
+    withSpring,
+    cancelAnimation,
+    runOnJS,
+    Easing,
+    type SharedValue,
+} from 'react-native-reanimated';
 import SmoothButton from './ui/SmoothButton';
 import { useAuth } from '../context/AuthContext';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 380;
 
-interface HeroSectionProps {
-    onSignInPress?: () => void;
-}
+// Hoist constants outside component — avoids re-creation every render
+const TARGET_DATE_MS = new Date('2026-03-27T00:00:00').getTime();
+const MARQUEE_TEXT = "SIGNIFIYA'26 IS HERE. REGISTRATIONS ARE LIVE.   ";
 
-const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
-    // Marquee Animation
-    const [textWidth, setTextWidth] = React.useState(0);
-    const translateX = useSharedValue(0);
-
-    const MARQUEE_TEXT = "SIGNIFIYA'26 IS HERE. REGISTRATIONS ARE LIVE.   ";
-
-    // Arrow bounce animation
-    const arrowBounce = useSharedValue(0);
-
-    useEffect(() => {
-        // Bouncing arrow animation - indicates scroll down
-        arrowBounce.value = withRepeat(
-            withTiming(10, {
-                duration: 800,
-                easing: Easing.inOut(Easing.ease)
-            }),
-            -1, // Infinite
-            true // Reverse (bounce up and down)
-        );
-    }, []);
-
-    const arrowAnimatedStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{ translateY: arrowBounce.value }],
-        };
-    });
-
-    // --- COUNTDOWN LOGIC (Easy to change target date here) ---
-    const TARGET_DATE = new Date('2026-03-13T00:00:00');
-    const [timeLeft, setTimeLeft] = React.useState({
-        days: '29',
-        hours: '23',
-        minutes: '57',
-        seconds: '38'
+// --- Isolated Countdown Component ---
+// Extracted so the 1s setInterval only re-renders this small subtree, not all of HeroSection
+const CountdownTimer = React.memo(() => {
+    const [timeLeft, setTimeLeft] = useState({
+        days: '--',
+        hours: '--',
+        minutes: '--',
+        seconds: '--'
     });
 
     useEffect(() => {
         const calculateTimeLeft = () => {
-            const now = new Date().getTime();
-            const distance = TARGET_DATE.getTime() - now;
+            const now = Date.now();
+            const distance = TARGET_DATE_MS - now;
 
             if (distance < 0) return;
 
@@ -67,190 +54,283 @@ const HeroSection = ({ onSignInPress }: HeroSectionProps) => {
             });
         };
 
-        const timer = setInterval(calculateTimeLeft, 1000);
         calculateTimeLeft(); // Run once immediately
+        const timer = setInterval(calculateTimeLeft, 1000);
         return () => clearInterval(timer);
     }, []);
-    // ---------------------------------------------------------
+
+    return (
+        <View className="flex-row  justify-between w-full mb-10" style={{ paddingHorizontal: 8, maxWidth: 420 }}>
+            {[
+                { num: timeLeft.days, label: 'DAYS' },
+                { num: timeLeft.hours, label: 'HOURS' },
+                { num: timeLeft.minutes, label: 'MINUTES' },
+                { num: timeLeft.seconds, label: 'SECONDS' }
+            ].map((item, index) => (
+                <View key={index} className="items-center" style={{ minWidth: isSmallDevice ? 55 : 70 }}>
+                    <View className="relative" style={{ paddingHorizontal: 8, minWidth: isSmallDevice ? 45 : 60 }}>
+                        <Text
+                            className={`absolute ${isSmallDevice ? 'text-[18px]' : 'text-[22px]'} text-black text-center`}
+                            style={{ top: 2, left: 2, right: 0, fontFamily: 'BBHBartle', opacity: 0.4 }}
+                        >
+                            {item.num}
+                        </Text>
+                        <Text
+                            className={`text-white ${isSmallDevice ? 'text-[16px]' : 'text-[20px]'} text-center`}
+                            style={{ fontFamily: 'BBHBartle' }}
+                        >
+                            {item.num}
+                        </Text>
+                    </View>
+                    <View className="w-10 h-[1.5px] bg-black my-1" />
+                    <Text className="text-black font-[Softura] text-[10px] uppercase tracking-tighter opacity-80">
+                        {item.label}
+                    </Text>
+                </View>
+            ))}
+        </View>
+    );
+});
+
+interface HeroSectionProps {
+    onSignInPress?: () => void;
+    scrollY?: SharedValue<number>;
+}
+
+const HeroSection = ({ onSignInPress, scrollY }: HeroSectionProps) => {
+    // Entrance animation
+    const enterOpacity = useSharedValue(0);
+    const enterTranslateY = useSharedValue(30);
+
+    // Marquee Animation
+    const [textWidth, setTextWidth] = useState(0);
+    const translateX = useSharedValue(0);
+
+    // Arrow bounce animation
+    const arrowBounce = useSharedValue(0);
+
+    // ── Visibility tracking ──────────────────────────────────────────
+    const [isSectionVisible, setIsSectionVisible] = useState(true);
+    const sectionYShared = useSharedValue(0);
+    const sectionHeightShared = useSharedValue(0);
+    const textWidthRef = useRef(0);
+
+    useAnimatedReaction(
+        () => {
+            if (!scrollY) return true;
+            const y = scrollY.value;
+            const sY = sectionYShared.value;
+            const sH = sectionHeightShared.value;
+            return (y + SCREEN_HEIGHT > sY + 100) && (y < sY + sH - 100);
+        },
+        (visible, prev) => {
+            if (visible !== prev) {
+                runOnJS(setIsSectionVisible)(visible);
+            }
+        },
+        [scrollY],
+    );
+
+    const handleSectionLayout = useCallback((e: any) => {
+        const { y, height } = e.nativeEvent.layout;
+        sectionYShared.value = y;
+        sectionHeightShared.value = height;
+    }, [sectionYShared, sectionHeightShared]);
+
+    // ── Start / stop infinite animations based on visibility ─────────
+    useEffect(() => {
+        if (isSectionVisible) {
+            arrowBounce.value = withRepeat(
+                withTiming(10, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+                -1,
+                true
+            );
+            if (textWidthRef.current > 0) {
+                translateX.value = withRepeat(
+                    withTiming(-textWidthRef.current, { duration: 3500, easing: Easing.linear }),
+                    -1,
+                    false
+                );
+            }
+        } else {
+            cancelAnimation(arrowBounce);
+            cancelAnimation(translateX);
+        }
+        return () => {
+            cancelAnimation(arrowBounce);
+            cancelAnimation(translateX);
+        };
+    }, [isSectionVisible]);
+
+    const arrowAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: arrowBounce.value }],
+    }));
 
     useEffect(() => {
         if (textWidth > 0) {
-            translateX.value = withRepeat(
-                withTiming(-textWidth, {
-                    duration: 3500, // Balanced speed for readability vs energy
-                    easing: Easing.linear,
-                }),
-                -1, // Infinite
-                false
-            );
+            textWidthRef.current = textWidth;
+            if (isSectionVisible) {
+                translateX.value = withRepeat(
+                    withTiming(-textWidth, { duration: 3500, easing: Easing.linear }),
+                    -1,
+                    false
+                );
+            }
         }
     }, [textWidth]);
 
-    const marqueeStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{ translateX: translateX.value }],
-        };
-    });
+    const marqueeStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: translateX.value }],
+    }));
 
     const { isLoggedIn } = useAuth();
     const navigation = useNavigation<any>();
 
+    // Memoize navigation callbacks — prevents child re-renders from new function refs
+    const handleNavigateEvents = useCallback(() => navigation.navigate('Events'), [navigation]);
+    const handleNavigatePayments = useCallback(() => navigation.navigate('VisitorRegistration'), [navigation]);
+    const handleTextLayout = useCallback((e: any) => setTextWidth(e.nativeEvent.layout.width), []);
+
+    useEffect(() => {
+        enterOpacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
+        enterTranslateY.value = withSpring(0, { damping: 14, stiffness: 100 });
+    }, []);
+
+    const entranceStyle = useAnimatedStyle(() => ({
+        opacity: enterOpacity.value,
+        transform: [{ translateY: enterTranslateY.value }],
+    }));
+
     return (
-        <View className="mb-4">
+        <Animated.View style={entranceStyle}>
+        <View className="mb-4" onLayout={handleSectionLayout}>
 
             {/* --- 1. Top Marquee Strip (Outside Card) --- */}
-            <View className="w-full h-10 bg-[#E1BEE7] overflow-hidden justify-center mb-5 border-y-2 border-black">
-                <Animated.View style={[marqueeStyle, { flexDirection: 'row', width: 2000 }]}>
-                    {/* Render one invisible to measure */}
-                    <Text
-                        onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
-                        className="absolute opacity-0 text-black font-[Gilton] text-[11px] uppercase tracking-widest"
-                    >
-                        {MARQUEE_TEXT}
-                    </Text>
-
-                    {/* Render multiple copies for the loop */}
-                    {[...Array(10)].map((_, i) => (
-                        <Text key={i} className="text-black font-[Gilton] text-[11px] uppercase tracking-widest">
+                <View className="w-full h-10 bg-[#E1BEE7] overflow-hidden justify-center mb-5 border-y-2 border-black">
+                    <Animated.View style={[marqueeStyle, { flexDirection: 'row', width: 2000 }]}>
+                        {/* Render one invisible to measure */}
+                        <Text
+                            onLayout={handleTextLayout}
+                            className="absolute opacity-0 text-black font-[Gilton] text-[11px] uppercase tracking-widest"
+                        >
                             {MARQUEE_TEXT}
                         </Text>
-                    ))}
-                </Animated.View>
-            </View>
 
-            {/* Main Hero Card with padding wrapper */}
-            <View className="px-4">
-                <LinearGradient
-                    colors={['#6A1B9A', '#8E24AA', '#BA68C8', '#E1BEE7']}
-                    locations={[0, 0.3, 0.6, 1]}
-                    className="w-full rounded-[30px] pt-16 pb-8 px-6 relative overflow-hidden justify-center"
-                    style={{ minHeight: isSmallDevice ? 600 : 700 }}
-                >
-                    {/* Background Watermark */}
-                    <View className="absolute inset-x-0 bottom-0 items-center justify-end opacity-[0.10]" style={{ bottom: -40 }}>
-                        <Image
-                            source={require('../../assets/bglogo.png')}
-                            style={{ width: 600, height: 700, resizeMode: 'contain', tintColor: 'white' }}
-                        />
-                    </View>
+                        {/* Reduced from 10 → 5 copies — more than enough for seamless loop in 2000px */}
+                        {[...Array(5)].map((_, i) => (
+                            <Text key={i} className="text-black font-[Gilton] text-[11px] uppercase tracking-widest">
+                                {MARQUEE_TEXT}
+                            </Text>
+                        ))}
+                    </Animated.View>
+                </View>
 
-                    {/* Content */}
-                    <View className="items-center z-10 w-full mb-20">
-                        {/* Title */}
-                        <Text
-                            className={`text-white ${isSmallDevice ? 'text-4xl' : 'text-5xl'} tracking-[0.25em] text-center mb-8 uppercase`}
-                            style={{ fontFamily: 'Bicubik' }}
-                        >
-                            SIGNIFIYA
-                        </Text>
+                {/* Main Hero Card with padding wrapper */}
+                <View className="px-4">
+                    <LinearGradient
+                        colors={['#6A1B9A', '#8E24AA', '#BA68C8', '#E1BEE7']}
+                        locations={[0, 0.3, 0.6, 1]}
+                        className="w-full rounded-[30px] pt-16 pb-8 px-6 relative overflow-hidden justify-center"
+                        style={{ minHeight: isSmallDevice ? 600 : 700 }}
+                    >
+                        {/* Background Watermark */}
+                        <View className="absolute inset-x-0 bottom-0 items-center justify-end opacity-[0.10]" style={{ bottom: -40 }}>
+                            <Image
+                                source={require('../../assets/bglogo.webp')}
+                                style={{ width: 600, height: 700, tintColor: 'white' }}
+                                contentFit="contain"
+                                cachePolicy="memory-disk"
+                            />
+                        </View>
 
-                        {/* Countdown Timer */}
-                        <View className="flex-row  justify-between w-full mb-10" style={{ paddingHorizontal: 8, maxWidth: 420, }}>
-                            {[
-                                { num: timeLeft.days, label: 'DAYS' },
-                                { num: timeLeft.hours, label: 'HOURS' },
-                                { num: timeLeft.minutes, label: 'MINUTES' },
-                                { num: timeLeft.seconds, label: 'SECONDS' }
-                            ].map((item, index) => (
-                                <View key={index} className="items-center" style={{ minWidth: isSmallDevice ? 55 : 70 }}>
-                                    {/* Container with extra space to prevent italic text clipping */}
-                                    <View className="relative" style={{ paddingHorizontal: 8, minWidth: isSmallDevice ? 45 : 60 }}>
-                                        {/* Subtle hard shadow */}
-                                        <Text
-                                            className={`absolute ${isSmallDevice ? 'text-[18px]' : 'text-[22px]'} text-black text-center`}
-                                            style={{ top: 2, left: 2, right: 0, fontFamily: 'BBHBartle', opacity: 0.4 }}
-                                        >
-                                            {item.num}
+                        {/* Content */}
+                        <View className="items-center z-10 w-full mb-20">
+                            {/* Title */}
+                            <Text
+                                className={`text-white ${isSmallDevice ? 'text-4xl' : 'text-5xl'} tracking-[0.25em] text-center mb-8 uppercase`}
+                                style={{ fontFamily: 'Bicubik' }}
+                            >
+                                SIGNIFIYA
+                            </Text>
+
+                            {/* Countdown Timer — isolated component, 1s updates don't re-render HeroSection */}
+                            <CountdownTimer />
+
+                            {/* Button(s) Container */}
+                            <View className="items-center gap-4 mb-16">
+                                {!isLoggedIn ? (
+                                    <SmoothButton
+                                        onPress={onSignInPress}
+                                        containerStyle={{ alignSelf: 'center' }}
+                                        buttonStyle="bg-[#E1BEE7] border-2 border-black rounded-full px-14 py-4"
+                                        depth={6}
+                                    >
+                                        <Text className="text-black text-[12px] uppercase tracking-[0.15em]"
+                                            style={{ fontFamily: 'Gilton' }} >
+                                            SIGN IN / SIGN UP
                                         </Text>
-                                        <Text
-                                            className={`text-white ${isSmallDevice ? 'text-[16px]' : 'text-[20px]'} text-center`}
-                                            style={{ fontFamily: 'BBHBartle' }}
+                                    </SmoothButton>
+                                ) : (
+                                    <>
+                                        {/* CHECK EVENTS Button */}
+                                        <SmoothButton
+                                            onPress={handleNavigateEvents}
+                                            containerStyle={{ alignSelf: 'center' }}
+                                            buttonStyle="bg-[#E1BEE7] border-[3px] border-black rounded-full px-10 py-3"
+                                            depth={4}
                                         >
-                                            {item.num}
-                                        </Text>
-                                    </View>
-                                    <View className="w-10 h-[1.5px] bg-black my-1" />
-                                    <Text className="text-black font-[Softura] text-[10px] uppercase tracking-tighter opacity-80">
-                                        {item.label}
-                                    </Text>
+                                            <Text className="text-black text-[16px] uppercase tracking-tighter"
+                                                style={{ fontFamily: 'Gilton' }} >
+                                                CHECK EVENTS
+                                            </Text>
+                                        </SmoothButton>
+
+                                        {/* VISITOR'S PASS Button */}
+                                        <SmoothButton
+                                            onPress={handleNavigatePayments}
+                                            containerStyle={{ alignSelf: 'center' }}
+                                            buttonStyle="bg-white border-[2px] border-black rounded-full px-10 py-3"
+                                            depth={4}
+                                        >
+                                            <Text className="text-black text-[16px] uppercase tracking-tighter"
+                                                style={{ fontFamily: 'Gilton' }} >
+                                                VISITOR'S PASS
+                                            </Text>
+                                        </SmoothButton>
+                                    </>
+                                )}
+                            </View>
+
+                            {/* Description */}
+                            <Text className="text-black/50 text-[9px] uppercase text-center mb-8 leading-4 tracking-tighter px-6"
+                                style={{ fontFamily: 'Softura' }}>
+                                SOET'S AWAITED FEST IS BACK WITH EVEN MORE FUN N{'\n'}
+                                EXCITING PLANS | GLIDE DOWN TO EXPLORE OUR FEST
+                            </Text>
+
+                        </View>
+
+                        {/* Footer Icons - Positioned Absolutely at Bottom */}
+                        <View className="absolute bottom-6 left-0 right-0 px-6 z-20">
+                            <View className="w-full relative h-24 items-center justify-end">
+                                {/* Bouncing Arrow - Indicates Scroll Down */}
+                                <Animated.View style={arrowAnimatedStyle} className="mb-2">
+                                    <ArrowDown color="black" size={45} strokeWidth={1.5} />
+                                </Animated.View>
+                                {/* Bunny - Bottom Right Absolute */}
+                                <View className="absolute right-0 bottom-0">
+                                    <BunnyMascot />
                                 </View>
-                            ))}
-                        </View>
-
-                        {/* Button(s) Container */}
-                        <View className="items-center gap-4 mb-16">
-                            {!isLoggedIn ? (
-                                <SmoothButton
-                                    onPress={onSignInPress}
-                                    containerStyle={{ alignSelf: 'center' }}
-                                    buttonStyle="bg-[#E1BEE7] border-2 border-black rounded-full px-14 py-4"
-                                    depth={6}
-                                >
-                                    <Text className="text-black text-[12px] uppercase tracking-[0.15em]"
-                                        style={{ fontFamily: 'Gilton' }} >
-                                        SIGN IN / SIGN UP
-                                    </Text>
-                                </SmoothButton>
-                            ) : (
-                                <>
-                                    {/* CHECK EVENTS Button */}
-                                    <SmoothButton
-                                        onPress={() => navigation.navigate('Events')}
-                                        containerStyle={{ alignSelf: 'center' }}
-                                        buttonStyle="bg-[#E1BEE7] border-[3px] border-black rounded-full px-10 py-3"
-                                        depth={4}
-                                    >
-                                        <Text className="text-black text-[16px] uppercase tracking-tighter"
-                                            style={{ fontFamily: 'Gilton' }} >
-                                            CHECK EVENTS
-                                        </Text>
-                                    </SmoothButton>
-
-                                    {/* VISITOR'S PASS Button */}
-                                    <SmoothButton
-                                        onPress={() => navigation.navigate('Main', { screen: 'Payments' })}
-                                        containerStyle={{ alignSelf: 'center' }}
-                                        buttonStyle="bg-white border-[2px] border-black rounded-full px-10 py-3"
-                                        depth={4}
-                                    >
-                                        <Text className="text-black text-[16px] uppercase tracking-tighter"
-                                            style={{ fontFamily: 'Gilton' }} >
-                                            VISITOR'S PASS
-                                        </Text>
-                                    </SmoothButton>
-                                </>
-                            )}
-                        </View>
-
-                        {/* Description */}
-                        <Text className="text-black/50 text-[9px] uppercase text-center mb-8 leading-4 tracking-tighter px-6"
-                            style={{ fontFamily: 'Softura' }}>
-                            SOET'S AWAITED FEST IS BACK WITH EVEN MORE FUN N{'\n'}
-                            EXCITING PLANS | GLIDE DOWN TO EXPLORE OUR FEST
-                        </Text>
-
-                    </View>
-
-                    {/* Footer Icons - Positioned Absolutely at Bottom */}
-                    <View className="absolute bottom-6 left-0 right-0 px-6 z-20">
-                        <View className="w-full relative h-24 items-center justify-end">
-                            {/* Bouncing Arrow - Indicates Scroll Down */}
-                            <Animated.View style={arrowAnimatedStyle} className="mb-2">
-                                <ArrowDown color="black" size={45} strokeWidth={1.5} />
-                            </Animated.View>
-                            {/* Bunny - Bottom Right Absolute */}
-                            <View className="absolute right-0 bottom-0">
-                                <BunnyMascot />
                             </View>
                         </View>
-                    </View>
-                </LinearGradient>
+                    </LinearGradient>
+                </View>
             </View>
-        </View>
+        </Animated.View>
     );
 };
 
-const BunnyMascot = () => (
+const BunnyMascot = React.memo(() => (
     <Svg width={90} height={90} viewBox="0 0 100 100" style={{ transform: [{ rotate: '-8deg' }] }}>
         {/* Head */}
         <Path
@@ -288,7 +368,7 @@ const BunnyMascot = () => (
         {/* Nose */}
         <Path d="M50,88 L50,84" stroke="black" strokeWidth="2" strokeLinecap="round" />
     </Svg>
-);
+));
 
 // Wrap with React.memo to prevent re-renders during scroll
 export default React.memo(HeroSection);

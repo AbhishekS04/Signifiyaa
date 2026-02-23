@@ -1,9 +1,22 @@
+import 'react-native-url-polyfill/auto';
 import { createAuthClient } from "better-auth/client";
 import { expoClient } from "@better-auth/expo/client";
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const BASE_URL = process.env.EXPO_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
-console.log(`[BetterAuth] Connecting to: ${BASE_URL}`);
+
+// Android Emulator workaround: localhost -> 10.0.2.2
+const FINAL_URL = Platform.OS === 'android' && BASE_URL.includes('localhost')
+  ? BASE_URL.replace('localhost', '10.0.2.2')
+  : BASE_URL;
+
+console.log(`[BetterAuth] EXPO_PUBLIC_BETTER_AUTH_URL: ${process.env.EXPO_PUBLIC_BETTER_AUTH_URL}`);
+console.log(`[BetterAuth] Configured URL: ${BASE_URL}`);
+if (FINAL_URL !== BASE_URL) {
+  console.log(`[BetterAuth] Android Redirect: ${FINAL_URL}`);
+}
+
 
 // In-memory cache for synchronous access
 // The expoClient sometimes calls getItem synchronously
@@ -36,7 +49,7 @@ const storage = {
 
 // Create the official Better Auth client with Expo plugin
 export const authClient = createAuthClient({
-  baseURL: BASE_URL,
+  baseURL: FINAL_URL,
   plugins: [
     expoClient({
       scheme: "signifiya",

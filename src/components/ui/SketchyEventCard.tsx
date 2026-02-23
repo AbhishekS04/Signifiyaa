@@ -2,9 +2,8 @@ import React from 'react';
 import { View, Text, Dimensions, Platform } from 'react-native';
 import { Image } from 'expo-image';
 // Video removed as per request
-import { ArrowUpRight, MapPin, Clock, Star } from 'lucide-react-native';
-import Svg, { Line, G } from 'react-native-svg';
-import SmoothButton from './SmoothButton';
+import { MapPin, Clock, Star } from 'lucide-react-native';
+import Svg, { Line } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
 
@@ -89,9 +88,20 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                         >
                             <MapPin size={14} color="#ff0000ff" strokeWidth={2.5} style={{ marginRight: 8 }} />
                             <Text className="text-[10px] font-bold uppercase tracking-widest text-black flex-1" style={{ fontFamily: 'monospace' }}>
-                                VENUE: {item.venue || '10k'}
+                                VENUE: {item.venue || 'TBA'}
                             </Text>
                         </View>
+
+                        {/* Team Size (Conditional) */}
+                        {item.teamSize && (
+                            <View className="w-full mt-2">
+                                <View className="bg-[#FFF9C4] border-[2px] border-black rounded-[12px] px-3 py-1.5 shadow-[2px_2px_0px_#000]">
+                                    <Text className="text-[9px] font-bold text-black uppercase" style={{ fontFamily: 'monospace' }}>
+                                        TEAM SIZE: {item.teamSize} MEMBER(S)
+                                    </Text>
+                                </View>
+                            </View>
+                        )}
 
                     </View>
 
@@ -116,11 +126,16 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
                         {/* Inner Image Only - No Video */}
                         <View className="w-full h-full bg-black border-[2px] border-black rounded-[10px] overflow-hidden relative">
                             <Image
-                                source={{ uri: item.imageUrl }}
+                                source={
+                                    typeof item.imageUrl === 'string' && (item.imageUrl.startsWith('http') || item.imageUrl.startsWith('https'))
+                                        ? { uri: item.imageUrl }
+                                        : item.imageUrl
+                                }
                                 style={{ width: '100%', height: '100%' }}
                                 contentFit="cover"
                                 cachePolicy="memory-disk"
-                                transition={200}
+                                transition={150}
+                                recyclingKey={item.title}
                             />
                         </View>
 
@@ -150,35 +165,37 @@ const SketchyEventCard = ({ item, index, onPressRegister, onPressDetails }: Sket
             </View>
 
             {/* COORDINATORS (Full Width) */}
-            <View className="flex-row gap-6 w-full px-1">
-                {/* Student Coords */}
-                <View className="flex-1">
-                    <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
-                        Student Coordinators
-                    </Text>
-                    <View>
-                        {item.studentCoordinators?.map((name: string, i: number) => (
-                            <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
-                                {name}
-                            </Text>
-                        )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
+            {item.id !== 1 && item.id !== 20 && (
+                <View className="flex-row gap-6 w-full px-1">
+                    {/* Student Coords */}
+                    <View className="flex-1">
+                        <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
+                            Student Coordinators
+                        </Text>
+                        <View>
+                            {item.studentCoordinators?.map((name: string, i: number) => (
+                                <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
+                                    {name}
+                                </Text>
+                            )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
+                        </View>
                     </View>
-                </View>
 
-                {/* Faculty Coords */}
-                <View className="flex-1">
-                    <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
-                        Faculty Coordinators
-                    </Text>
-                    <View>
-                        {item.facultyCoordinators?.map((name: string, i: number) => (
-                            <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
-                                {name}
-                            </Text>
-                        )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
+                    {/* Faculty Coords */}
+                    <View className="flex-1">
+                        <Text className="text-[8px] uppercase text-gray-500 font-black tracking-[0.15em] mb-1.5" style={{ fontFamily: SECTION_FONTS.BADGE }}>
+                            Faculty Coordinators
+                        </Text>
+                        <View>
+                            {item.facultyCoordinators?.map((name: string, i: number) => (
+                                <Text key={i} className="text-[10px] font-bold text-black leading-3.5 mb-0.5">
+                                    {name}
+                                </Text>
+                            )) || <Text className="text-[10px] font-bold text-black">TBA</Text>}
+                        </View>
                     </View>
                 </View>
-            </View>
+            )}
 
         </View>
     );

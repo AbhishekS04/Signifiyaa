@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Dimensions, ActivityIndicator, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, Dimensions, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, { FadeIn, FadeOut, Easing, LinearTransition } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { ArrowLeft, Github, Eye, EyeOff } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
 import SmoothButton from '../components/ui/SmoothButton';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
-import { PageTransition } from '../components/navigation/PageTransition';
 
 const { width } = Dimensions.get('window');
 

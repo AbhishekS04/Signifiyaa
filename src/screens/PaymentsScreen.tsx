@@ -43,10 +43,10 @@ export default function PaymentsScreen() {
     );
 
     return (
-        <SafeAreaView className="flex-1 bg-[#F5E6FA] pt-3" edges={['top', 'left', 'right']}>
+        <SafeAreaView className="flex-1 bg-black pt-3" edges={['top', 'left', 'right']}>
             <PageTransition style={{ flex: 1 }}>
                 <ScrollView
-                    style={{ backgroundColor: '#F5E6FA' }}
+                    style={{ backgroundColor: 'black' }}
                     contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: 16, paddingTop: 20 }}
                     showsVerticalScrollIndicator={false}
                 >
@@ -54,7 +54,7 @@ export default function PaymentsScreen() {
                         <Animated.View entering={ZoomIn.duration(400)} className="pt-10">
                             {/* Header */}
                             <View className="mb-8">
-                                <Text className="text-5xl uppercase tracking-tighter" style={{ fontFamily: FONT_BOLD, color: 'black' }}>
+                                <Text className="text-4xl uppercase tracking-tighter" style={{ fontFamily: FONT_BOLD, color: 'black' }}>
                                     PAYMENTS
                                 </Text>
                             </View>
@@ -120,7 +120,7 @@ export default function PaymentsScreen() {
                                             {/* Visitor Pass Button */}
                                             <View className="mb-4">
                                                 <SmoothButton
-                                                    onPress={() => setActiveView('visitor')}
+                                                    onPress={() => navigation.navigate('VisitorRegistration')}
                                                     buttonStyle="bg-[#9C27B0] border-[2.5px] border-black rounded-[20px] py-6 px-6"
                                                     shadowStyle="bg-black rounded-[20px]"
                                                     depth={6}

@@ -1,12 +1,10 @@
-import React from 'react';
-import { View, Text, Pressable, ViewStyle, StyleProp } from 'react-native';
+import React, { memo } from 'react';
+import { Pressable, ViewStyle, StyleProp } from 'react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
     withSpring,
     WithSpringConfig,
-    interpolate,
-    Extrapolation
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
@@ -26,7 +24,13 @@ interface SmoothButtonProps {
     hitSlop?: number | { top: number; bottom: number; left: number; right: number };
 }
 
-const SmoothButton: React.FC<SmoothButtonProps> = ({
+const DEFAULT_SPRING_CONFIG: WithSpringConfig = {
+    damping: 15,
+    stiffness: 150,
+    mass: 1,
+};
+
+const SmoothButton: React.FC<SmoothButtonProps> = memo(({
     children,
     onPress,
     onPressIn,
@@ -36,11 +40,7 @@ const SmoothButton: React.FC<SmoothButtonProps> = ({
     innerButtonStyle,
     shadowStyle = "bg-black rounded-full",
     depth = 6,
-    springConfig = {
-        damping: 15,
-        stiffness: 150,
-        mass: 1,
-    },
+    springConfig = DEFAULT_SPRING_CONFIG,
     disabled = false,
     active = false,
     hitSlop = 10
@@ -98,13 +98,12 @@ const SmoothButton: React.FC<SmoothButtonProps> = ({
                         animatedStyle,
                         innerButtonStyle // Apply dynamic styles here
                     ]}
-                // Removed Layout prop that might cause jitter on android
                 >
                     {children}
                 </Animated.View>
             </Pressable>
         </Animated.View>
     );
-};
+});
 
 export default SmoothButton;
