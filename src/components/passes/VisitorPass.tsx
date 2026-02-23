@@ -20,9 +20,8 @@ const VisitorPass = ({ data, userName, bookingId, onClose }: VisitorPassProps) =
 
     // Pass type label
     let passTypeLabel = 'Visitor Pass';
-    if (data.passType === 'day1') passTypeLabel = 'Day 1 Pass';
-    else if (data.passType === 'day2') passTypeLabel = 'Day 2 Pass';
-    else if (data.passType === 'dual' || data.passType === 'combo') passTypeLabel = 'Dual Day Pass';
+    if (data.passType === 'Single Day Pass' || data.passType === 'day 1 pass' || data.passType === 'day1' || data.passType === 'single') passTypeLabel = 'Single Day Pass';
+    else if (data.passType === 'Double Day Pass' || data.passType === 'day 2 pass' || data.passType === 'dual' || data.passType === 'combo' || data.passType === 'double') passTypeLabel = 'Double Day Pass';
     else passTypeLabel = data.passType || 'Visitor Pass';
 
     // QR value - only Booking ID

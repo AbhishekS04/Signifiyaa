@@ -135,7 +135,7 @@ export default function VisitorRegistrationScreen() {
 
     // Form Data
     const [bookingId, setBookingId] = useState('');
-    const [passType, setPassType] = useState('day1');
+    const [passType, setPassType] = useState('Single Day Pass');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -225,10 +225,10 @@ export default function VisitorRegistrationScreen() {
 
         setIsLoading(true);
         try {
-            const baseAmount = passType === 'day1' ? 99 : 149;
+            const baseAmount = passType === 'Single Day Pass' ? 99 : 149;
             const amount = calculateDiscountedPrice(baseAmount, 'VISITOR');
 
-            const { error } = await supabase.from('visitor_registration').insert({
+            const { error } = await supabase.from('visitor_registration').upsert({
                 id: generateUUID(),
                 name: `${firstName} ${lastName}`.trim(),
                 email: email,
@@ -243,7 +243,7 @@ export default function VisitorRegistrationScreen() {
                 userId: user?.id || null,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
-            });
+            }, { onConflict: 'bookingId' });
 
             if (error) {
                 console.error("[VisitorReg] Supabase Insert Error:", JSON.stringify(error, null, 2));
@@ -415,17 +415,17 @@ export default function VisitorRegistrationScreen() {
 
                                 <ShadowDropdown
                                     label="SELECT PASS"
-                                    value={passType === 'day1'
+                                    value={passType === 'Single Day Pass'
                                         ? `Single Day Pass — ₹${calculateDiscountedPrice(99, 'VISITOR')}`
-                                        : `Dual Day Pass — ₹${calculateDiscountedPrice(149, 'VISITOR')}`}
+                                        : `Double Day Pass — ₹${calculateDiscountedPrice(149, 'VISITOR')}`}
                                     options={[
                                         {
                                             label: `Single Day Pass — ₹${calculateDiscountedPrice(99, 'VISITOR')} ${getActiveDiscount('VISITOR') ? '(OFFER)' : ''}`,
-                                            value: 'day1'
+                                            value: 'Single Day Pass'
                                         },
                                         {
-                                            label: `Dual Day Pass — ₹${calculateDiscountedPrice(149, 'VISITOR')} ${getActiveDiscount('VISITOR') ? '(OFFER)' : ''}`,
-                                            value: 'dual'
+                                            label: `Double Day Pass — ₹${calculateDiscountedPrice(149, 'VISITOR')} ${getActiveDiscount('VISITOR') ? '(OFFER)' : ''}`,
+                                            value: 'Double Day Pass'
                                         }
                                     ]}
                                     onSelect={(v: any) => setPassType(v)}
@@ -485,11 +485,11 @@ export default function VisitorRegistrationScreen() {
                                 </TouchableOpacity>
 
                                 <View className="bg-[#f3f4f6] border-[2px] border-black rounded-[25px] p-6 mb-10">
-                                    <Text className="text-xs font-black text-gray-500 uppercase mb-2" style={{ fontFamily: FONT_BOLD }}>PAYING FOR: {passType === 'day1' ? 'Single Day Pass' : 'Dual Day Pass'}</Text>
+                                    <Text className="text-xs font-black text-gray-500 uppercase mb-2" style={{ fontFamily: FONT_BOLD }}>PAYING FOR: {passType === 'Single Day Pass' ? 'Single Day Pass' : 'Double Day Pass'}</Text>
                                     <View className="flex-row items-baseline">
-                                        <Text className="text-5xl font-black text-black" style={{ fontFamily: 'Bicubik' }}>₹{calculateDiscountedPrice(passType === 'day1' ? 99 : 149)}</Text>
+                                        <Text className="text-5xl font-black text-black" style={{ fontFamily: 'Bicubik' }}>₹{calculateDiscountedPrice(passType === 'Single Day Pass' ? 99 : 149)}</Text>
                                         {getActiveDiscount() && (
-                                            <Text className="ml-3 text-xl text-gray-400 line-through" style={{ fontFamily: 'Bicubik' }}>₹{passType === 'day1' ? '99' : '149'}</Text>
+                                            <Text className="ml-3 text-xl text-gray-400 line-through" style={{ fontFamily: 'Bicubik' }}>₹{passType === 'Single Day Pass' ? '99' : '149'}</Text>
                                         )}
                                     </View>
                                     {getActiveDiscount() && (

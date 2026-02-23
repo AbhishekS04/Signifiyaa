@@ -168,36 +168,8 @@ const ProfileScreen = () => {
                 status: e.status === 'verified' ? 'approved' : e.status
             })) as EventRegistration[];
 
-            // Dummy Data for Visual Testing
-            const dummyVisitor: VisitorRegistration = {
-                id: 'dummy-v-101',
-                name: user?.name || 'Sayan Mukherjee',
-                email: user?.email || '',
-                passType: 'dual',
-                status: 'approved',
-                userBookingId: bookingId,
-                createdAt: new Date().toISOString(),
-                amount: 79
-            };
-
-            const dummyEvent: EventRegistration = {
-                id: 'dummy-e-101',
-                teamName: 'DUMMY VOLTAGE SQUAD',
-                status: 'approved',
-                leaderBookingId: bookingId,
-                createdAt: new Date().toISOString(),
-                participant_team_event: [
-                    {
-                        event: {
-                            name: 'DUMMY TECH SUMMIT',
-                            date: 'MAR 27'
-                        }
-                    }
-                ]
-            };
-
-            setVisitorRegistrations([dummyVisitor, ...normalizedVData]);
-            setEventRegistrations([dummyEvent, ...normalizedEData]);
+            setVisitorRegistrations(normalizedVData);
+            setEventRegistrations(normalizedEData);
 
         } catch (err) {
             console.error('Fetch exception:', err);
@@ -646,60 +618,79 @@ const ProfileScreen = () => {
 
                                     {eventRegistrations.length > 0 ? (
                                         <View className="gap-4">
-                                            {eventRegistrations.map((reg) => (
-                                                <View key={reg.id} className="bg-[#F8F9FA] p-4 rounded-2xl border-2 border-dashed border-black/20">
-                                                    <View className="flex-row justify-between items-start mb-2">
-                                                        <View className="flex-1">
-                                                            <Text className="text-sm text-black mb-1" style={{ fontFamily: FONT_BOLD }}>
-                                                                {reg.teamName}
-                                                            </Text>
-                                                            <View className="flex-row items-center gap-1">
-                                                                <CalendarDays size={12} color="#6b7280" />
-                                                                <Text className="text-[10px] text-gray-500" style={{ fontFamily: FONT_MAIN }}>
-                                                                    {new Date(reg.createdAt).toLocaleDateString()}
-                                                                </Text>
-                                                            </View>
-                                                        </View>
-                                                        <View className={`px-2 py-1 rounded-full border ${reg.status === 'approved' ? 'bg-green-100 border-green-500/30' : 'bg-orange-100 border-orange-500/30'}`}>
-                                                            <View className="flex-row items-center gap-1">
-                                                                {reg.status === 'approved' ? (
-                                                                    <CheckCircle2 size={10} color="#22c55e" />
-                                                                ) : (
-                                                                    <Clock size={10} color="#f97316" />
-                                                                )}
-                                                                <Text className={`text-[8px] font-bold uppercase ${reg.status === 'approved' ? 'text-green-600' : 'text-orange-600'}`}>
-                                                                    {reg.status}
-                                                                </Text>
-                                                            </View>
-                                                        </View>
-                                                    </View>
+                                            {eventRegistrations.map((reg) => {
+                                                // Extract team name and backup event names
+                                                const [displayTeamName, backupEventNames] = reg.teamName.includes(' | ')
+                                                    ? reg.teamName.split(' | ')
+                                                    : [reg.teamName, ''];
 
-                                                    <View className="flex-row flex-wrap gap-2 mb-3">
-                                                        {reg.participant_team_event.map((ev, i) => (
-                                                            <View key={i} className="bg-black/5 px-2 py-1 rounded-md">
-                                                                <Text className="text-[8px] text-black/60 uppercase" style={{ fontFamily: FONT_BOLD }}>
-                                                                    {ev.event?.name}
-                                                                </Text>
-                                                            </View>
-                                                        ))}
-                                                    </View>
+                                                const events = reg.participant_team_event && reg.participant_team_event.length > 0
+                                                    ? reg.participant_team_event.map(ev => ev.event?.name)
+                                                    : backupEventNames ? backupEventNames.split(', ') : [];
 
-                                                    {reg.status === 'approved' ? (
-                                                        <TouchableOpacity
-                                                            onPress={() => setSelectedPass({ type: 'event', data: reg })}
-                                                            className="bg-black py-2 rounded-xl flex-row items-center justify-center gap-2"
-                                                        >
-                                                            <QrCode size={14} color="white" />
-                                                            <Text className="text-white text-[10px] font-bold uppercase tracking-widest">VIEW PASS</Text>
-                                                        </TouchableOpacity>
-                                                    ) : (
-                                                        <View className="bg-gray-200 py-2 rounded-xl flex-row items-center justify-center gap-2 opacity-50">
-                                                            <Clock size={14} color="#6b7280" />
-                                                            <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">PENDING APPROVAL</Text>
+                                                return (
+                                                    <View key={reg.id} className="bg-[#F8F9FA] p-4 rounded-2xl border-2 border-dashed border-black/20">
+                                                        <View className="flex-row justify-between items-start mb-2">
+                                                            <View className="flex-1">
+                                                                <Text className="text-sm text-black mb-1" style={{ fontFamily: FONT_BOLD }}>
+                                                                    {displayTeamName}
+                                                                </Text>
+                                                                <View className="flex-row items-center gap-1">
+                                                                    <CalendarDays size={12} color="#6b7280" />
+                                                                    <Text className="text-[10px] text-gray-500" style={{ fontFamily: FONT_MAIN }}>
+                                                                        {new Date(reg.createdAt).toLocaleDateString()}
+                                                                    </Text>
+                                                                </View>
+                                                            </View>
+                                                            <View className={`px-2 py-1 rounded-full border ${reg.status === 'approved' ? 'bg-green-100 border-green-500/30' : 'bg-orange-100 border-orange-500/30'}`}>
+                                                                <View className="flex-row items-center gap-1">
+                                                                    {reg.status === 'approved' ? (
+                                                                        <CheckCircle2 size={10} color="#22c55e" />
+                                                                    ) : (
+                                                                        <Clock size={10} color="#f97316" />
+                                                                    )}
+                                                                    <Text className={`text-[8px] font-bold uppercase ${reg.status === 'approved' ? 'text-green-600' : 'text-orange-600'}`}>
+                                                                        {reg.status}
+                                                                    </Text>
+                                                                </View>
+                                                            </View>
                                                         </View>
-                                                    )}
-                                                </View>
-                                            ))}
+
+                                                        <View className="flex-row flex-wrap gap-2 mb-3">
+                                                            {events.length > 0 ? (
+                                                                events.map((eventName, i) => (
+                                                                    <View key={i} style={{ backgroundColor: '#FFF3E0', borderColor: '#E65100', borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                                                                        <Text style={{ fontFamily: FONT_BOLD, fontSize: 9, color: '#E65100', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                                                            {eventName}
+                                                                        </Text>
+                                                                    </View>
+                                                                ))
+                                                            ) : (
+                                                                <View style={{ backgroundColor: '#F3F4F6', borderColor: '#D1D5DB', borderWidth: 1, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                                                                    <Text style={{ fontFamily: FONT_BOLD, fontSize: 9, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                                                        Event Not Linked
+                                                                    </Text>
+                                                                </View>
+                                                            )}
+                                                        </View>
+
+                                                        {reg.status === 'approved' ? (
+                                                            <TouchableOpacity
+                                                                onPress={() => setSelectedPass({ type: 'event', data: reg })}
+                                                                className="bg-black py-2 rounded-xl flex-row items-center justify-center gap-2"
+                                                            >
+                                                                <QrCode size={14} color="white" />
+                                                                <Text className="text-white text-[10px] font-bold uppercase tracking-widest">VIEW PASS</Text>
+                                                            </TouchableOpacity>
+                                                        ) : (
+                                                            <View className="bg-gray-200 py-2 rounded-xl flex-row items-center justify-center gap-2 opacity-50">
+                                                                <Clock size={14} color="#6b7280" />
+                                                                <Text className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">PENDING APPROVAL</Text>
+                                                            </View>
+                                                        )}
+                                                    </View>
+                                                );
+                                            })}
                                         </View>
                                     ) : (
                                         <View className="items-center justify-center py-4">
@@ -732,7 +723,7 @@ const ProfileScreen = () => {
                                                                 VISITOR PASS
                                                             </Text>
                                                             <Text className="text-sm text-black" style={{ fontFamily: FONT_BOLD }}>
-                                                                {reg.passType === 'day1' ? 'Single Day Pass' : 'Combo Pass'}
+                                                                {(reg.passType === 'Single Day Pass' || reg.passType === 'day 1 pass' || reg.passType === 'day1' || reg.passType === 'single') ? 'Single Day Pass' : 'Double Day Pass'}
                                                             </Text>
                                                         </View>
                                                         <View className={`px-2 py-1 rounded-full border ${reg.status === 'approved' ? 'bg-green-100 border-green-500/30' : 'bg-orange-100 border-orange-500/30'}`}>

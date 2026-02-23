@@ -28,24 +28,24 @@ const generateUUID = () => {
 
 // ─── Event Data ────────────────────────────────────────────────────────────────
 const AVAILABLE_EVENTS = [
-    { id: 1, name: 'VALORANT TOURNAMENT', date: 'March 27', teamSize: 'Team (5)', priceInHouse: 499, priceOutside: 499 },
-    { id: 2, name: 'FREE FIRE', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 399, priceOutside: 399 },
-    { id: 3, name: 'CODING PREMIER LEAGUE', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 280, priceOutside: 320 },
-    { id: 4, name: 'REFAB', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 279, priceOutside: 319 },
-    { id: 5, name: 'PATH FOLLOWER', date: 'March 27', teamSize: 'Team (3)', priceInHouse: 209, priceOutside: 249 },
-    { id: 6, name: 'BRIDGE BUILDING', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 279, priceOutside: 319 },
-    { id: 7, name: 'CIRCUITRONICS', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 299, priceOutside: 399 },
-    { id: 8, name: 'DANCE BATTLE', date: 'March 27', teamSize: 'Team (1-7)', priceInHouse: 99, priceOutside: 99 },
-    { id: 9, name: 'ARM WRESTLING', date: 'March 27', teamSize: 'Solo', priceInHouse: 99, priceOutside: 129 },
-    { id: 10, name: 'POWER DEAL', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 149, priceOutside: 199 },
-    { id: 11, name: 'LATHE WAR', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 209, priceOutside: 249 },
-    { id: 12, name: 'DIL SE DESIGN', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 209, priceOutside: 249 },
-    { id: 13, name: 'TOWER MAKING', date: 'March 28', teamSize: 'Team (4)', priceInHouse: 279, priceOutside: 319 },
-    { id: 14, name: 'ROBO TERRAIN', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 209, priceOutside: 249 },
-    { id: 15, name: 'BGMI', date: 'March 28', teamSize: 'Team (4)', priceInHouse: 399, priceOutside: 399 },
-    { id: 16, name: 'E-FOOTBALL', date: 'March 28', teamSize: 'Solo', priceInHouse: 149, priceOutside: 149 },
-    { id: 17, name: 'TREASURE HUNT', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 299, priceOutside: 229 },
-    { id: 18, name: 'RAP BATTLE', date: 'March 28', teamSize: 'Team (1-4)', priceInHouse: 149, priceOutside: 199 },
+    { id: 1, name: 'VALORANT TOURNAMENT', dbName: 'Valorant', date: 'March 27', teamSize: 'Team (5)', priceInHouse: 499, priceOutside: 499 },
+    { id: 2, name: 'FREE FIRE', dbName: 'Free Fire', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 399, priceOutside: 399 },
+    { id: 3, name: 'CODING PREMIER LEAGUE', dbName: 'CPL', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 280, priceOutside: 320 },
+    { id: 4, name: 'REFAB', dbName: 'Refab', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 279, priceOutside: 319 },
+    { id: 5, name: 'PATH FOLLOWER', dbName: 'Pathfollower', date: 'March 27', teamSize: 'Team (3)', priceInHouse: 209, priceOutside: 249 },
+    { id: 6, name: 'BRIDGE BUILDING', dbName: 'Bridge Building', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 279, priceOutside: 319 },
+    { id: 7, name: 'ELECTRIFYING CIRCUITS', dbName: 'Circuitronics', date: 'March 27', teamSize: 'Team (4)', priceInHouse: 299, priceOutside: 399 },
+    { id: 8, name: 'DANCE BATTLE', dbName: 'Dance Battle', date: 'March 27', teamSize: 'Team (1-7)', priceInHouse: 99, priceOutside: 99 },
+    { id: 9, name: 'ARM WRESTLING', dbName: 'Arm Wrestling', date: 'March 27', teamSize: 'Solo', priceInHouse: 99, priceOutside: 129 },
+    { id: 10, name: 'POWER DEAL', dbName: 'Power Deal', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 149, priceOutside: 199 },
+    { id: 11, name: 'LATHE WAR', dbName: 'Lathe War', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 209, priceOutside: 249 },
+    { id: 12, name: 'DIL SE DESIGN', dbName: 'Dil Se Design', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 209, priceOutside: 249 },
+    { id: 13, name: 'TOWER MAKING', dbName: 'Tower Making', date: 'March 28', teamSize: 'Team (4)', priceInHouse: 279, priceOutside: 319 },
+    { id: 14, name: 'ROBO TERRAIN', dbName: 'Robo Terrain', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 209, priceOutside: 249 },
+    { id: 15, name: 'BGMI', dbName: 'BGMI', date: 'March 28', teamSize: 'Team (4)', priceInHouse: 399, priceOutside: 399 },
+    { id: 16, name: 'E-FOOTBALL', dbName: 'E-Football', date: 'March 28', teamSize: 'Solo', priceInHouse: 149, priceOutside: 149 },
+    { id: 17, name: 'TREASURE HUNT', dbName: 'Treasure Hunt', date: 'March 28', teamSize: 'Team (3)', priceInHouse: 299, priceOutside: 229 },
+    { id: 18, name: 'RAP BATTLE', dbName: 'Rap Battle', date: 'March 28', teamSize: 'Team (1-4)', priceInHouse: 149, priceOutside: 199 },
 ];
 
 // UPI QR placeholder (replace with your actual UPI QR image)
@@ -239,26 +239,40 @@ const EventRegistrationScreen = () => {
         let syncError = false;
 
         try {
+            // Fetch all events from DB once for reliable matching
+            const { data: dbEvents, error: dbEventsError } = await supabase
+                .from('event')
+                .select('id, name');
+
+            if (dbEventsError) throw dbEventsError;
+
             const resolvedEventIds: string[] = [];
             for (const scalarId of selectedEvents) {
                 const localEvent = AVAILABLE_EVENTS.find(e => e.id === scalarId);
-                if (localEvent) {
-                    // Try exact match first, then case-insensitive match
-                    const { data: dbEvent } = await supabase
-                        .from('event')
-                        .select('id')
-                        .ilike('name', localEvent.name)
-                        .limit(1)
-                        .single();
-                    if (dbEvent?.id) resolvedEventIds.push(dbEvent.id);
+                if (localEvent && dbEvents) {
+                    const searchName = (localEvent as any).dbName || localEvent.name;
+                    // Fuzzy match: prioritizes dbName if available, then falls back to name comparison
+                    const matchedEvent = dbEvents.find(de =>
+                        de.name.trim().toLowerCase() === searchName.trim().toLowerCase() ||
+                        de.name.trim().toLowerCase().includes(searchName.trim().toLowerCase()) ||
+                        searchName.trim().toLowerCase().includes(de.name.trim().toLowerCase())
+                    );
+                    if (matchedEvent) {
+                        resolvedEventIds.push(matchedEvent.id);
+                    }
                 }
             }
+
+            const selectedEventNames = selectedEvents
+                .map(id => AVAILABLE_EVENTS.find(e => e.id === id)?.name)
+                .filter(Boolean)
+                .join(', ');
 
             const { data: teamData, error: teamError } = await supabase
                 .from('participant_team')
                 .insert({
                     id: generateUUID(),
-                    teamName,
+                    teamName: `${teamName} | ${selectedEventNames}`,
                     leaderName,
                     leaderEmail: email,
                     leaderPhone: phone,
