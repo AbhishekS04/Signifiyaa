@@ -158,7 +158,7 @@ const TEAM_MEMBERS: Member[] = [
     {id:15,
         name: "Tushar kanti Dey",
         role: "APP DEVELOPMENT",
-        desc: "Turning strategies into action with energy, coordination, and commitment.",
+        desc: "Turning complex ideas into scalable, production-ready solutions.",
         image: require('../../assets/team/Tushar.webp'),
         socials: { linkedin: "https://www.linkedin.com/in/tushar-kanti-dey/", instagram: "https://www.instagram.com/tushardevx01", github: "https://github.com/tusharxhub" },
         category: 'CORE MEMBER'
