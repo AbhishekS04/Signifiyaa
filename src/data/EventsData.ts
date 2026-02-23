@@ -71,7 +71,7 @@ export const EVENTS_DATA: EventData[] = [
         date: 'MARCH 27TH',
         category: 'ESPORTS',
         description: 'Survive till the end in this action-packed battle royale tournament.',
-        prizePool: '₹25,000',
+        prizePool: '₹20,000',
         imageColor: '#795548',
         buttonColor: '#FFFFFF',
         imageUrl: require('../../assets/Event_Images/freefire.webp'),
