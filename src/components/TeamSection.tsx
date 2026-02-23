@@ -30,7 +30,7 @@ interface Member {
 // ─── Static data (module scope — stable reference forever) ─────────────────────
 const TEAM_MEMBERS: Member[] = [
     {
-        id: 27,
+        id: 1,
         name: "Mr. Nisarga Chand",
         role: "FACULTY LEAD",
         desc: "Assistant Professor, ECE, SOET",
@@ -39,7 +39,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'FACULTY'
     },
     {
-        id: 26,
+        id: 2,
         name: "Ms. Soodipa Chakraborty",
         role: "FACULTY LEAD",
         desc: "Assistant Professor, ECE, SOET",
@@ -48,7 +48,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'FACULTY'
     },
     {
-        id: 9,
+        id: 3,
         name: "Sudipto Barman",
         role: "FACULTY LEAD",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
@@ -57,7 +57,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 28,
+        id: 4,
         name: "Mr. Prabhat Das",
         role: "TECH MENTOR",
         desc: "Assistant Professor, ECE, SOET",
@@ -66,7 +66,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'FACULTY'
     },
     {
-        id: 8,
+        id: 5,
         name: "Hrishav Dey",
         role: "EVENT ADVISOR",
         desc: "The force that turns bold ideas into flawlessly executed reality.",
@@ -75,7 +75,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 10,
+        id: 6,
         name: "Digant Mishra",
         role: "ON-GROUND COORDINATOR",
         desc: "The go-to problem solver who keeps the action running seamlessly on the ground.",
@@ -84,7 +84,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 11,
+        id: 7,
         name: "Arijit De",
         role: "FINANCIAL LEAD",
         desc: "Driving partnerships and managing resources to power the fest's biggest ambitions.",
@@ -93,7 +93,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 12,
+        id: 8,
         name: "Snehasish Mondal",
         role: "OPERATIONS LEAD",
         desc: "The backbone of smooth workflows, ensuring every detail runs right on time.",
@@ -102,7 +102,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 18,
+        id: 9,
         name: "Samriddhi Sinha",
         role: "DECORATIONS LEAD",
         desc: "Transforming spaces into immersive experiences that set the fest's mood.",
@@ -111,7 +111,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 25,
+        id: 10,
         name: "Arnab Mandal",
         role: "SOCIAL MEDIA HEAD",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
@@ -120,7 +120,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 13,
+        id: 11,
         name: "Garima Roy",
         role: "DOCUMENTATIONS LEAD",
         desc: "The mind that captures every milestone and detail with clarity and precision.",
@@ -129,7 +129,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 20,
+        id: 12,
         name: "Ashish R. Das",
         role: "TECH LEAD",
         desc: "19, full stack web3 dev, community lead @0DAY",
@@ -138,7 +138,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 23,
+        id: 13,
         name: "Subham Karmakar",
         role: "TECH SUPPORT",
         desc: "Architect of innovation, powering the fest with smart tech and seamless systems.",
@@ -147,7 +147,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 24,
+        id: 14,
         name: "Abhisekh Singh",
         role: "APP DEVELOPMENT",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
@@ -155,8 +155,23 @@ const TEAM_MEMBERS: Member[] = [
         socials: { linkedin: "https://www.linkedin.com/in/abhi3hekk/", instagram: "https://www.instagram.com/abhi3hekk/", github: "https://github.com/AbhishekS04/" },
         category: 'CORE MEMBER'
     },
+    {id:15,
+        name: "Tushar kanti Dey",
+        role: "APP DEVELOPMENT",
+        desc: "Turning complex ideas into scalable, production-ready solutions.",
+        image: require('../../assets/team/Tushar.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/tushar-kanti-dey/", instagram: "https://www.instagram.com/tushardevx01", github: "https://github.com/tusharxhub" },
+        category: 'CORE MEMBER'
+    },
+    {id:16,
+        name: "Sayan Mukherjee",
+        role: "APP DEVELOPMENT",
+        desc: "Turning strategies into action with energy, coordination, and commitment.",
+        image: require('../../assets/team/Sayan.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/sayan-mukherjee-258751356", instagram: "https://www.instagram.com/sa.yan1047", github: "https://github.com/Sani05M" },
+        category: 'CORE MEMBER'},
     {
-        id: 14,
+        id: 17,
         name: "Leeza Bhowal",
         role: "DESIGN LEAD",
         desc: "The creative spark behind visuals that give the fest its identity and vibe.",
@@ -165,7 +180,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 16,
+        id: 18,
         name: "Srijita Bera",
         role: "MARKETING LEAD",
         desc: "The voice of the fest, turning ideas into buzz and reach into impact.",
@@ -174,7 +189,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 17,
+        id: 19,
         name: "Siddartha Chakraborty",
         role: "ESPORTS LEAD",
         desc: "The strategist behind high-energy battles and next-level competitive gaming.",
@@ -183,7 +198,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 21,
+        id: 20,
         name: "Keshav Maheshwari",
         role: "EXECUTION CELL",
         desc: "The hands-on executor ensuring plans come alive with precision and speed.",
@@ -192,7 +207,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 22,
+        id: 21,
         name: "Sampad Ghosh",
         role: "EXECUTION CELL",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
@@ -202,7 +217,7 @@ const TEAM_MEMBERS: Member[] = [
     },
     
     {
-        id: 19,
+        id: 22,
         name: "Titas Sarkar",
         role: "EX SUPPORT",
         desc: "Building decentralized solutions that add a future-ready edge to the fest.",
@@ -211,7 +226,7 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
-        id: 15,
+        id: 23,
         name: "Somnath Singha Roy",
         role: "EX SUPPORT",
         desc: "The dependable pillar ensuring help, coordination, and smooth resolutions for everyone.",

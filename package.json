@@ -65,12 +65,12 @@
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
+    "@prisma/client": "^6.19.2",
     "@types/react": "~19.1.10",
     "autoprefixer": "^10.4.24",
     "babel-preset-expo": "~54.0.10",
-    "postcss": "^8.5.6",
-    "@prisma/client": "^6.19.2",
     "dotenv": "^16.4.5",
+    "postcss": "^8.5.6",
     "prisma": "^6.19.2",
     "typescript": "~5.9.2"
   },

@@ -71,7 +71,7 @@ export const EVENTS_DATA: EventData[] = [
         date: 'MARCH 27TH',
         category: 'ESPORTS',
         description: 'Survive till the end in this action-packed battle royale tournament.',
-        prizePool: '₹25,000',
+        prizePool: '₹20,000',
         imageColor: '#795548',
         buttonColor: '#FFFFFF',
         imageUrl: require('../../assets/Event_Images/freefire.webp'),
@@ -99,11 +99,11 @@ export const EVENTS_DATA: EventData[] = [
         teamSize: '4',
         day: 1,
         facultyCoordinators: ['Bodhi Chakraborty', 'Debdutta Pal'],
-        studentCoordinators: ['Sourish Samantha']
+        studentCoordinators: ['Aviroop Pal', 'Sourish Samanta', 'MD Samiul Islam']
     },
     {
         id: 5,
-        title: 'Refab',
+        title: 'Re-Fab',
         date: 'MARCH 27TH',
         category: 'MECHANICAL',
         description: 'Participants transform scrap materials into innovative, functional prototypes with suitable design.',
@@ -152,12 +152,12 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '280',
         teamSize: '4',
         day: 1,
-        facultyCoordinators: ['Hasim Sir', 'Apurba Pal'],
+        facultyCoordinators: ['Dr. Hasim Ali Khan', 'Dr. Apurba Paul'],
         studentCoordinators: ['Toufik Islam']
     },
     {
         id: 8,
-        title: 'Electrifying Circuits',
+        title: 'Circuitronix ',
         date: 'MARCH 27TH',
         category: 'EEE',
         description: 'Students race against the clock to design, build, and troubleshoot complex circuits.',
@@ -171,7 +171,8 @@ export const EVENTS_DATA: EventData[] = [
         teamSize: '4',
         day: 1,
         facultyCoordinators: ['Nihar karmakar', 'Jeet Banerjee'],
-        studentCoordinators: ['Suraj Rana', 'Somnath Singha Roy']
+        studentCoordinators: ['Suraj Rana','Chandril Bijoy Bhattacharyya','Sagar Talukdar']
+        
     },
     {
         id: 9,
@@ -189,7 +190,7 @@ export const EVENTS_DATA: EventData[] = [
         teamSize: '1/2/3/4/5/6/7',
         day: 1,
         facultyCoordinators: ['Anusuya Bera'],
-        studentCoordinators: ['Asmita Ghosh', 'Aditya vrdhan']
+        studentCoordinators: ['Asmita Ghosh', 'Adityavardhan Singh']
     },
     {
         id: 10,
@@ -207,7 +208,7 @@ export const EVENTS_DATA: EventData[] = [
         teamSize: '1',
         day: 1,
         facultyCoordinators: ['Bishal Mondal'],
-        studentCoordinators: ['Digant Mishra', 'Suvankar Pramanik']
+        studentCoordinators: ['Digant Mishra', 'Subhangkar Barui']
     },
 
     // ─── DAY 2 EVENTS (MARCH 28TH) ────────────────────────────────
@@ -227,7 +228,7 @@ export const EVENTS_DATA: EventData[] = [
         teamSize: '3',
         day: 2,
         facultyCoordinators: ['Soodipa chakraborty'],
-        studentCoordinators: ['Preyashee Saha']
+        studentCoordinators: ['Preyashee Saha','Archita Khan']
     },
     {
         id: 12,
@@ -244,7 +245,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '219',
         teamSize: '3',
         day: 2,
-        facultyCoordinators: ['Dr. Nataraj Mishra ', 'Dr. Nitesh kumar'],
+        facultyCoordinators: ['Dr. Nataraj Mishra', 'Dr. Nitesh kumar'],
         studentCoordinators: ['Soumen Samanta']
     },
     {
@@ -280,7 +281,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '280',
         teamSize: '4',
         day: 2,
-        facultyCoordinators: ['Shantanu Haldar', 'Argha Kamal Guha'],
+        facultyCoordinators: ['Shantanu Haldar', 'Dr. Argha kamal Guha '],
         studentCoordinators: ['Arka Gain']
     },
     {
