@@ -170,7 +170,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '299',
         teamSize: '4',
         day: 1,
-        facultyCoordinators: ['Nihar Sir', 'Jeet Banerjee'],
+        facultyCoordinators: ['Nihar karmakar', 'Jeet Banerjee'],
         studentCoordinators: ['Suraj Rana', 'Somnath Singha Roy']
     },
     {
@@ -189,7 +189,7 @@ export const EVENTS_DATA: EventData[] = [
         teamSize: '1/2/3/4/5/6/7',
         day: 1,
         facultyCoordinators: ['Anusuya Bera'],
-        studentCoordinators: ['Asmita Di', 'Adityavrdhan']
+        studentCoordinators: ['Asmita Ghosh', 'Aditya vrdhan']
     },
     {
         id: 10,
@@ -206,7 +206,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '100',
         teamSize: '1',
         day: 1,
-        facultyCoordinators: ['Bishal Sir'],
+        facultyCoordinators: ['Bishal Mondal'],
         studentCoordinators: ['Digant Mishra', 'Suvankar Pramanik']
     },
 
@@ -226,6 +226,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '149',
         teamSize: '3',
         day: 2,
+        facultyCoordinators: ['Soodipa chakraborty'],
         studentCoordinators: ['Preyashee Saha']
     },
     {
@@ -279,7 +280,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '280',
         teamSize: '4',
         day: 2,
-        facultyCoordinators: ['Shantanu Sir', 'Argha Sir'],
+        facultyCoordinators: ['Shantanu Haldar', 'Argha Kamal Guha'],
         studentCoordinators: ['Arka Gain']
     },
     {
@@ -351,7 +352,7 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '300',
         teamSize: '3',
         day: 2,
-        facultyCoordinators: ['Kausik Sir'],
+        facultyCoordinators: ['Koushik Mukhopadhyay'],
         studentCoordinators: ['Arijit De', 'Garima Roy']
     },
     {
@@ -369,8 +370,8 @@ export const EVENTS_DATA: EventData[] = [
         registrationFee: '149',
         teamSize: '1/2/3/4',
         day: 2,
-        facultyCoordinators: ['Saheb Sir'],
-        studentCoordinators: ['Mrinal', 'Arnab Mondal']
+        facultyCoordinators: ['Saheb Adhikary'],
+        studentCoordinators: ['Mrinal sahoo', 'Arnab Mondal']
     },
     {
         id: 20,
