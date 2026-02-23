@@ -8,7 +8,7 @@ const Footer = React.memo(() => {
         <View style={s.container}>
             <View style={s.content}>
                 <Text style={s.mainText}>
-                    SIGNIFIYA 2K26 {"\n"}Where Innovation{"\n"}Meets the Nation 🌍
+                    Still Here?{"\n"}That's your sign{"\n"}Register <Text style={s.emojiText}>📝</Text>
                 </Text>
 
                 <View style={s.dividerLine} />
@@ -37,6 +37,9 @@ const s = StyleSheet.create({
         color: '#333333', // More visible but still muted "Blinkit" style
         lineHeight: width * 0.13,
         letterSpacing: -1,
+    },
+    emojiText: {
+        fontSize: 24,
     },
     dividerLine: {
         width: '100%',
