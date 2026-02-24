@@ -176,6 +176,24 @@ export const EVENTS_DATA: EventData[] = [
     },
     {
         id: 9,
+        title: 'Power Deal',
+        date: 'MARCH 28TH',
+        category: 'NON-TECH',
+        description: 'Test your negotiating skills and business acumen in this exciting challenge.',
+        prizePool: '₹5,000',
+        imageColor: '#FFF176',
+        buttonColor: '#FFFFFF',
+        imageUrl: require('../../assets/Event_Images/powerdeal.webp'),
+        venue: 'Ait video conference room',
+        time: '3:30 PM - 5:30 PM',
+        registrationFee: '149',
+        teamSize: '3',
+        day: 2,
+        facultyCoordinators: ['Soodipa chakraborty'],
+        studentCoordinators: ['Agniva Chatterjee','Archita Khan']
+    },
+    {
+        id: 10,
         title: 'Dance Battle',
         date: 'MARCH 27TH',
         category: 'NON-TECH',
@@ -193,7 +211,7 @@ export const EVENTS_DATA: EventData[] = [
         studentCoordinators: ['Asmita Ghosh', 'Adityavardhan Singh']
     },
     {
-        id: 10,
+        id: 11,
         title: 'Arm Wrestling',
         date: 'MARCH 27TH',
         category: 'NON-TECH',
@@ -212,24 +230,7 @@ export const EVENTS_DATA: EventData[] = [
     },
 
     // ─── DAY 2 EVENTS (MARCH 28TH) ────────────────────────────────
-    {
-        id: 11,
-        title: 'Power Deal',
-        date: 'MARCH 28TH',
-        category: 'NON-TECH',
-        description: 'Test your negotiating skills and business acumen in this exciting challenge.',
-        prizePool: '₹3,000',
-        imageColor: '#FFF176',
-        buttonColor: '#FFFFFF',
-        imageUrl: require('../../assets/Event_Images/powerdeal.webp'),
-        venue: 'AU Auditorium',
-        time: '9:30 AM - 1:00 PM',
-        registrationFee: '149',
-        teamSize: '3',
-        day: 2,
-        facultyCoordinators: ['Soodipa chakraborty'],
-        studentCoordinators: ['Preyashee Saha','Archita Khan']
-    },
+    
     {
         id: 12,
         title: 'Lathe War',
@@ -340,6 +341,24 @@ export const EVENTS_DATA: EventData[] = [
     },
     {
         id: 18,
+        title: 'Tech Monopoly - Startup Investment Simulation',
+        date: 'MARCH 28TH',
+        category: 'NON-TECH',
+        description: 'Tech Monopoly is a live startup-investment simulation where teams act as Venture Capital firms managing virtual capital. Participants invest in curated tech startups and respond to market updates, valuation shifts, crises, and economic scenarios.',
+        prizePool: '₹5,000',
+        imageColor: '#FFFFFF',
+        buttonColor: '#CCCCCC',
+        imageUrl: require('../../assets/Event_Images/Techmonopoly.jpeg'),
+        venue: 'Ait video conference room',
+        time: '10:00 AM - 1:00 PM',
+        registrationFee: '149',
+        teamSize: '3',
+        day: 2, // Show on day 1 for schedule filtering, but it's open both days
+        facultyCoordinators: ['Soodipa chakraborty'],
+        studentCoordinators: ['Dimple Sharma','Debopriya Dey']
+    },
+    {
+        id: 19,
         title: 'Treasure Hunt',
         date: 'MARCH 28TH',
         category: 'NON-TECH',
@@ -357,7 +376,7 @@ export const EVENTS_DATA: EventData[] = [
         studentCoordinators: ['Arijit De', 'Garima Roy']
     },
     {
-        id: 19,
+        id: 20,
         title: 'Rap Battle',
         date: 'MARCH 28TH',
         category: 'NON-TECH',
@@ -374,8 +393,9 @@ export const EVENTS_DATA: EventData[] = [
         facultyCoordinators: ['Saheb Adhikary'],
         studentCoordinators: ['Mrinal sahoo', 'Arnab Mondal']
     },
+    
     {
-        id: 20,
+        id: 21,
         title: 'Prize Distribution',
         date: 'MARCH 28TH',
         category: 'NON-TECH',
@@ -388,5 +408,5 @@ export const EVENTS_DATA: EventData[] = [
         time: '5:00 PM - 7:00 PM',
         day: 2,
         hideFromHome: true
-    }
-];
+    },
+]
