@@ -130,17 +130,35 @@ const ProfileScreen = () => {
     const [selectedPass, setSelectedPass] = useState<{ type: 'visitor' | 'event', data: any } | null>(null);
 
     const fetchRegistrations = useCallback(async () => {
-        if (!user?.email) return;
+        if (!user?.id && !user?.email) return;
         setIsFetchingReg(true);
         try {
+            // SECURITY: Query by userId (more secure) or fallback to email
             // Fetch visitor registrations
-            const { data: vData, error: vError } = await supabase.from('visitor_registration')
+            const visitorQuery = supabase.from('visitor_registration')
                 .select('*')
-                .eq('email', user.email)
                 .order('createdAt', { ascending: false });
 
-            // Fetch event registrations
-            const { data: eData, error: eError } = await supabase.from('participant_team')
+            // Try to filter by userId first (most secure), then by email
+            let vData: any = null;
+            let vError: any = null;
+
+            if (user?.id) {
+                const result = await visitorQuery.eq('userId', user.id);
+                vData = result.data;
+                vError = result.error;
+            } else if (user?.email) {
+                // Fallback to email if userId not available
+                const result = await supabase.from('visitor_registration')
+                    .select('*')
+                    .eq('email', user.email)
+                    .order('createdAt', { ascending: false });
+                vData = result.data;
+                vError = result.error;
+            }
+
+            // Fetch event registrations (filter by leaderEmail since there's no leaderUserId field)
+            const eventQuery = supabase.from('participant_team')
                 .select(`
                     *,
                     participant_team_event (
@@ -151,14 +169,22 @@ const ProfileScreen = () => {
                     ),
                     participant_team_member (*)
                 `)
-                .eq('leaderEmail', user.email)
                 .order('createdAt', { ascending: false });
+
+            let eData: any = null;
+            let eError: any = null;
+
+            if (user?.email) {
+                const result = await eventQuery.eq('leaderEmail', user.email);
+                eData = result.data;
+                eError = result.error;
+            }
 
             if (vError) console.error('Error fetching visitor regs:', vError);
             if (eError) console.error('Error fetching event regs:', eError);
 
             // Normalize status: Map 'verified' to 'approved' so the UI logic works correctly
-            const normalizedVData = (vData || []).map(v => ({
+            const normalizedVData = (vData || []).map((v: any) => ({
                 ...v,
                 status: v.status === 'verified' ? 'approved' : v.status
             })) as VisitorRegistration[];
@@ -176,7 +202,7 @@ const ProfileScreen = () => {
         } finally {
             setIsFetchingReg(false);
         }
-    }, [user?.email, bookingId]);
+    }, [user?.id, user?.email, bookingId]);
 
     // Update state when profile loads
     useEffect(() => {
@@ -354,10 +380,11 @@ const ProfileScreen = () => {
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
         try {
+            // SECURITY: Fetch only the current user's profile using userId
             const { data: freshProfile, error } = await supabase
                 .from('user')
                 .select('bookingId, mobileNo, collegeName, gender, name, image')
-                .eq('email', user?.email)
+                .eq('id', user?.id)
                 .single();
 
             if (!error && freshProfile) {
@@ -373,7 +400,7 @@ const ProfileScreen = () => {
         } finally {
             setRefreshing(false);
         }
-    }, [user?.email, user?.name, fetchRegistrations]);
+    }, [user?.id, user?.name, fetchRegistrations]);
 
     const handleAvatarSelect = useCallback(async (avatarId: string) => {
         try {

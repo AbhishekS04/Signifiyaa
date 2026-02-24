@@ -263,6 +263,7 @@ const EventRegistrationScreen = () => {
                     leaderEmail: email,
                     leaderPhone: phone,
                     leaderBookingId: bookingId || null,
+                    leaderUserId: user?.id || null,  // SECURITY FIX: Save user ID for RLS
                     college: collegeSelection === 'Others' ? college : 'Adamas University',
                     totalAmount: totalPrice,
                     status: 'pending',

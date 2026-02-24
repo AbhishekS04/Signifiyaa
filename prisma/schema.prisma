@@ -169,6 +169,7 @@ model ParticipantTeam {
   updatedAt        DateTime                @updatedAt
   eventTime        String?
   leaderBookingId  String?
+  leaderUserId     String?                 // SECURITY FIX: Track leader by user ID, not just email
   qrCode           String?
   leaderAttendedAt DateTime?
   leaderAttendedBy String?

@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (url.includes('callback') || url.includes('signifiya://')) {
                 try {
                     // Small delay to let the cookies settle
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await new Promise(resolve => setTimeout(() => resolve(undefined), 500));
                     const { data } = await authClient.getSession();
                     if (data?.user) {
                         // OAuth session established
@@ -140,6 +140,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error('Supabase sync exception:', err);
         }
 
+        // SECURITY FIX: Ensure all users have a booking ID
+        if (!finalUser.bookingId) {
+            const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+            const newBookingId = `SGF26-${randomPart}`;
+            console.log('⚠️ Booking ID missing. Generating:', newBookingId);
+
+            try {
+                const { error: updateError } = await supabase
+                    .from('user')
+                    .update({ bookingId: newBookingId, updatedAt: new Date().toISOString() })
+                    .eq('email', finalUser.email);
+
+                if (updateError) {
+                    console.error('❌ Failed to save booking ID:', updateError);
+                } else {
+                    finalUser = { ...finalUser, bookingId: newBookingId };
+                    console.log('✓ Booking ID generated and saved:', newBookingId);
+                }
+            } catch (err) {
+                console.error('❌ Booking ID generation error:', err);
+            }
+        }
+
         return finalUser;
     };
 
@@ -184,31 +207,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             if (data?.user) {
-                let fullUser = await syncUserProfile(data.user);
-
-                // If booking ID is still missing after sync, generate and save one
-                if (!fullUser.bookingId) {
-                    const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
-                    const newBookingId = `SGF26-${randomPart}`;
-                    console.log('Generating booking ID for new user:', newBookingId);
-
-                    try {
-                        // Save to Supabase directly
-                        const { error: updateError } = await supabase
-                            .from('user')
-                            .update({ bookingId: newBookingId })
-                            .eq('email', fullUser.email);
-
-                        if (updateError) {
-                            console.error('Failed to save booking ID:', updateError);
-                        } else {
-                            fullUser = { ...fullUser, bookingId: newBookingId };
-                            console.log('✓ Booking ID saved to database');
-                        }
-                    } catch (err) {
-                        console.error('Booking ID generation error:', err);
-                    }
-                }
+                const fullUser = await syncUserProfile(data.user);
+                // syncUserProfile now handles booking ID generation automatically
 
                 setSession(data.token || data);
                 setUser(fullUser);
@@ -246,30 +246,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // After browser closes, fetch session to update state
             const { data } = await authClient.getSession();
             if (data?.user) {
-                let fullUser = await syncUserProfile(data.user);
-
-                // If booking ID is missing (new OAuth user), generate and save one
-                if (!fullUser.bookingId) {
-                    const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
-                    const newBookingId = `SGF26-${randomPart}`;
-                    console.log('Generating booking ID for OAuth user:', newBookingId);
-
-                    try {
-                        const { error: updateError } = await supabase
-                            .from('user')
-                            .update({ bookingId: newBookingId })
-                            .eq('email', fullUser.email);
-
-                        if (updateError) {
-                            console.error('Failed to save booking ID:', updateError);
-                        } else {
-                            fullUser = { ...fullUser, bookingId: newBookingId };
-                            console.log('✓ Booking ID saved to database');
-                        }
-                    } catch (err) {
-                        console.error('Booking ID generation error:', err);
-                    }
-                }
+                const fullUser = await syncUserProfile(data.user);
+                // syncUserProfile now handles booking ID generation automatically
 
                 setSession(data.session);
                 setUser(fullUser);
