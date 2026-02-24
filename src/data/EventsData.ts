@@ -221,7 +221,7 @@ export const EVENTS_DATA: EventData[] = [
         prizePool: '₹3,000',
         imageColor: '#FFF176',
         buttonColor: '#FFFFFF',
-        imageUrl: null,
+        imageUrl: require('../../assets/Event_Images/powerdeal.webp'),
         venue: 'AU Auditorium',
         time: '9:30 AM - 1:00 PM',
         registrationFee: '149',
@@ -286,7 +286,7 @@ export const EVENTS_DATA: EventData[] = [
     },
     {
         id: 15,
-        title: 'Robo Terrain',
+        title: 'Robo Terrain (Robo Soccer)',
         date: 'MARCH 28TH',
         category: 'ROBOTICS',
         description: 'Custom built bots must navigate a grueling obstacle course of mud, sand, and steep inclines.',
