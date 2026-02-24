@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useState, useRef } from 'react';
-import { View, Text, Dimensions } from 'react-native';
+import { View, Text, Dimensions, Linking } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -190,6 +190,9 @@ const HeroSection = ({ onSignInPress, scrollY }: HeroSectionProps) => {
     const handleNavigateEvents = useCallback(() => navigation.navigate('Events'), [navigation]);
     const handleNavigatePayments = useCallback(() => navigation.navigate('VisitorRegistration'), [navigation]);
     const handleTextLayout = useCallback((e: any) => setTextWidth(e.nativeEvent.layout.width), []);
+    const handleOpenMerchandise = useCallback(() => {
+        Linking.openURL('https://www.signifiya.in/');
+    }, []);
 
     useEffect(() => {
         enterOpacity.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
@@ -299,6 +302,17 @@ const HeroSection = ({ onSignInPress, scrollY }: HeroSectionProps) => {
                                         </SmoothButton>
                                     </>
                                 )}
+                                <SmoothButton
+                                    onPress={handleOpenMerchandise}
+                                    containerStyle={{ alignSelf: 'center' }}
+                                    buttonStyle="bg-white border-[2px] border-black rounded-full px-10 py-3"
+                                    depth={4}
+                                >
+                                    <Text className="text-black text-[14px] uppercase tracking-[0.2em]"
+                                        style={{ fontFamily: 'Gilton' }} >
+                                        Merchandise
+                                    </Text>
+                                </SmoothButton>
                             </View>
 
                             {/* Description */}
