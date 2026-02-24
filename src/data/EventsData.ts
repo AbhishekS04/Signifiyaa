@@ -264,7 +264,7 @@ export const EVENTS_DATA: EventData[] = [
         teamSize: '3',
         day: 2,
         facultyCoordinators: ['Toufique Ahammad Gazi'],
-        studentCoordinators: ['Baibhab Adhikari']
+        studentCoordinators: ['Baibhab Adhikari','Prabhat Dey','Prithvi Prasad']
     },
     {
         id: 14,
