@@ -326,7 +326,7 @@ export const EVENTS_DATA: EventData[] = [
         date: 'MARCH 28TH',
         category: 'ESPORTS',
         description: 'Compete in the ultimate virtual football tournament.',
-        prizePool: '₹15,000',
+        prizePool: '₹20,000',
         imageColor: '#4CAF50',
         buttonColor: '#FFFFFF',
         imageUrl: require('../../assets/Event_Images/efootbal.webp'),
