@@ -77,7 +77,7 @@ const VisitorPass = ({ data, userName, bookingId, onClose }: VisitorPassProps) =
 
                         {/* Logo */}
                         <Image
-                            source={require('../../../assets/bglogo.webp')}
+                            source={require('../../../assets/bglogo.png')}
                             style={styles.logo}
                             contentFit="contain"
                         />
