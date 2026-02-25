@@ -27,9 +27,9 @@ interface SponsorModalProps {
     onClose: () => void;
 }
 
-const TECH_BROCHURE_URL = 'https://mkjxhijmvlzsijgsfvyy.supabase.co/storage/v1/object/sign/signifiya/SPONSORSHIP%20BROCHURE%20SIGNIFIYA\'26_TECH.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYTc1Y2FmZi1lOWU3LTQ2YWItODc1Ni00NjZkMmZlYWY3ZWIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaWduaWZpeWEvU1BPTlNPUlNISVAgQlJPQ0hVUkUgU0lHTklGSVlBJzI2X1RFQ0gucGRmIiwiaWF0IjoxNzcxNTEyMDYxLCJleHAiOjIwODY4NzIwNjF9.PjUzGIAyIxZBOVTUIbSEhjTuaNXfspVZRTSF0GoM-Ik';
+const TECH_BROCHURE_URL = process.env.EXPO_PUBLIC_TECH_BROCHURE_URL!;
 
-const NON_TECH_BROCHURE_URL = 'https://mkjxhijmvlzsijgsfvyy.supabase.co/storage/v1/object/sign/signifiya/SPONSORSHIP%20BROCHURE%20SIGNIFIYA\'26_NON-TECH.pdf?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iYTc1Y2FmZi1lOWU3LTQ2YWItODc1Ni00NjZkMmZlYWY3ZWIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaWduaWZpeWEvU1BPTlNPUlNISVAgQlJPQ0hVUkUgU0lHTklGSVlBJzI2X05PTi1URUNILnBkZiIsImlhdCI6MTc3MTUxMTkyMCwiZXhwIjoyMDg2ODcxOTIwfQ.EzFG73tmHHuAGTgl5HjVvfnoLAjrGIwplZch84UtzPM';
+const NON_TECH_BROCHURE_URL = process.env.EXPO_PUBLIC_NON_TECH_BROCHURE_URL!;
 
 const SponsorModal = React.memo(({ visible, onClose }: SponsorModalProps) => {
 
