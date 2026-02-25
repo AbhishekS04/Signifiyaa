@@ -22,7 +22,7 @@
     },
 
     "android": {
-      "package": "com.abhishek2304.signifiya",
+      "package": "com.tushardevx01.signifiya",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#000000"

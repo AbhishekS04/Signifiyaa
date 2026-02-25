@@ -30,6 +30,7 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
@@ -61,3 +62,7 @@ SUPABASE_INTEGRATION_ROADMAP.md
 
 REQ_docs
 
+
+
+.idea/
+.vscode/

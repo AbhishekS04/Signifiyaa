@@ -113,20 +113,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const syncUserProfile = async (baseUser: any) => {
         let finalUser: User = { ...baseUser };
 
+        // SECURITY: Only sync profile if we have a verified email
+        if (!finalUser.email) {
+            console.warn('[Security] syncUserProfile: No email provided');
+            return finalUser;
+        }
+
         // Always fetch from Supabase to ensure we have the latest profile data (image, mobile, etc.)
         try {
-            // Fetch latest profile from Supabase
+            // SECURITY: Fetch latest profile from Supabase using verified email
             const { data: sbUser, error } = await supabase
                 .from('user')
-                .select('bookingId, mobileNo, collegeName, gender, image')
+                .select('bookingId, mobileNo, collegeName, gender, image, email, id')
                 .eq('email', finalUser.email)
                 .single();
 
             if (error) {
-                console.error('Supabase query error:', error);
+                console.error('[Security] Supabase query error:', error.message);
             }
 
             if (sbUser) {
+                // SECURITY: Validate email match before accepting data
+                if (sbUser.email && sbUser.email !== finalUser.email) {
+                    console.warn('[Security] Email mismatch in profile sync');
+                    return finalUser;
+                }
+
                 finalUser = {
                     ...finalUser,
                     bookingId: sbUser.bookingId || finalUser.bookingId,
@@ -137,14 +149,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 };
             }
         } catch (err) {
-            console.error('Supabase sync exception:', err);
+            console.error('[Security] Supabase sync exception:', err);
         }
 
         // SECURITY FIX: Ensure all users have a booking ID
         if (!finalUser.bookingId) {
             const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
             const newBookingId = `SGF26-${randomPart}`;
-            console.log('⚠️ Booking ID missing. Generating:', newBookingId);
+            console.log('[Security] Booking ID missing. Generating:', newBookingId);
 
             try {
                 const { error: updateError } = await supabase
@@ -153,13 +165,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     .eq('email', finalUser.email);
 
                 if (updateError) {
-                    console.error('❌ Failed to save booking ID:', updateError);
+                    console.error('❌ [Security] Failed to save booking ID:', updateError);
                 } else {
                     finalUser = { ...finalUser, bookingId: newBookingId };
-                    console.log('✓ Booking ID generated and saved:', newBookingId);
+                    console.log('✓ [Security] Booking ID generated and saved:', newBookingId);
                 }
             } catch (err) {
-                console.error('❌ Booking ID generation error:', err);
+                console.error('❌ [Security] Booking ID generation error:', err);
             }
         }
 

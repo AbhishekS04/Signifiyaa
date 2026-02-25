@@ -130,79 +130,100 @@ const ProfileScreen = () => {
     const [selectedPass, setSelectedPass] = useState<{ type: 'visitor' | 'event', data: any } | null>(null);
 
     const fetchRegistrations = useCallback(async () => {
-        if (!user?.id && !user?.email) return;
+        // SECURITY: Only fetch if we have verified user email
+        if (!user?.email) {
+            console.warn('[Security] fetchRegistrations: No verified email found');
+            return;
+        }
+        
         setIsFetchingReg(true);
         try {
-            // SECURITY: Query by userId (more secure) or fallback to email
-            // Fetch visitor registrations
-            const visitorQuery = supabase.from('visitor_registration')
-                .select('*')
+            // SECURITY: Fetch ONLY visitor registrations for THIS user's email
+            // RLS policies will enforce email-based filtering at DB level
+            const visitorQuery = supabase
+                .from('visitor_registration')
+                .select('id, name, email, passType, status, userBookingId, createdAt, amount')
+                .eq('email', user.email)  // SECURITY: Filter by verified email only
                 .order('createdAt', { ascending: false });
 
-            // Try to filter by userId first (most secure), then by email
-            let vData: any = null;
-            let vError: any = null;
-
-            if (user?.id) {
-                const result = await visitorQuery.eq('userId', user.id);
-                vData = result.data;
-                vError = result.error;
-            } else if (user?.email) {
-                // Fallback to email if userId not available
-                const result = await supabase.from('visitor_registration')
-                    .select('*')
-                    .eq('email', user.email)
-                    .order('createdAt', { ascending: false });
-                vData = result.data;
-                vError = result.error;
-            }
-
-            // Fetch event registrations (filter by leaderEmail since there's no leaderUserId field)
-            const eventQuery = supabase.from('participant_team')
+            // SECURITY: Fetch ONLY event registrations where user is the leader
+            // Email must match verified user email
+            const eventQuery = supabase
+                .from('participant_team')
                 .select(`
-                    *,
+                    id,
+                    teamName,
+                    status,
+                    leaderBookingId,
+                    leaderEmail,
+                    createdAt,
                     participant_team_event (
                         event (
                             name,
                             date
                         )
                     ),
-                    participant_team_member (*)
+                    participant_team_member (
+                        id,
+                        name,
+                        email
+                    )
                 `)
+                .eq('leaderEmail', user.email)  // SECURITY: Filter by verified email only
                 .order('createdAt', { ascending: false });
 
-            let eData: any = null;
-            let eError: any = null;
+            // Execute both queries in parallel
+            const [vResult, eResult] = await Promise.all([
+                visitorQuery,
+                eventQuery
+            ]);
 
-            if (user?.email) {
-                const result = await eventQuery.eq('leaderEmail', user.email);
-                eData = result.data;
-                eError = result.error;
+            // SECURITY: Check for query errors (RLS violations would show here)
+            if (vResult.error) {
+                console.error('[Security] Visitor registrations query blocked:', vResult.error.message);
+            }
+            if (eResult.error) {
+                console.error('[Security] Event registrations query blocked:', eResult.error.message);
             }
 
-            if (vError) console.error('Error fetching visitor regs:', vError);
-            if (eError) console.error('Error fetching event regs:', eError);
-
+            // SECURITY: Validate data before setting state
             // Normalize status: Map 'verified' to 'approved' so the UI logic works correctly
-            const normalizedVData = (vData || []).map((v: any) => ({
-                ...v,
-                status: v.status === 'verified' ? 'approved' : v.status
-            })) as VisitorRegistration[];
+            const normalizedVData = (vResult.data || []).map((v: any) => {
+                // SECURITY: Verify email matches current user
+                if (v.email !== user.email) {
+                    console.warn('[Security] Visitor registration email mismatch detected');
+                    return null;
+                }
+                return {
+                    ...v,
+                    status: v.status === 'verified' ? 'approved' : v.status
+                };
+            }).filter(Boolean) as VisitorRegistration[];
 
-            const normalizedEData = (eData as any || []).map((e: any) => ({
-                ...e,
-                status: e.status === 'verified' ? 'approved' : e.status
-            })) as EventRegistration[];
+            const normalizedEData = (eResult.data || []).map((e: any) => {
+                // SECURITY: Verify leader email matches current user
+                if (e.leaderEmail !== user.email) {
+                    console.warn('[Security] Event registration leader email mismatch detected');
+                    return null;
+                }
+                return {
+                    ...e,
+                    status: e.status === 'verified' ? 'approved' : e.status
+                };
+            }).filter(Boolean) as EventRegistration[];
 
             setVisitorRegistrations(normalizedVData);
             setEventRegistrations(normalizedEData);
 
         } catch (err) {
-            console.error('Fetch exception:', err);
+            console.error('[Security] Exception during registration fetch:', err);
+            // Fail securely: show no data on error rather than cached/partial data
+            setVisitorRegistrations([]);
+            setEventRegistrations([]);
         } finally {
             setIsFetchingReg(false);
         }
-    }, [user?.id, user?.email, bookingId]);
+    }, [user?.email]);
 
     // Update state when profile loads
     useEffect(() => {
@@ -380,27 +401,44 @@ const ProfileScreen = () => {
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
         try {
-            // SECURITY: Fetch only the current user's profile using userId
+            // SECURITY: Fetch only the current user's profile using verified email
+            // Email is verified via Better Auth which we trust
+            if (!user?.email) {
+                console.warn('[Security] onRefresh: No verified email');
+                setRefreshing(false);
+                return;
+            }
+
             const { data: freshProfile, error } = await supabase
                 .from('user')
-                .select('bookingId, mobileNo, collegeName, gender, name, image')
-                .eq('id', user?.id)
+                .select('bookingId, mobileNo, collegeName, gender, name, image, email')
+                .eq('email', user.email)  // SECURITY: Query by verified email
                 .single();
 
-            if (!error && freshProfile) {
-                // Update local state with fresh data
-                setName(freshProfile.name || user?.name || '');
-                setMobile(freshProfile.mobileNo || '');
-                setCollege(freshProfile.collegeName || '');
-                setGender(freshProfile.gender || 'Male');
+            if (error) {
+                console.error('[Security] Profile refresh blocked:', error.message);
+            }
+
+            if (freshProfile) {
+                // SECURITY: Validate email match before updating
+                if (freshProfile.email && freshProfile.email !== user.email) {
+                    console.warn('[Security] Profile email mismatch detected');
+                } else {
+                    // Update local state with fresh data
+                    setName(freshProfile.name || user?.name || '');
+                    setMobile(freshProfile.mobileNo || '');
+                    setCollege(freshProfile.collegeName || '');
+                    setGender(freshProfile.gender || 'Male');
+                }
             }
             await fetchRegistrations();
         } catch (error) {
+            console.error('[Security] Profile refresh exception:', error);
             // Silent fail - user can retry
         } finally {
             setRefreshing(false);
         }
-    }, [user?.id, user?.name, fetchRegistrations]);
+    }, [user?.email, user?.name, fetchRegistrations]);
 
     const handleAvatarSelect = useCallback(async (avatarId: string) => {
         try {
