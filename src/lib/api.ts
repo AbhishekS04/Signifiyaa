@@ -1,6 +1,6 @@
 import { authClient } from './betterAuthClient';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'http://api.signifiya.in/';
 
 const getHeaders = async () => {
     const { data } = await authClient.getSession();
