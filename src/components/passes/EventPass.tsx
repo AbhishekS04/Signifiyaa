@@ -89,6 +89,13 @@ const EventPass = ({ data, userName, bookingId, onClose }: EventPassProps) => {
                             {userName || data.leaderName || 'Signifiya User'}
                         </Text>
                     </View>
+
+                    {data.weightCategory && (
+                        <View style={styles.cleanField}>
+                            <Text style={styles.cleanLabel}>WEIGHT CATEGORY</Text>
+                            <Text style={styles.cleanValue}>{data.weightCategory}</Text>
+                        </View>
+                    )}
                 </View>
             </View>
         </Animated.View>

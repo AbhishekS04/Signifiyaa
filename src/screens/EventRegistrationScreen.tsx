@@ -99,6 +99,7 @@ const EventRegistrationScreen = () => {
         setPhone(user?.mobileNo || '');
         setBookingId(user?.bookingId || '');
         setSelectedEvents([]);
+        setWeightCategory('');
         setTeamMembers([{ id: Date.now(), name: '', college: '', phone: '', email: '' }]);
         setUtrId('');
         setShowSuccess(false);
@@ -131,6 +132,11 @@ const EventRegistrationScreen = () => {
             prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id]
         );
     };
+
+    const isArmWrestlingSelected = selectedEvents.includes(9);
+    const [weightCategory, setWeightCategory] = useState('');
+    const [isWeightDropdownOpen, setIsWeightDropdownOpen] = useState(false);
+    const WEIGHT_CATEGORIES = ["60-70 kg", "70-80 kg", "80-90 kg", "90 kg+"];
 
     const rawTotalPrice = selectedEvents.reduce((sum, id) => {
         const event = AVAILABLE_EVENTS.find(e => e.id === id);
@@ -268,6 +274,7 @@ const EventRegistrationScreen = () => {
                     totalAmount: totalPrice,
                     status: 'pending',
                     paymentProofUrl: utrId.trim(),
+                    weightCategory: isArmWrestlingSelected ? weightCategory : null,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 })
@@ -335,6 +342,10 @@ const EventRegistrationScreen = () => {
         } else if (currentStep === 2) {
             if (validateEvents()) setCurrentStep(3);
         } else if (currentStep === 3) {
+            if (isArmWrestlingSelected && !weightCategory) {
+                showAlert('SELECTION REQUIRED', 'Please choose a weight category for Arm Wrestling.', 'error');
+                return;
+            }
             setCurrentStep(4);
         } else {
             handleSubmitPayment();
@@ -757,28 +768,86 @@ const EventRegistrationScreen = () => {
                             {/* ── STEP 3: Team Members ── */}
                             {currentStep === 3 && (
                                 <Animated.View entering={FadeInDown} style={{ gap: 14, marginBottom: 8 }}>
-                                    {/* Note */}
-                                    <View style={styles.noteBox}>
-                                        <Text style={[styles.noteText, { fontFamily: FONT_BODY }]}>
-                                            Note: Team leader is automatically included. Add other members here.
-                                        </Text>
-                                    </View>
+                                    {isArmWrestlingSelected ? (
+                                        <>
+                                            {/* Weight Category Section */}
+                                            <View style={styles.weightCategoryBox}>
+                                                <Text style={[styles.weightCategoryLabel, { fontFamily: 'Softura' }]}>WEIGHT CATEGORY</Text>
+                                                <View style={{ position: 'relative' }}>
+                                                    <TouchableOpacity
+                                                        onPress={() => setIsWeightDropdownOpen(!isWeightDropdownOpen)}
+                                                        style={styles.weightDropdownTrigger}
+                                                        activeOpacity={0.8}
+                                                    >
+                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <Text style={[styles.weightDropdownText, { color: weightCategory ? '#000' : '#888' }]}>
+                                                                {weightCategory || 'Select your weight category'}
+                                                            </Text>
+                                                            <ChevronDown color="#000" size={20} style={{ transform: [{ rotate: isWeightDropdownOpen ? '180deg' : '0deg' }] }} />
+                                                        </View>
+                                                    </TouchableOpacity>
 
-                                    {teamMembers.map((member, index) => (
-                                        <MemberCard
-                                            key={member.id}
-                                            member={member}
-                                            index={index}
-                                            onRemove={() => removeMember(member.id)}
-                                            onUpdate={(field: string, value: string) => updateMember(member.id, field, value)}
-                                            canRemove={teamMembers.length > 1}
-                                        />
-                                    ))}
+                                                    {isWeightDropdownOpen && (
+                                                        <View style={styles.weightDropdownMenu}>
+                                                            <View style={styles.weightDropdownHeader}>
+                                                                <Text style={styles.weightDropdownHeaderText}>Select your weight category</Text>
+                                                            </View>
+                                                            {WEIGHT_CATEGORIES.map((cat) => (
+                                                                <TouchableOpacity
+                                                                    key={cat}
+                                                                    onPress={() => {
+                                                                        setWeightCategory(cat);
+                                                                        setIsWeightDropdownOpen(false);
+                                                                    }}
+                                                                    style={[
+                                                                        styles.weightDropdownItem,
+                                                                        weightCategory === cat && { backgroundColor: '#f0f9ff' }
+                                                                    ]}
+                                                                >
+                                                                    <Text style={styles.weightDropdownItemText}>{cat}</Text>
+                                                                </TouchableOpacity>
+                                                            ))}
+                                                        </View>
+                                                    )}
+                                                </View>
+                                                <Text style={styles.weightCategoryRequired}>
+                                                    Required — choose the category you will compete in
+                                                </Text>
+                                            </View>
 
-                                    {/* Add Member Button */}
-                                    <TouchableOpacity onPress={addMember} style={styles.addMemberBtn} activeOpacity={0.7}>
-                                        <Text style={[styles.addMemberText, { fontFamily: FONT_BODY }]}>+ ADD MEMBER</Text>
-                                    </TouchableOpacity>
+                                            {/* Solo Event Box */}
+                                            <View style={styles.soloEventBox}>
+                                                <Text style={[styles.soloEventText, { fontFamily: 'Gilton' }]}>
+                                                    Solo Event: No additional team members needed
+                                                </Text>
+                                            </View>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {/* Note */}
+                                            <View style={styles.noteBox}>
+                                                <Text style={[styles.noteText, { fontFamily: FONT_BODY }]}>
+                                                    Note: Team leader is automatically included. Add other members here.
+                                                </Text>
+                                            </View>
+
+                                            {teamMembers.map((member, index) => (
+                                                <MemberCard
+                                                    key={member.id}
+                                                    member={member}
+                                                    index={index}
+                                                    onRemove={() => removeMember(member.id)}
+                                                    onUpdate={(field: string, value: string) => updateMember(member.id, field, value)}
+                                                    canRemove={teamMembers.length > 1}
+                                                />
+                                            ))}
+
+                                            {/* Add Member Button */}
+                                            <TouchableOpacity onPress={addMember} style={styles.addMemberBtn} activeOpacity={0.7}>
+                                                <Text style={[styles.addMemberText, { fontFamily: FONT_BODY }]}>+ ADD MEMBER</Text>
+                                            </TouchableOpacity>
+                                        </>
+                                    )}
                                 </Animated.View>
                             )}
 
@@ -1599,6 +1668,101 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#92400E',
         textAlign: 'center',
+    },
+
+    // Weight Category for Arm Wrestling
+    weightCategoryBox: {
+        backgroundColor: '#FFFBEB',
+        borderWidth: 2,
+        borderColor: '#FEF3C7',
+        borderRadius: 24,
+        padding: 24,
+    },
+    weightCategoryLabel: {
+        fontSize: 12,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        color: '#000',
+        marginBottom: 10,
+    },
+    weightDropdownTrigger: {
+        backgroundColor: '#fff',
+        borderWidth: 2,
+        borderColor: '#000',
+        borderRadius: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+        elevation: 4,
+    },
+    weightDropdownText: {
+        fontFamily: 'Gilton',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    weightCategoryRequired: {
+        fontFamily: 'Gilton',
+        fontSize: 12,
+        color: '#D97706',
+        marginTop: 8,
+        fontWeight: '700',
+    },
+    soloEventBox: {
+        backgroundColor: '#FFFBEB',
+        borderWidth: 2,
+        borderColor: '#FEF3C7',
+        borderRadius: 24,
+        padding: 20,
+    },
+    soloEventText: {
+        fontSize: 14,
+        fontWeight: '900',
+        color: '#78350F',
+        textAlign: 'center',
+    },
+    weightDropdownMenu: {
+        position: 'absolute',
+        top: 60,
+        left: 0,
+        right: 0,
+        backgroundColor: 'white',
+        borderWidth: 2,
+        borderColor: 'black',
+        borderRadius: 16,
+        zIndex: 2000,
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 8, height: 8 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+        elevation: 10,
+    },
+    weightDropdownHeader: {
+        backgroundColor: '#BAE6FD',
+        padding: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+    },
+    weightDropdownHeaderText: {
+        fontFamily: 'Gilton',
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#000',
+    },
+    weightDropdownItem: {
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    weightDropdownItemText: {
+        fontFamily: 'Gilton',
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#000',
     },
 
     // Skeleton
