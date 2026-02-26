@@ -52,7 +52,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Dr. Soumitra Roy",
         role: "FACULTY LEAD",
         desc: "Assistant Professor, ME, SOET",
-        image: require('../../assets/team/Sudipto.webp'),
+        image: require('../../assets/team/Sr.webp'),
         socials: { linkedin: "https://www.linkedin.com/in/soumitra-roy-8987b91a/" },
         category: 'FACULTY'
     },
@@ -205,7 +205,7 @@ const TEAM_MEMBERS: Member[] = [
         name: "Sudipto Barman",
         role: "EX SUPPORT",
         desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Sudipto',
+        image: require('../../assets/team/sudipto.webp'),
         socials: { linkedin: "https://linkedin.com/in/sudipto-barman-3b5b4b3b5/", instagram: "https://instagram.com/sudipto.barman", github: "https://github.com/sudiptobarman" },
         category: 'CORE MEMBER'
     },
