@@ -44,17 +44,17 @@ const TEAM_MEMBERS: Member[] = [
         role: "FACULTY LEAD",
         desc: "Assistant Professor, ECE, SOET",
         image: require('../../assets/team/Soodipa.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/soodipachakraborty/", instagram: "https://www.instagram.com/soodipa_c/" },
+        socials: { linkedin: "https://www.linkedin.com/in/soodipachakraborty/", instagram: "https://www.instagram.com/soodipa_c" },
         category: 'FACULTY'
     },
     {
         id: 3,
-        name: "Sudipto Barman",
+        name: "Dr. Soumitra Roy",
         role: "FACULTY LEAD",
-        desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: require('../../assets/team/Sr.webp'),
-        socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/sudipto.barman", github: "https://github.com/" },
-        category: 'CORE MEMBER'
+        desc: "Assistant Professor, ME, SOET",
+        image: require('../../assets/team/Sudipto.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/soumitra-roy-8987b91a/" },
+        category: 'FACULTY'
     },
     {
         id: 4,
@@ -62,134 +62,47 @@ const TEAM_MEMBERS: Member[] = [
         role: "TECH MENTOR",
         desc: "Assistant Professor, ECE, SOET",
         image: require('../../assets/team/Prabhat.webp'),
-        socials: { linkedin: "https://linkedin.com/in/prabhatd/", github: "https://github.com/prabhatdash/" },
+        socials: { linkedin: "https://www.linkedin.com/in/prabhatd/", github: "https://github.com/prabhatdash/" },
         category: 'FACULTY'
     },
     {
         id: 5,
+        name: "Mr. Ayushman Bilas Thakur",
+        role: "TECH MENTOR",
+        desc: "Assistant Professor, ECE, SOET",
+        image: require('../../assets/team/Ayushman.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/ayushmanbt/", github: "https://github.com/ayushmanbilas" },
+        category: 'FACULTY'
+    },
+    {
+        id: 6,
         name: "Hrishav Dey",
         role: "EVENT ADVISOR",
         desc: "The force that turns bold ideas into flawlessly executed reality.",
         image: require('../../assets/team/Hrishav.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/hrishav-dey-60a8292aa/", instagram: "https://www.instagram.com/hrishav_02/" },
-        category: 'CORE MEMBER'
-    },
-    {
-        id: 6,
-        name: "Digant Mishra",
-        role: "ON-GROUND COORDINATOR",
-        desc: "The go-to problem solver who keeps the action running seamlessly on the ground.",
-        image: require('../../assets/team/Digant.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/digant-mishra-2b2990291/", instagram: "https://www.instagram.com/digantt._" },
+        socials: { linkedin: "https://www.linkedin.com/in/hrishav-dey-60a8292aa", instagram: "https://www.instagram.com/hrishav_02?igsh=bHI5ZWE4OHc2YTY3" },
         category: 'CORE MEMBER'
     },
     {
         id: 7,
-        name: "Arijit De",
-        role: "FINANCIAL LEAD",
-        desc: "Driving partnerships and managing resources to power the fest's biggest ambitions.",
-        image: require('../../assets/team/Arijit.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/arijit-de-ba1594358/", instagram: "https://instagram.com/arijit_.04" },
+        name: "Digant Mishra",
+        role: "ADMINISTRATION HEAD",
+        desc: "The go-to problem solver who keeps the action running seamlessly on the ground.",
+        image: require('../../assets/team/Digant.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/digant-m-a325b61a4", instagram: "https://www.instagram.com/digantt._?igsh=YTZmZTUwcTkxaXp5", github: "https://github.com/diggu92" },
         category: 'CORE MEMBER'
     },
     {
         id: 8,
-        name: "Snehasish Mondal",
-        role: "OPERATIONS LEAD",
-        desc: "The backbone of smooth workflows, ensuring every detail runs right on time.",
-        image: require('../../assets/team/Snehasish.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/snehasish-mondal/", instagram: "https://www.instagram.com/sn3hasishhhhh/", github: "https://github.com/Snehasish321" },
+        name: "Arijit De",
+        role: "FINANCE & SPONSORSHIP LEAD",
+        desc: "Driving partnerships and managing resources to power the fest's biggest ambitions.",
+        image: require('../../assets/team/Arijit.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/arijit-de-ba1594358", instagram: "https://instagram.com/arijit_.04" },
         category: 'CORE MEMBER'
     },
     {
         id: 9,
-        name: "Samriddhi Sinha",
-        role: "DECORATIONS LEAD",
-        desc: "Transforming spaces into immersive experiences that set the fest's mood.",
-        image: require('../../assets/team/Samriddhi.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/samriddhi-sinha-555768280/", instagram: "https://www.instagram.com/samriddhibelike_/", github: "https://github.com/Samriddhie" },
-        category: 'CORE MEMBER'
-    },
-    {
-        id: 10,
-        name: "Arnab Mandal",
-        role: "SOCIAL MEDIA HEAD",
-        desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: require('../../assets/team/Arnab.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/arnab-mandal-4b61151a1/", instagram: "https://www.instagram.com/arna4b/", github: "https://github.com/arnaabh" },
-        category: 'CORE MEMBER'
-    },
-    {
-        id: 11,
-        name: "Garima Roy",
-        role: "DOCUMENTATIONS LEAD",
-        desc: "The mind that captures every milestone and detail with clarity and precision.",
-        image: require('../../assets/team/Garima.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/garima-roy-032277290/", instagram: "https://www.instagram.com/_garimaa.07_", github: "https://github.com/GarimaRoy07" },
-        category: 'CORE MEMBER'
-    },
-    {
-        id: 12,
-        name: "Ashish R. Das",
-        role: "TECH LEAD",
-        desc: "19, full stack web3 dev, community lead @0DAY",
-        image: require('../../assets/team/Ashish.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/arddev", instagram: "https://www.instagram.com/ashishh_rd_", github: "https://github.com/0day-Ashish" },
-        category: 'CORE MEMBER'
-    },
-    {
-        id: 13,
-        name: "Subham Karmakar",
-        role: "TECH SUPPORT",
-        desc: "Architect of innovation, powering the fest with smart tech and seamless systems.",
-        image: require('../../assets/team/Subham.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/subham12r", instagram: "https://www.instagram.com/5ubhamkarmakar", github: "https://github.com/subham12r" },
-        category: 'CORE MEMBER'
-    },
-    {
-        id: 14,
-        name: "Abhisekh Singh",
-        role: "APP DEVELOPMENT",
-        desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: require('../../assets/team/Abhishek.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/abhi3hekk/", instagram: "https://www.instagram.com/abhi3hekk/", github: "https://github.com/AbhishekS04/" },
-        category: 'CORE MEMBER'
-    },
-    {id:15,
-        name: "Tushar kanti Dey",
-        role: "APP DEVELOPMENT",
-        desc: "Turning complex ideas into scalable, production-ready solutions.",
-        image: require('../../assets/team/Tushar.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/tushar-kanti-dey/", instagram: "https://www.instagram.com/tushardevx01", github: "https://github.com/tusharxhub" },
-        category: 'CORE MEMBER'
-    },
-    {id:16,
-        name: "Sayan Mukherjee",
-        role: "APP DEVELOPMENT",
-        desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: require('../../assets/team/Sayan.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/sayan-mukherjee-258751356", instagram: "https://www.instagram.com/sa.yan1047", github: "https://github.com/Sani05M" },
-        category: 'CORE MEMBER'},
-    {
-        id: 17,
-        name: "Leeza Bhowal",
-        role: "DESIGN LEAD",
-        desc: "The creative spark behind visuals that give the fest its identity and vibe.",
-        image: require('../../assets/team/Leeza.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/leeza-bhowal/", instagram: "https://www.instagram.com/leeza_bhowal/", github: "https://github.com/" },
-        category: 'CORE MEMBER'
-    },
-    {
-        id: 18,
-        name: "Srijita Bera",
-        role: "MARKETING LEAD",
-        desc: "The voice of the fest, turning ideas into buzz and reach into impact.",
-        image: require('../../assets/team/Srijita.webp'),
-        socials: { linkedin: "https://linkedin.com/in/srijita-bera-ab5578291/", instagram: "https://instagram.com/veilof_mist", github: "https://github.com/Srijiiii" },
-        category: 'CORE MEMBER'
-    },
-    {
-        id: 19,
         name: "Siddartha Chakraborty",
         role: "ESPORTS LEAD",
         desc: "The strategist behind high-energy battles and next-level competitive gaming.",
@@ -198,40 +111,138 @@ const TEAM_MEMBERS: Member[] = [
         category: 'CORE MEMBER'
     },
     {
+        id: 10,
+        name: "Preyashee Saha",
+        role: "PR LEAD",
+        desc: "Bridging the gap between the fest and the world through strategic communication.",
+        image: require('../../assets/team/preyashee.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/preyashee-saha-a790ba290?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app", instagram: "https://www.instagram.com/prayaaa.06?igsh=eDFsMnNzZWc0aXU0&utm_source=qr" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 11,
+        name: "Snehasish Mondal",
+        role: "OPERATIONS LEAD",
+        desc: "The backbone of smooth workflows, ensuring every detail runs right on time.",
+        image: require('../../assets/team/Snehasish.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/snehasish-mondal", instagram: "https://instagram.com/sn3hasishhhhh", github: "https://github.com/Snehasish321" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 12,
+        name: "Samriddhi Sinha",
+        role: "DECORATIONS LEAD",
+        desc: "Transforming spaces into immersive experiences that set the fest's mood.",
+        image: require('../../assets/team/Samriddhi.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/samriddhi-sinha-555768280", instagram: "https://www.instagram.com/samriddhibelike_?igsh=bGczcmY5NGFydTA2", github: "https://github.com/Samriddhie" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 13,
+        name: "Arnab Mandal",
+        role: "SOCIAL MEDIA HEAD",
+        desc: "Turning strategies into action with energy, coordination, and commitment.",
+        image: require('../../assets/team/Arnab.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/arnab-mandal-4b61151a1", instagram: "https://instagram.com/arna4b", github: "https://github.com/arnaabh" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 14,
+        name: "Ashish R. Das",
+        role: "TECH LEAD",
+        desc: "19, full stack web3 dev, community lead @0DAY",
+        image: require('../../assets/team/Ashish.webp'),
+        socials: { linkedin: "https://linkedin.com/in/arddev", instagram: "https://instagram.com/ashishh_rd_", github: "https://github.com/0day-Ashish" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 15,
+        name: "Subham Karmakar",
+        role: "WEB DEV LEAD",
+        desc: "Architect of innovation, powering the fest with smart tech and seamless systems.",
+        image: require('../../assets/team/Subham.webp'),
+        socials: { linkedin: "https://linkedin.com/in/subham12r", instagram: "https://instagram.com/5ubhamkarmakar", github: "https://github.com/subham12r" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 16,
+        name: "Abhisekh Singh",
+        role: "APP DEV LEAD",
+        desc: "Turning strategies into action with energy, coordination, and commitment.",
+        image: require('../../assets/team/Abhishek.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/abhi3hekk", instagram: "https://instagram.com/abhi3hekk", github: "https://github.com/AbhishekS04" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 17,
+        name: "Garima Roy",
+        role: "DOCUMENTATIONS LEAD",
+        desc: "The mind that captures every milestone and detail with clarity and precision.",
+        image: require('../../assets/team/Garima.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/garima-roy-032277290/", instagram: "https://instagram.com/_garimaa.07_", github: "https://github.com/Groy416" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 18,
+        name: "Leeza Bhowal",
+        role: "DESIGN LEAD",
+        desc: "The creative spark behind visuals that give the fest its identity and vibe.",
+        image: require('../../assets/team/Leeza.webp'),
+        socials: { linkedin: "https://in.linkedin.com/in/leeza-bhowal", instagram: "https://instagram.com/leeza_bhowal" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 19,
+        name: "Srijita Bera",
+        role: "MARKETING LEAD",
+        desc: "The voice of the fest, turning ideas into buzz and reach into impact.",
+        image: require('../../assets/team/Srijita.webp'),
+        socials: { linkedin: "https://linkedin.com/in/srijita-bera-ab5578291/", instagram: "https://instagram.com/veilof_mist", github: "https://github.com/Srijiiii" },
+        category: 'CORE MEMBER'
+    },
+    {
         id: 20,
-        name: "Keshav Maheshwari",
-        role: "EXECUTION CELL",
-        desc: "The hands-on executor ensuring plans come alive with precision and speed.",
-        image: require('../../assets/team/keshav.webp'),
-        socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/keshav.maheshwari", github: "https://github.com/" },
+        name: "Sudipto Barman",
+        role: "EX SUPPORT",
+        desc: "Turning strategies into action with energy, coordination, and commitment.",
+        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Sudipto',
+        socials: { linkedin: "https://linkedin.com/in/sudipto-barman-3b5b4b3b5/", instagram: "https://instagram.com/sudipto.barman", github: "https://github.com/sudiptobarman" },
         category: 'CORE MEMBER'
     },
     {
         id: 21,
-        name: "Sampad Ghosh",
-        role: "EXECUTION CELL",
-        desc: "Turning strategies into action with energy, coordination, and commitment.",
-        image: require('../../assets/team/Sampad.webp'),
-        socials: { linkedin: "https://linkedin.com/in/", instagram: "https://instagram.com/sampad.ghosh", github: "https://github.com/" },
-        category: 'CORE MEMBER'
-    },
-    
-    {
-        id: 22,
         name: "Titas Sarkar",
         role: "EX SUPPORT",
         desc: "Building decentralized solutions that add a future-ready edge to the fest.",
         image: require('../../assets/team/Titas.webp'),
-        socials: {},
+        socials: { linkedin: "https://www.linkedin.com/in/titas-sarkar-7b0978343/", instagram: "https://instagram.com/t.i.t.a.s", github: "https://github.com/titas841-web" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 22,
+        name: "Sayan Mukherjee",
+        role: "APP DEVELOPMENT",
+        desc: "Turning strategies into action with energy, coordination, and commitment.",
+        image: require('../../assets/team/Sayan.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/sayan-mukherjee-258751356", instagram: "https://www.instagram.com/sa.yan1047", github: "https://github.com/Sani05M" },
         category: 'CORE MEMBER'
     },
     {
         id: 23,
+        name: "Tushar Kanti Dey",
+        role: "APP DEVELOPMENT",
+        desc: "Turning complex ideas into scalable, production-ready solutions.",
+        image: require('../../assets/team/Tushar.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/tushar-kanti-dey/", instagram: "https://www.instagram.com/tushardevx01", github: "https://github.com/Tusharxhub" },
+        category: 'CORE MEMBER'
+    },
+    {
+        id: 24,
         name: "Somnath Singha Roy",
         role: "EX SUPPORT",
         desc: "The dependable pillar ensuring help, coordination, and smooth resolutions for everyone.",
-        image: 'https://api.dicebear.com/7.x/pixel-art/png?seed=Somnath',
-        socials: { linkedin: "https://linkedin.com/in/somnath", instagram: "https://instagram.com/somnath" },
+        image: require('../../assets/team/somnath.webp'),
+        socials: { linkedin: "https://www.linkedin.com/in/somnath-singha-roy/" },
         category: 'CORE MEMBER'
     }
 ];
@@ -363,91 +374,91 @@ const TeamSection = React.memo(() => {
 
     return (
         <Animated.View style={entranceStyle}>
-        <View className={`bg-[#F3E5F5] rounded-[32px] mb-4 mx-2 border-2 border-black ${IS_SMALL ? 'px-3 py-5' : 'px-5 py-6'}`}>
+            <View className={`bg-[#F3E5F5] rounded-[32px] mb-4 mx-2 border-2 border-black ${IS_SMALL ? 'px-3 py-5' : 'px-5 py-6'}`}>
 
-            <View className="items-center mb-4">
-                <Text className="text-2xl text-black uppercase" style={S.fontHeader}>MEET THE TEAM</Text>
-                <View className="h-1 w-16 bg-black mt-1 rounded-full" />
-            </View>
+                <View className="items-center mb-4">
+                    <Text className="text-2xl text-black uppercase" style={S.fontHeader}>MEET THE TEAM</Text>
+                    <View className="h-1 w-16 bg-black mt-1 rounded-full" />
+                </View>
 
-            {/* MAIN CARD */}
-            <View className="items-center mb-6">
-                <View className="relative w-full" style={S.mainCardMinH}>
-                    <View className="absolute top-2 left-2 w-full h-full bg-black rounded-[24px]" />
-                    <View
-                        className="bg-white border-[3px] border-black rounded-[24px] p-4 w-full items-center relative overflow-hidden"
-                        style={S.mainCardMinH}
-                    >
-                        <View className="w-20 h-20 bg-black rounded-[16px] mb-3 overflow-hidden relative shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                            <Image
-                                source={avatarSource}
-                                style={S.avatarImg}
-                                contentFit="cover"
-                                cachePolicy="memory-disk"
-                                transition={200}
-                                recyclingKey={`team-avatar-${activeMember.id}`}
-                            />
-                            <View style={S.avatarBorder} pointerEvents="none" />
-                        </View>
+                {/* MAIN CARD */}
+                <View className="items-center mb-6">
+                    <View className="relative w-full" style={S.mainCardMinH}>
+                        <View className="absolute top-2 left-2 w-full h-full bg-black rounded-[24px]" />
+                        <View
+                            className="bg-white border-[3px] border-black rounded-[24px] p-4 w-full items-center relative overflow-hidden"
+                            style={S.mainCardMinH}
+                        >
+                            <View className="w-20 h-20 bg-black rounded-[16px] mb-3 overflow-hidden relative shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                <Image
+                                    source={avatarSource}
+                                    style={S.avatarImg}
+                                    contentFit="cover"
+                                    cachePolicy="memory-disk"
+                                    transition={200}
+                                    recyclingKey={`team-avatar-${activeMember.id}`}
+                                />
+                                <View style={S.avatarBorder} pointerEvents="none" />
+                            </View>
 
-                        <View style={S.nameRow}>
-                            <Text
-                                className="text-black text-center uppercase text-lg"
-                                style={S.fontName}
-                                numberOfLines={1}
-                                adjustsFontSizeToFit
-                            >
-                                {activeMember.name}
-                            </Text>
-                        </View>
+                            <View style={S.nameRow}>
+                                <Text
+                                    className="text-black text-center uppercase text-lg"
+                                    style={S.fontName}
+                                    numberOfLines={1}
+                                    adjustsFontSizeToFit
+                                >
+                                    {activeMember.name}
+                                </Text>
+                            </View>
 
-                        <View style={S.roleRow}>
-                            <Text className="text-[#8e99af] text-[10px] tracking-[0.1em] uppercase text-center" style={S.fontRole}>
-                                {activeMember.role}
-                            </Text>
-                        </View>
+                            <View style={S.roleRow}>
+                                <Text className="text-[#8e99af] text-[10px] tracking-[0.1em] uppercase text-center" style={S.fontRole}>
+                                    {activeMember.role}
+                                </Text>
+                            </View>
 
-                        <View style={S.descRow}>
-                            <Text
-                                className="text-black text-center text-xs leading-4 px-1"
-                                style={S.fontDesc}
-                                numberOfLines={2}
-                            >
-                                {activeMember.desc}
-                            </Text>
-                        </View>
+                            <View style={S.descRow}>
+                                <Text
+                                    className="text-black text-center text-xs leading-4 px-1"
+                                    style={S.fontDesc}
+                                    numberOfLines={2}
+                                >
+                                    {activeMember.desc}
+                                </Text>
+                            </View>
 
-                        <View className="flex-row gap-4 mt-auto">
-                            <SocialButton onPress={openInstagram}>
-                                <Instagram size={16} color="black" strokeWidth={2} />
-                            </SocialButton>
-                            <SocialButton onPress={openLinkedin}>
-                                <Linkedin size={16} color="black" strokeWidth={2} />
-                            </SocialButton>
-                            <SocialButton onPress={openGithub}>
-                                <Github size={16} color="black" strokeWidth={2} />
-                            </SocialButton>
+                            <View className="flex-row gap-4 mt-auto">
+                                <SocialButton onPress={openInstagram}>
+                                    <Instagram size={16} color="black" strokeWidth={2} />
+                                </SocialButton>
+                                <SocialButton onPress={openLinkedin}>
+                                    <Linkedin size={16} color="black" strokeWidth={2} />
+                                </SocialButton>
+                                <SocialButton onPress={openGithub}>
+                                    <Github size={16} color="black" strokeWidth={2} />
+                                </SocialButton>
+                            </View>
                         </View>
                     </View>
                 </View>
-            </View>
 
-            {/* VIRTUALIZED THUMBNAIL LIST */}
-            <View style={S.thumbListH}>
-                <FlatList
-                    data={TEAM_MEMBERS}
-                    horizontal
-                    keyExtractor={keyExtractor}
-                    renderItem={renderThumbnail}
-                    initialNumToRender={6}
-                    maxToRenderPerBatch={5}
-                    windowSize={5}
-                    removeClippedSubviews
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={S.flatListContent}
-                />
+                {/* VIRTUALIZED THUMBNAIL LIST */}
+                <View style={S.thumbListH}>
+                    <FlatList
+                        data={TEAM_MEMBERS}
+                        horizontal
+                        keyExtractor={keyExtractor}
+                        renderItem={renderThumbnail}
+                        initialNumToRender={6}
+                        maxToRenderPerBatch={5}
+                        windowSize={5}
+                        removeClippedSubviews
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={S.flatListContent}
+                    />
+                </View>
             </View>
-        </View>
         </Animated.View>
     );
 });
