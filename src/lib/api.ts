@@ -125,11 +125,11 @@ export const api = {
         }
     },
 
-    queryOrdered: async (table: string, filterCol: string, filterVal: string, orderBy: string) => {
+    queryOrdered: async (table: string, filterCol: string, filterVal: string, orderBy: string, selectQuery: string = '*') => {
         try {
             const { data, error } = await supabase
                 .from(table)
-                .select('*')
+                .select(selectQuery)
                 .eq(filterCol, filterVal)
                 .order(orderBy, { ascending: false });
 

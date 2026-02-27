@@ -12,10 +12,29 @@ interface EventPassProps {
 }
 
 const EventPass = ({ data, userName, bookingId, onClose }: EventPassProps) => {
-    const currentBookingId = data.leaderBookingId || bookingId;
-    const eventName = data.participant_team_event?.[0]?.event?.name || 'Event';
-    const teamName = data.teamName || '—';
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(currentBookingId || '')}&bgcolor=ffffff&color=000000&margin=0`;
+    // DEFENSE: Validate and extract event data with fallbacks
+    const currentBookingId = data?.leaderBookingId || bookingId || 'N/A';
+    
+    // DEFENSE: Handle nested event data structure safely
+    let eventName = 'Event';
+    let eventDate = null;
+    
+    if (Array.isArray(data?.participant_team_event) && data.participant_team_event.length > 0) {
+        const firstEvent = data.participant_team_event[0];
+        if (firstEvent?.event?.name) {
+            eventName = firstEvent.event.name;
+        }
+        if (firstEvent?.event?.date) {
+            eventDate = firstEvent.event.date;
+        }
+    }
+    
+    const teamName = data?.teamName || '—';
+    const leaderName = data?.leaderName || userName || 'Team Lead';
+    
+    // DEFENSE: Validate booking ID before generating QR
+    const qrData = currentBookingId !== 'N/A' ? currentBookingId : 'INVALID-PASS';
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}&bgcolor=ffffff&color=000000&margin=0`;
 
     return (
         <Animated.View
@@ -86,7 +105,7 @@ const EventPass = ({ data, userName, bookingId, onClose }: EventPassProps) => {
                     <View style={styles.cleanField}>
                         <Text style={styles.cleanLabel}>TEAM LEAD</Text>
                         <Text style={styles.cleanValue} numberOfLines={1}>
-                            {userName || data.leaderName || 'Signifiya User'}
+                            {leaderName}
                         </Text>
                     </View>
 

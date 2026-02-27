@@ -217,11 +217,13 @@ const ProfileScreen = () => {
           user.email,
           "createdAt"
         ),
+        // CRITICAL FIX: Expand nested relations to get event details for event pass display
         api.queryOrdered(
           "participant_team",
           "leaderEmail",
           user.email,
-          "createdAt"
+          "createdAt",
+          "*, participant_team_event(event(name, date))"
         ),
       ]);
 
