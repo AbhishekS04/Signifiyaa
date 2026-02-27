@@ -655,7 +655,7 @@ const ProfileScreen = () => {
         return;
       }
 
-      if (role !== undefined && typeof role !== "string") {
+      if (role !== undefined && role !== null && typeof role !== "string") {
         DefenseLog.error("onRefresh", "Security: invalid role field", { role });
         return;
       }
@@ -1201,9 +1201,9 @@ const ProfileScreen = () => {
                                 className="text-sm text-black"
                                 style={{ fontFamily: FONT_BOLD }}>
                                 {reg.passType === "Single Day Pass" ||
-                                reg.passType === "day 1 pass" ||
-                                reg.passType === "day1" ||
-                                reg.passType === "single"
+                                  reg.passType === "day 1 pass" ||
+                                  reg.passType === "day1" ||
+                                  reg.passType === "single"
                                   ? "Single Day Pass"
                                   : "Double Day Pass"}
                               </Text>

@@ -14,24 +14,45 @@ interface EventPassProps {
 const EventPass = ({ data, userName, bookingId, onClose }: EventPassProps) => {
     // DEFENSE: Validate and extract event data with fallbacks
     const currentBookingId = data?.leaderBookingId || bookingId || 'N/A';
-    
+
     // DEFENSE: Handle nested event data structure safely
     let eventName = 'Event';
     let eventDate = null;
-    
+
+    // 1. Try to get from joined participant_team_event array
     if (Array.isArray(data?.participant_team_event) && data.participant_team_event.length > 0) {
-        const firstEvent = data.participant_team_event[0];
-        if (firstEvent?.event?.name) {
-            eventName = firstEvent.event.name;
+        const extractedNames = data.participant_team_event
+            .map((ev: any) => ev?.event?.name || ev?.name) // Check both nested and flat if joined differently
+            .filter((name: any) => typeof name === 'string' && name.trim().length > 0);
+
+        if (extractedNames.length > 0) {
+            eventName = extractedNames.join(', ');
         }
-        if (firstEvent?.event?.date) {
-            eventDate = firstEvent.event.date;
+
+        const dateItem = data.participant_team_event.find((ev: any) => ev?.event?.date || ev?.date);
+        eventDate = dateItem?.event?.date || dateItem?.date || null;
+    }
+
+    // 2. Fallback to extracting from teamName if it contains a pipe (common for legacy/failed joins)
+    if (eventName === 'Event' && typeof data?.teamName === 'string' && data.teamName.includes(' | ')) {
+        const parts = data.teamName.split(' | ');
+        if (parts.length > 1) {
+            eventName = parts.slice(1).join(', ');
         }
     }
-    
-    const teamName = data?.teamName || '—';
+
+    // 3. Last resort fallback if still generic
+    if (eventName === 'Event') {
+        eventName = data?.event_name || data?.title || 'Signifiya Event';
+    }
+
+    // Clean up team name (some data might have "Team Name | Event Name")
+    let teamName = data?.teamName || '—';
+    if (typeof teamName === 'string' && teamName.includes(' | ')) {
+        teamName = teamName.split(' | ')[0];
+    }
     const leaderName = data?.leaderName || userName || 'Team Lead';
-    
+
     // DEFENSE: Validate booking ID before generating QR
     const qrData = currentBookingId !== 'N/A' ? currentBookingId : 'INVALID-PASS';
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}&bgcolor=ffffff&color=000000&margin=0`;
@@ -70,14 +91,14 @@ const EventPass = ({ data, userName, bookingId, onClose }: EventPassProps) => {
                 <View style={styles.cleanContent}>
                     <View style={styles.cleanField}>
                         <Text style={styles.cleanLabel}>EVENT</Text>
-                        <Text style={styles.cleanValue} numberOfLines={1}>
+                        <Text style={styles.cleanValue}>
                             {eventName}
                         </Text>
                     </View>
 
                     <View style={styles.cleanField}>
                         <Text style={styles.cleanLabel}>TEAM</Text>
-                        <Text style={styles.cleanValue} numberOfLines={1}>
+                        <Text style={styles.cleanValue}>
                             {teamName}
                         </Text>
                     </View>
@@ -104,7 +125,7 @@ const EventPass = ({ data, userName, bookingId, onClose }: EventPassProps) => {
                     {/* Footer Detail */}
                     <View style={styles.cleanField}>
                         <Text style={styles.cleanLabel}>TEAM LEAD</Text>
-                        <Text style={styles.cleanValue} numberOfLines={1}>
+                        <Text style={styles.cleanValue}>
                             {leaderName}
                         </Text>
                     </View>

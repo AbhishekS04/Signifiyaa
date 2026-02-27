@@ -243,6 +243,7 @@ const EventRegistrationScreen = () => {
 
         setIsSubmitting(true);
         let syncError = false;
+        const teamId = generateUUID(); // Generate team ID once and use it everywhere
 
         try {
             const resolvedEventIds: string[] = [];
@@ -260,32 +261,38 @@ const EventRegistrationScreen = () => {
                 }
             }
 
-            const { data: teamData, error: teamError } = await supabase
+            const selectedEventNames = selectedEvents
+                .map(id => AVAILABLE_EVENTS.find(e => e.id === id)?.name)
+                .filter(Boolean)
+                .join(', ');
+
+            const dbTeamName = selectedEventNames ? `${teamName} | ${selectedEventNames}` : teamName;
+
+            // Insert team record - REMOVED .select().single() to avoid RLS read issues
+            const { error: teamError } = await supabase
                 .from('participant_team')
                 .insert({
-                    id: generateUUID(),
-                    teamName,
+                    id: teamId,
+                    teamName: dbTeamName,
                     leaderName,
                     leaderEmail: email,
                     leaderPhone: phone,
                     leaderBookingId: bookingId || null,
-                    leaderUserId: user?.id || null,  // SECURITY FIX: Save user ID for RLS
                     college: collegeSelection === 'Others' ? college : 'Adamas University',
                     totalAmount: totalPrice,
                     status: 'pending',
                     paymentProofUrl: utrId.trim(),
-                    weightCategory: isArmWrestlingSelected ? weightCategory : null,
+                    // weightCategory: isArmWrestlingSelected ? weightCategory : null, // TEMPORARILY DISABLED: Add to Supabase first
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
-                })
-                .select()
-                .single();
+                });
 
-            if (teamError) throw teamError;
-            if (!teamData) throw new Error('Failed to create team record.');
+            if (teamError) {
+                console.error('Team Insert Error:', teamError);
+                throw new Error(`Team setup failed: ${teamError.message}`);
+            }
 
-            const teamId = teamData.id;
-
+            // Insert team members if any
             if (teamMembers.length > 0) {
                 const membersPayload = teamMembers
                     .filter(m => m.name.trim())
@@ -295,19 +302,23 @@ const EventRegistrationScreen = () => {
                         college: m.college || 'Unknown',
                         email: m.email || '',
                         phone: m.phone || '',
+                        id: generateUUID(),
+                        createdAt: new Date().toISOString()
                     }));
+
                 if (membersPayload.length > 0) {
                     const { error: membersError } = await supabase
                         .from('participant_team_member')
-                        .insert(membersPayload.map(m => ({
-                            ...m,
-                            id: generateUUID(),
-                            createdAt: new Date().toISOString()
-                        })));
-                    if (membersError) throw membersError;
+                        .insert(membersPayload);
+                    if (membersError) {
+                        console.error('Members Insert Error:', membersError);
+                        // We don't throw here to allow partial success, but we mark the sync error
+                        syncError = true;
+                    }
                 }
             }
 
+            // Link events
             if (resolvedEventIds.length > 0) {
                 const eventLinks = resolvedEventIds.map(eId => ({
                     teamId,
@@ -317,12 +328,21 @@ const EventRegistrationScreen = () => {
                 const { error: linksError } = await supabase
                     .from('participant_team_event')
                     .insert(eventLinks);
-                if (linksError) throw linksError;
+                if (linksError) {
+                    console.error('Links Insert Error:', linksError);
+                    syncError = true;
+                }
             }
 
         } catch (dbError: any) {
-            console.error('Database Save Error:', dbError);
+            console.error('CRITICAL: Database Save Error:', dbError);
             syncError = true;
+            showAlert('REGISTRATION ERROR',
+                `We couldn't save your details to the database: ${dbError.message || 'Unknown error'}. Please try again or contact support.`,
+                'error'
+            );
+            setIsSubmitting(false);
+            return; // STOP HERE if critical error
         }
 
         setIsSubmitting(false);
