@@ -231,6 +231,11 @@ const ProfileScreen = () => {
 
       if (results[0].status === "fulfilled") {
         vData = results[0].value;
+        console.log('[fetchRegistrations] Visitor data received:', {
+          type: Array.isArray(vData) ? `array[${(vData as unknown[]).length}]` : typeof vData,
+          keys: vData && typeof vData === 'object' ? Object.keys(vData as object).join(', ') : 'N/A',
+          sample: JSON.stringify(vData).slice(0, 300)
+        });
       } else {
         DefenseLog.error(
           "fetchRegistrations",
@@ -241,6 +246,11 @@ const ProfileScreen = () => {
 
       if (results[1].status === "fulfilled") {
         eData = results[1].value;
+        console.log('[fetchRegistrations] Event data received:', {
+          type: Array.isArray(eData) ? `array[${(eData as unknown[]).length}]` : typeof eData,
+          keys: eData && typeof eData === 'object' ? Object.keys(eData as object).join(', ') : 'N/A',
+          sample: JSON.stringify(eData).slice(0, 300)
+        });
       } else {
         DefenseLog.error(
           "fetchRegistrations",

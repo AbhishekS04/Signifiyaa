@@ -1,4 +1,5 @@
 import { authClient } from './betterAuthClient';
+import { supabase } from './supabase';
 
 const API_BASE = 'http://api.signifiya.in/';
 
@@ -13,16 +14,34 @@ const getHeaders = async () => {
 };
 
 const extractArray = (payload: unknown): unknown => {
+    // If already an array, return it
     if (Array.isArray(payload)) return payload;
-    if (!payload || typeof payload !== 'object') return payload;
+    
+    // If primitive or null, return empty array as fallback
+    if (!payload || typeof payload !== 'object') {
+        console.warn('[API] Received non-object payload:', typeof payload);
+        return [];
+    }
 
     const obj = payload as Record<string, unknown>;
+    
+    // Check if this is a PostgREST error response
+    if (obj.code && obj.message) {
+        console.error('[API] PostgREST error response:', obj.code, obj.message);
+        return [];
+    }
+
+    // Try standard wrapper keys
     const candidateKeys = ['data', 'rows', 'results', 'records', 'items'];
 
     for (const key of candidateKeys) {
-        if (Array.isArray(obj[key])) return obj[key];
+        if (Array.isArray(obj[key])) {
+            console.log(`[API] ✓ Unwrapped array from key: ${key}, length: ${(obj[key] as unknown[]).length}`);
+            return obj[key];
+        }
     }
 
+    // Try nested objects
     for (const key of candidateKeys) {
         if (obj[key] && typeof obj[key] === 'object') {
             const nested = extractArray(obj[key]);
@@ -30,70 +49,120 @@ const extractArray = (payload: unknown): unknown => {
         }
     }
 
+    // If object has single key with array value
     const keys = Object.keys(obj);
     if (keys.length === 1 && Array.isArray(obj[keys[0]])) {
+        console.log(`[API] ✓ Unwrapped array from single key: ${keys[0]}`);
         return obj[keys[0]] as unknown[];
     }
 
-    return payload;
+    // Could not extract - log full structure and return empty array
+    console.error('[API] ✗ Could not extract array from response');
+    console.error('[API] Response type:', typeof payload);
+    console.error('[API] Response keys:', keys.join(', '));
+    console.error('[API] Full response:', JSON.stringify(payload, null, 2));
+    
+    return [];
 };
 
 const normalizeListResponse = (payload: unknown) => extractArray(payload);
 
 export const api = {
     getWithResponse: async (table: string, column?: string, value?: string) => {
-        const params = column && value
-            ? `?column=${encodeURIComponent(column)}&value=${encodeURIComponent(value)}`
-            : '';
-        const response = await fetch(`${API_BASE}/table/${table}${params}`, {
-            headers: await getHeaders(),
-        });
-
-        const status = response.status;
-        const ok = response.ok;
-        const text = await response.text();
-
-        let data: unknown = null;
-        let rawData: unknown = null;
-        let parseError: unknown = null;
-
-        if (text) {
-            try {
-                rawData = JSON.parse(text);
-                data = normalizeListResponse(rawData);
-            } catch (err) {
-                parseError = err;
+        try {
+            let query = supabase.from(table).select('*');
+            
+            if (column && value) {
+                query = query.eq(column, value);
             }
+
+            const { data, error, status } = await query;
+
+            const ok = !error && status >= 200 && status < 300;
+            const text = error ? JSON.stringify({ message: error.message, code: error.code }) : JSON.stringify(data);
+
+            return {
+                status: status || (error ? 500 : 200),
+                ok,
+                text,
+                data: data || [],
+                rawData: data || [],
+                parseError: error,
+            };
+        } catch (err) {
+            console.error('[API] getWithResponse error:', err);
+            return {
+                status: 500,
+                ok: false,
+                text: JSON.stringify({ error: String(err) }),
+                data: [],
+                rawData: null,
+                parseError: err,
+            };
         }
-
-        return {
-            status,
-            ok,
-            text,
-            data,
-            rawData,
-            parseError,
-        };
     },
+
     get: async (table: string, column?: string, value?: string) => {
-        const params = column && value
-            ? `?column=${encodeURIComponent(column)}&value=${encodeURIComponent(value)}`
-            : '';
-        return fetch(`${API_BASE}/table/${table}${params}`, {
-            headers: await getHeaders(),
-        }).then(r => r.json()).then(normalizeListResponse);
+        try {
+            let query = supabase.from(table).select('*');
+            
+            if (column && value) {
+                query = query.eq(column, value);
+            }
+
+            const { data, error } = await query;
+
+            if (error) {
+                console.error(`[API] get(${table}) error:`, error);
+                return [];
+            }
+
+            console.log(`[API] ✓ get(${table}) returned ${data?.length || 0} rows`);
+            return data || [];
+        } catch (err) {
+            console.error('[API] get exception:', err);
+            return [];
+        }
     },
 
-    queryOrdered: async (table: string, filterCol: string, filterVal: string, orderBy: string) =>
-        fetch(
-            `${API_BASE}/table/${table}/query?filter_column=${encodeURIComponent(filterCol)}&filter_value=${encodeURIComponent(filterVal)}&order_by=${orderBy}&ascending=false`,
-            { headers: await getHeaders() }
-        ).then(r => r.json()).then(normalizeListResponse),
+    queryOrdered: async (table: string, filterCol: string, filterVal: string, orderBy: string) => {
+        try {
+            const { data, error } = await supabase
+                .from(table)
+                .select('*')
+                .eq(filterCol, filterVal)
+                .order(orderBy, { ascending: false });
 
-    post: async (table: string, data: object) =>
-        fetch(`${API_BASE}/table/${table}`, {
-            method: 'POST',
-            headers: await getHeaders(),
-            body: JSON.stringify({ data }),
-        }).then(r => r.json()),
+            if (error) {
+                console.error(`[API] queryOrdered(${table}) error:`, error);
+                return [];
+            }
+
+            console.log(`[API] ✓ queryOrdered(${table}) returned ${data?.length || 0} rows`);
+            return data || [];
+        } catch (err) {
+            console.error('[API] queryOrdered exception:', err);
+            return [];
+        }
+    },
+
+    post: async (table: string, payload: object) => {
+        try {
+            const { data, error } = await supabase
+                .from(table)
+                .insert(payload)
+                .select();
+
+            if (error) {
+                console.error(`[API] post(${table}) error:`, error);
+                throw error;
+            }
+
+            console.log(`[API] ✓ post(${table}) successful`);
+            return data;
+        } catch (err) {
+            console.error('[API] post exception:', err);
+            throw err;
+        }
+    },
 };
