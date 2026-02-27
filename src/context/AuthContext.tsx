@@ -50,16 +50,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             try {
                 const { data, error } = await authClient.getSession();
                 if (data?.user) {
-
-                    const fullUser = await syncUserProfile(data.user);
+                    // OPTIMIZATION: Set user immediately with basic data
+                    const basicUser: User = {
+                        id: data.user.id,
+                        email: data.user.email,
+                        name: data.user.name,
+                        image: data.user.image,
+                        emailVerified: data.user.emailVerified || false,
+                    };
 
                     setSession(data.session);
-                    setUser(fullUser);
-                    setProfile(fullUser);
+                    setUser(basicUser);
+                    setProfile(basicUser);
+                    setIsLoading(false); // Unblock app immediately
+
+                    // OPTIMIZATION: Sync additional profile data in background
+                    syncUserProfile(data.user).then((fullUser) => {
+                        if (fullUser) {
+                            setUser(fullUser);
+                            setProfile(fullUser);
+                        }
+                    }).catch((err) => {
+                        console.error('[Auth] Background profile sync failed:', err);
+                    });
                 } else {
                     setSession(null);
                     setUser(null);
                     setProfile(null);
+                    setIsLoading(false);
                 }
             } catch (e: any) {
                 if (__DEV__) {
@@ -68,7 +86,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setSession(null);
                 setUser(null);
                 setProfile(null);
-            } finally {
                 setIsLoading(false);
             }
         };
@@ -179,7 +196,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const signInWithEmail = async (email: string, password: string) => {
-        setIsLoading(true);
         try {
             const { data, error } = await authClient.signIn.email({
                 email: email.trim(),
@@ -191,16 +207,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             if (data?.user) {
-                const fullUser = await syncUserProfile(data.user);
+                // OPTIMIZATION: Set user immediately with basic data
+                const basicUser: User = {
+                    id: data.user.id,
+                    email: data.user.email,
+                    name: data.user.name,
+                    image: data.user.image,
+                    emailVerified: data.user.emailVerified || false,
+                };
+
                 setSession(data.token || data);
-                setUser(fullUser);
-                setProfile(fullUser);
+                setUser(basicUser);
+                setProfile(basicUser);
+                setIsLoading(false); // Unblock UI immediately
+
+                // OPTIMIZATION: Sync additional profile data in background
+                syncUserProfile(data.user).then((fullUser) => {
+                    if (fullUser) {
+                        setUser(fullUser);
+                        setProfile(fullUser);
+                    }
+                }).catch((err) => {
+                    console.error('[Auth] Background profile sync failed:', err);
+                });
             }
         } catch (error: any) {
+            setIsLoading(false);
             Alert.alert('Sign In Error', error.message);
             throw error;
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -219,21 +253,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             if (data?.user) {
-                const fullUser = await syncUserProfile(data.user);
-                // syncUserProfile now handles booking ID generation automatically
+                // OPTIMIZATION: Set user immediately with basic data
+                const basicUser: User = {
+                    id: data.user.id,
+                    email: data.user.email,
+                    name: data.user.name,
+                    image: data.user.image,
+                    emailVerified: data.user.emailVerified || false,
+                };
 
                 setSession(data.token || data);
-                setUser(fullUser);
-                setProfile(fullUser);
+                setUser(basicUser);
+                setProfile(basicUser);
+                setIsLoading(false); // Unblock UI immediately
+
+                // OPTIMIZATION: Sync profile + generate booking ID in background
+                syncUserProfile(data.user).then((fullUser) => {
+                    if (fullUser) {
+                        setUser(fullUser);
+                        setProfile(fullUser);
+                    }
+                }).catch((err) => {
+                    console.error('[Auth] Background profile sync failed:', err);
+                });
             } else {
                 // Email verification might be required
+                setIsLoading(false);
                 Alert.alert('Success', 'Account created! Please check your email to verify.');
             }
         } catch (error: any) {
+            setIsLoading(false);
             Alert.alert('Sign Up Error', error.message);
             throw error;
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -258,18 +309,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // After browser closes, fetch session to update state
             const { data } = await authClient.getSession();
             if (data?.user) {
-                const fullUser = await syncUserProfile(data.user);
-                // syncUserProfile now handles booking ID generation automatically
+                // OPTIMIZATION: Set user immediately with basic data
+                const basicUser: User = {
+                    id: data.user.id,
+                    email: data.user.email,
+                    name: data.user.name,
+                    image: data.user.image,
+                    emailVerified: data.user.emailVerified || false,
+                };
 
                 setSession(data.session);
-                setUser(fullUser);
-                setProfile(fullUser);
+                setUser(basicUser);
+                setProfile(basicUser);
+                setIsLoading(false); // Unblock UI immediately
+
+                // OPTIMIZATION: Sync additional profile data in background
+                syncUserProfile(data.user).then((fullUser) => {
+                    if (fullUser) {
+                        setUser(fullUser);
+                        setProfile(fullUser);
+                    }
+                }).catch((err) => {
+                    console.error('[Auth] Background profile sync failed:', err);
+                });
             }
         } catch (error: any) {
+            setIsLoading(false);
             Alert.alert('OAuth Error', error.message || 'Failed to sign in with ' + provider);
             console.error('OAuth Error:', error);
-        } finally {
-            setIsLoading(false);
         }
     };
 
