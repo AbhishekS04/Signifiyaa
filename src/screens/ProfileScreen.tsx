@@ -18,6 +18,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { api } from "../lib/api";
 import {
+  safeArrayParse,
+  isValidVisitorRegistration,
+  isValidEventRegistration,
+  isValidEmail,
+  validateBatchResults,
+  DefenseLog,
+} from "../lib/defensiveHandler";
+import {
   Copy,
   Check,
   ChevronDown,
@@ -179,83 +187,172 @@ const ProfileScreen = () => {
   } | null>(null);
 
   const fetchRegistrations = useCallback(async () => {
-    // SECURITY: Only fetch if we have verified user email
+    // DEFENSE: Validate user email before ANY database operations
     if (!user?.email) {
-      console.warn("[Security] fetchRegistrations: No verified email found");
+      DefenseLog.warn("fetchRegistrations", "No verified email found");
+      return;
+    }
+
+    if (!isValidEmail(user.email)) {
+      DefenseLog.error(
+        "fetchRegistrations",
+        "Invalid email format detected",
+        user.email
+      );
       return;
     }
 
     setIsFetchingReg(true);
-    try {
-      // SECURITY: Fetch ONLY visitor registrations for THIS user's email
-      // RLS policies will enforce email-based filtering at DB level
 
-      // SECURITY: Fetch ONLY event registrations where user is the leader
-      // Email must match verified user email
-      // Execute both queries in parallel
-      const [vData, eData] = await Promise.all([
+    // DEFENSE: Prepare fallback state BEFORE any async operations
+    const fallbackVisitorReg: VisitorRegistration[] = [];
+    const fallbackEventReg: EventRegistration[] = [];
+
+    try {
+      // DEFENSE: Execute both queries with Promise.allSettled to handle partial failures
+      const results = await Promise.allSettled([
         api.queryOrdered(
           "visitor_registration",
           "email",
           user.email,
-          "createdAt",
+          "createdAt"
         ),
         api.queryOrdered(
           "participant_team",
           "leaderEmail",
           user.email,
-          "createdAt",
+          "createdAt"
         ),
       ]);
 
-      if (!vData)
-        console.error("[Security] Visitor registrations query blocked");
-      if (!eData) console.error("[Security] Event registrations query blocked");
+      // DEFENSE: Unpack results safely
+      let vData: unknown = null;
+      let eData: unknown = null;
 
-      const vResult = { data: vData ?? [] };
-      const eResult = { data: eData ?? [] };
+      if (results[0].status === "fulfilled") {
+        vData = results[0].value;
+      } else {
+        DefenseLog.error(
+          "fetchRegistrations",
+          "Visitor query rejected",
+          results[0].reason
+        );
+      }
 
-      // SECURITY: Validate data before setting state
-      // Normalize status: Map 'verified' to 'approved' so the UI logic works correctly
-      const normalizedVData = (vResult.data || [])
-        .map((v: any) => {
-          // SECURITY: Verify email matches current user
-          if (v.email !== user.email) {
-            console.warn(
-              "[Security] Visitor registration email mismatch detected",
+      if (results[1].status === "fulfilled") {
+        eData = results[1].value;
+      } else {
+        DefenseLog.error(
+          "fetchRegistrations",
+          "Event query rejected",
+          results[1].reason
+        );
+      }
+
+      // DEFENSE: CRITICAL - Validate arrays before .map()
+      // This prevents "map is not a function" errors
+      const vResult = safeArrayParse(vData, isValidVisitorRegistration);
+      const eResult = safeArrayParse(eData, isValidEventRegistration);
+
+      if (!vResult.isValid && vResult.errors.length > 0) {
+        DefenseLog.warn(
+          "fetchRegistrations",
+          "Visitor registrations validation issues",
+          vResult.errors
+        );
+      }
+
+      if (!eResult.isValid && eResult.errors.length > 0) {
+        DefenseLog.warn(
+          "fetchRegistrations",
+          "Event registrations validation issues",
+          eResult.errors
+        );
+      }
+
+      // DEFENSE: Batch validate results
+      const batch = validateBatchResults(vResult, eResult);
+
+      // DEFENSE: Normalize and filter visitor registrations
+      const normalizedVData: VisitorRegistration[] = (batch.data1 || [])
+        .map((v) => {
+          // DEFENSE: Double-check email match
+          if (!isValidEmail(v.email) || v.email !== user.email) {
+            DefenseLog.warn(
+              "fetchRegistrations",
+              "Visitor registration email mismatch",
+              { id: v.id, email: v.email }
             );
             return null;
           }
+
+          // DEFENSE: Normalize status
+          const normalizedStatus =
+            v.status === "verified" ? "approved" : v.status;
+
           return {
             ...v,
-            status: v.status === "verified" ? "approved" : v.status,
+            status: normalizedStatus as "pending" | "approved",
           };
         })
-        .filter(Boolean) as VisitorRegistration[];
+        .filter((item): item is VisitorRegistration => item !== null);
 
-      const normalizedEData = (eResult.data || [])
-        .map((e: any) => {
-          // SECURITY: Verify leader email matches current user
-          if (e.leaderEmail !== user.email) {
-            console.warn(
-              "[Security] Event registration leader email mismatch detected",
+      // DEFENSE: Normalize and filter event registrations
+      const normalizedEData: EventRegistration[] = (batch.data2 || [])
+        .map((e) => {
+          // DEFENSE: Validate teamName exists
+          if (typeof e.teamName !== "string" || !e.teamName) {
+            DefenseLog.warn(
+              "fetchRegistrations",
+              "Event registration missing teamName",
+              { id: e.id }
             );
             return null;
           }
+
+          // DEFENSE: Validate nested event array - CRITICAL FIX for display
+          let safeEventArray: Array<{
+            event?: { name?: string; date?: string };
+          }> = [];
+          if (Array.isArray(e.participant_team_event)) {
+            safeEventArray = e.participant_team_event.filter(
+              (ev: any) => typeof ev === "object" && ev !== null
+            );
+          }
+
+          // DEFENSE: Normalize status
+          const normalizedStatus =
+            e.status === "verified" ? "approved" : e.status;
+
           return {
             ...e,
-            status: e.status === "verified" ? "approved" : e.status,
+            status: normalizedStatus as "pending" | "approved",
+            participant_team_event: safeEventArray,
           };
         })
-        .filter(Boolean) as EventRegistration[];
+        .filter((item): item is EventRegistration => item !== null);
 
+      // DEFENSE: Atomic state update
       setVisitorRegistrations(normalizedVData);
       setEventRegistrations(normalizedEData);
+
+      DefenseLog.info(
+        "fetchRegistrations",
+        "Registrations loaded successfully",
+        {
+          visitors: normalizedVData.length,
+          events: normalizedEData.length,
+        }
+      );
     } catch (err) {
-      console.error("[Security] Exception during registration fetch:", err);
-      // Fail securely: show no data on error rather than cached/partial data
-      setVisitorRegistrations([]);
-      setEventRegistrations([]);
+      // DEFENSE: Fail securely - reset to empty state on ANY error
+      DefenseLog.error(
+        "fetchRegistrations",
+        "Exception during registration fetch",
+        err
+      );
+      setVisitorRegistrations(fallbackVisitorReg);
+      setEventRegistrations(fallbackEventReg);
     } finally {
       setIsFetchingReg(false);
     }
@@ -328,6 +425,13 @@ const ProfileScreen = () => {
   const copyTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const avatarTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const flipTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Copy Toast Animation
   React.useEffect(() => {
@@ -445,39 +549,123 @@ const ProfileScreen = () => {
   }));
 
   const onRefresh = useCallback(async () => {
-    setRefreshing(true);
+    const setRefreshingSafe = (value: boolean) => {
+      if (isMountedRef.current) {
+        setRefreshing(value);
+      }
+    };
+
+    setRefreshingSafe(true);
     try {
-      // SECURITY: Fetch only the current user's profile using verified email
-      // Email is verified via Better Auth which we trust
+      // DEFENSE: Validate email before making request
       if (!user?.email) {
-        console.warn("[Security] onRefresh: No verified email");
-        setRefreshing(false);
+        DefenseLog.warn("onRefresh", "No verified email");
         return;
       }
 
-      const results = await api.get("user", "email", user.email);
-      const freshProfile = results?.[0] ?? null;
-
-      if (!freshProfile) {
-        console.error("[Security] Profile refresh: no data returned");
-      } else if (freshProfile.email && freshProfile.email !== user.email) {
-        // SECURITY: Validate email match before updating
-        console.warn("[Security] Profile email mismatch detected");
-      } else {
-        // Update local state with fresh data
-        setName(freshProfile.name || user?.name || "");
-        setMobile(freshProfile.mobileNo || "");
-        setCollege(freshProfile.collegeName || "");
-        setGender(freshProfile.gender || "Male");
+      if (!isValidEmail(user.email)) {
+        DefenseLog.error("onRefresh", "Invalid email format", user.email);
+        return;
       }
-      await fetchRegistrations();
+
+      let response: {
+        status: number;
+        ok: boolean;
+        text: string;
+        data: unknown;
+        parseError: unknown;
+      };
+
+      try {
+        response = await api.getWithResponse("user", "email", user.email);
+      } catch (err) {
+        DefenseLog.error("onRefresh", "Network failure", err);
+        return;
+      }
+
+      DefenseLog.info("onRefresh", "Profile refresh response status", {
+        status: response.status,
+        ok: response.ok,
+      });
+
+      if (__DEV__) {
+        DefenseLog.info("onRefresh", "Profile refresh response body", response.text);
+      }
+
+      // DEFENSE: Treat 204 or empty body as session expired
+      if (response.status === 204 || !response.text) {
+        DefenseLog.warn("onRefresh", "Empty response; treating as session expired");
+        signOut();
+        return;
+      }
+
+      if (!response.ok) {
+        DefenseLog.error("onRefresh", "Non-200 response", {
+          status: response.status,
+        });
+        return;
+      }
+
+      if (response.parseError) {
+        DefenseLog.error("onRefresh", "Malformed JSON in response", response.parseError);
+        return;
+      }
+
+      if (!Array.isArray(response.data) || response.data.length === 0) {
+        DefenseLog.error("onRefresh", "Security: invalid profile response payload", response.data);
+        return;
+      }
+
+      const freshProfile = response.data[0];
+      if (typeof freshProfile !== "object" || freshProfile === null) {
+        DefenseLog.error("onRefresh", "Security: invalid profile object returned", freshProfile);
+        return;
+      }
+
+      const profileObj = freshProfile as Record<string, unknown>;
+      const id = profileObj.id;
+      const email = profileObj.email;
+      const role = profileObj.role;
+
+      if (typeof id !== "string" || typeof email !== "string" || !isValidEmail(email)) {
+        DefenseLog.error("onRefresh", "Security: invalid profile fields", {
+          id,
+          email,
+        });
+        return;
+      }
+
+      if (email !== user.email) {
+        DefenseLog.warn("onRefresh", "Profile email mismatch detected", {
+          expected: user.email,
+          received: email,
+        });
+        return;
+      }
+
+      if (role !== undefined && typeof role !== "string") {
+        DefenseLog.error("onRefresh", "Security: invalid role field", { role });
+        return;
+      }
+
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setName(typeof profileObj.name === "string" ? profileObj.name : user?.name || "");
+      setMobile(typeof profileObj.mobileNo === "string" ? profileObj.mobileNo : "");
+      setCollege(typeof profileObj.collegeName === "string" ? profileObj.collegeName : "");
+      setGender(typeof profileObj.gender === "string" ? profileObj.gender : "Male");
+
+      if (isMountedRef.current) {
+        await fetchRegistrations();
+      }
     } catch (error) {
-      console.error("[Security] Profile refresh exception:", error);
-      // Silent fail - user can retry
+      DefenseLog.error("onRefresh", "Unexpected exception", error);
     } finally {
-      setRefreshing(false);
+      setRefreshingSafe(false);
     }
-  }, [user?.email, user?.name, fetchRegistrations]);
+  }, [user?.email, user?.name, fetchRegistrations, signOut]);
 
   const handleAvatarSelect = useCallback(
     async (avatarId: string) => {
@@ -823,21 +1011,25 @@ const ProfileScreen = () => {
                   {eventRegistrations.length > 0 ? (
                     <View className="gap-4">
                       {eventRegistrations.map((reg) => {
-                        // Extract team name and backup event names
+                        // DEFENSE: Extract team name safely
                         const [displayTeamName, backupEventNames] =
-                          reg.teamName.includes(" | ")
+                          typeof reg.teamName === "string" && reg.teamName.includes(" | ")
                             ? reg.teamName.split(" | ")
-                            : [reg.teamName, ""];
+                            : [reg.teamName || "Team", ""];
 
-                        const events =
-                          reg.participant_team_event &&
+                        // DEFENSE: Extract events with strict array validation
+                        let events: string[] = [];
+                        if (
+                          Array.isArray(reg.participant_team_event) &&
                           reg.participant_team_event.length > 0
-                            ? reg.participant_team_event.map(
-                                (ev) => ev.event?.name,
-                              )
-                            : backupEventNames
-                              ? backupEventNames.split(", ")
-                              : [];
+                        ) {
+                          // Filter out null/undefined event names
+                          events = reg.participant_team_event
+                            .map((ev) => ev?.event?.name)
+                            .filter((name): name is string => typeof name === "string" && name.length > 0);
+                        } else if (backupEventNames) {
+                          events = backupEventNames.split(", ").filter(n => n && n.trim());
+                        }
 
                         return (
                           <View
