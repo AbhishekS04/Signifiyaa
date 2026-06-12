@@ -35,9 +35,13 @@ Create a `.env.local` file in the root directory and add the following variables
 ```env
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=your_anon_key
 DATABASE_URL=your_database_url
 EXPO_PUBLIC_RAZORPAY_KEY_ID=your_razorpay_key
+EXPO_PUBLIC_BETTER_AUTH_URL=your_better_auth_url
 ```
+
+If you manage secrets in Expo.dev, add the same public variables there as project environment values.
 
 ### 4. Initialize Prisma (Database)
 
