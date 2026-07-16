@@ -233,7 +233,7 @@ const TEAM_MEMBERS: Member[] = [
         role: "APP DEVELOPMENT",
         desc: "Turning complex ideas into scalable, production-ready solutions.",
         image: require('../../assets/team/Tushar.webp'),
-        socials: { linkedin: "https://www.linkedin.com/in/tushar-kanti-dey/", instagram: "https://www.instagram.com/tushardevx01", github: "https://github.com/Tusharxhub" },
+        socials: { linkedin: "https://www.linkedin.com/in/tushardevx01", instagram: "https://www.instagram.com/tushardevx01", github: "https://github.com/Tushardevx01" },
         category: 'CORE MEMBER'
     },
     {
